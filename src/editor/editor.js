@@ -19,8 +19,8 @@ import { THEME } from '../present/theme.js';
 
 const T = ROOM.TILE;
 const TOOLS = [
-  ['tile', 'Tile', '1'], ['erase', 'Erase', '2'], ['spawn', 'Spawn', '3'], ['exit', 'Exit', '4'],
-  ['emitter', 'Emitter', '5'], ['switch', 'Switch', '6'], ['door', 'Door', '7'], ['select', 'Select', '8'],
+  ['tile', 'Tile', '1'], ['erase', 'Erase', '2'], ['spikes', 'Spikes', '3'], ['spawn', 'Spawn', '4'], ['exit', 'Exit', '5'],
+  ['emitter', 'Emitter', '6'], ['switch', 'Switch', '7'], ['door', 'Door', '8'], ['wall', 'Wall', '9'], ['select', 'Select', '0'],
 ];
 const SCRUB_MAX = 30; // seconds
 
@@ -63,7 +63,7 @@ export function startEditor(canvas, ctx) {
       #editor button { background: #182036; color: #dfe6ff; border: 1px solid #2b3656; border-radius: 4px; padding: 5px 8px; font: inherit; cursor: pointer; }
       #editor button:hover { border-color: #4b5d93; }
       #editor button.on { background: #2b3f75; border-color: #7fd4ff; }
-      #editor .tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+      #editor .tools { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
       #editor .err { color: #ff8a7a; white-space: pre-wrap; }
       #editor .ok { color: #9dff8a; }
       #editor .dim { color: #69728f; }
@@ -212,6 +212,9 @@ export function startEditor(canvas, ctx) {
       box.appendChild(field('id', o.id, (v) => set('id', v.trim())));
       box.appendChild(field('h', o.h ?? 3, num('h'), 'number'));
       box.appendChild(field('open', o.open, (v) => set('open', v || undefined), 'checkbox'));
+    } else if (o.kind === 'wall') {
+      box.appendChild(field('h', o.h ?? 1, num('h'), 'number'));
+      box.appendChild(field('heavy', o.heavy, (v) => set('heavy', v || undefined), 'checkbox'));
     }
     const del = document.createElement('button');
     del.textContent = 'Delete';
@@ -328,7 +331,8 @@ export function startEditor(canvas, ctx) {
   function findAt(at) {
     let i = data.emitters.findIndex((m) => same(m.at, at));
     if (i >= 0) return { list: 'emitters', i };
-    i = data.objects.findIndex((o) => same(o.at, at) || (o.kind === 'door' && o.at[0] === at[0] && at[1] >= o.at[1] && at[1] < o.at[1] + (o.h ?? 3)));
+    const tall = (o) => (o.kind === 'door' ? o.h ?? 3 : o.kind === 'wall' ? o.h ?? 1 : 1);
+    i = data.objects.findIndex((o) => same(o.at, at) || (o.at[0] === at[0] && at[1] >= o.at[1] && at[1] < o.at[1] + tall(o)));
     return i >= 0 ? { list: 'objects', i } : null;
   }
   const setTile = (tx, ty, ch) => {
@@ -351,6 +355,7 @@ export function startEditor(canvas, ctx) {
     switch (tool) {
       case 'tile': if (setTile(tx, ty, '#')) changed(); break;
       case 'erase': if (setTile(tx, ty, '.')) changed(); break;
+      case 'spikes': if (setTile(tx, ty, '^')) changed(); break;
       case 'spawn': data.spawn = at; changed(); break;
       case 'exit': data.exit = at; changed(); break;
       case 'emitter':
@@ -370,6 +375,12 @@ export function startEditor(canvas, ctx) {
         selected = { list: 'objects', i: data.objects.length - 1 };
         changed();
         break;
+      case 'wall':
+        if (findAt(at)) break;
+        data.objects.push({ kind: 'wall', at, h: 1 });
+        selected = { list: 'objects', i: data.objects.length - 1 };
+        changed();
+        break;
       case 'select': selected = findAt(at); updatePanel(); break;
       default:
     }
@@ -383,14 +394,14 @@ export function startEditor(canvas, ctx) {
     const at = toTile(e);
     const erase = e.button === 2;
     apply(at, erase);
-    if (tool === 'tile' || tool === 'erase' || erase) painting = { erase };
+    if (tool === 'tile' || tool === 'erase' || tool === 'spikes' || erase) painting = { erase };
   });
   canvas.addEventListener('pointermove', (e) => {
     hover = toTile(e);
     if (mode === 'edit' && painting && hover) {
       const [tx, ty] = hover;
       if (painting.erase && findAt(hover)) return;
-      if (setTile(tx, ty, painting.erase || tool === 'erase' ? '.' : '#')) changed();
+      if (setTile(tx, ty, painting.erase || tool === 'erase' ? '.' : tool === 'spikes' ? '^' : '#')) changed();
     }
   });
   canvas.addEventListener('pointerup', () => { painting = null; });
@@ -435,7 +446,7 @@ export function startEditor(canvas, ctx) {
     if (selected) {
       const o = data[selected.list][selected.i];
       if (o) {
-        const h = o.kind === 'door' ? (o.h ?? 3) : 1;
+        const h = o.kind === 'door' ? (o.h ?? 3) : o.kind === 'wall' ? (o.h ?? 1) : 1;
         g.strokeStyle = '#fff';
         g.lineWidth = 2;
         g.strokeRect(o.at[0] * T + 1, o.at[1] * T + 1, T - 2, h * T - 2);
@@ -463,7 +474,7 @@ export function startEditor(canvas, ctx) {
     },
     render: (alpha) => {
       if (mode === 'play') {
-        render(ctx, { state: session.state, room: session.room, alpha, fx: session.fx, time });
+        render(ctx, { state: session.state, room: session.room, alpha, fx: session.fx, time, hud: { par: session.room.par } });
       } else if (preview) {
         render(ctx, { state: preview.state, room: preview.room, alpha: 1, fx: null, time, hud: false, editorOverlay: overlay });
       } else {
