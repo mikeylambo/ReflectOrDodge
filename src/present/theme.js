@@ -52,3 +52,27 @@ export const HIGH_CONTRAST = {
   ghostReflected: 'rgba(150,230,255,0.95)',
   wallEdge: '#ffffff',
 };
+
+// Chapter identity (GDD: Art direction): one accent hue and one background
+// motif per chapter. Accents tint only the room's architecture — tile edges,
+// grid, motif — never a gameplay colour, so every projectile and target reads
+// the same in every chapter. See docs/ART.md.
+export const CHAPTER_ART = {
+  0: { accent: '#7fd4ff', motif: 'none' }, //            Prologue: bare diagram
+  1: { accent: '#6fd3c1', motif: 'rings' }, //           Answer: concentric answers
+  2: { accent: '#9aa6c8', motif: 'strata' }, //          Weight: heavy horizontal bands
+  3: { accent: '#9be37a', motif: 'tendrils' }, //        Ground: growth lines
+  4: { accent: '#d7a6ff', motif: 'none' },
+};
+
+const hexA = (hex, a) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+};
+
+export function chapterTheme(ci, highContrast = false) {
+  const base = highContrast ? HIGH_CONTRAST : THEME;
+  const art = CHAPTER_ART[ci] || CHAPTER_ART[0];
+  if (highContrast) return { ...base, motif: 'none', accent: '#ffffff' };
+  return { ...base, accent: art.accent, motif: art.motif, tileEdge: hexA(art.accent, 0.45), grid: hexA(art.accent, 0.035), motifInk: hexA(art.accent, 0.06) };
+}

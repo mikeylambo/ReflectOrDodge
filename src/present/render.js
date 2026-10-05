@@ -20,6 +20,29 @@ const DIR_ANGLE = { right: 0, down: Math.PI / 2, left: Math.PI, up: -Math.PI / 2
 
 let tileCache = null;
 
+// Background motif per chapter: faint, static, behind everything (GDD: Art
+// direction — "nothing decorative competing with gameplay readability").
+function drawMotif(g, theme) {
+  if (!theme.motif || theme.motif === 'none') return;
+  g.save();
+  g.strokeStyle = theme.motifInk;
+  g.lineWidth = 2;
+  if (theme.motif === 'rings') {
+    for (let r = 60; r < 900; r += 70) { g.beginPath(); g.arc(ROOM.W * 0.72, ROOM.H * 0.38, r, 0, Math.PI * 2); g.stroke(); }
+  } else if (theme.motif === 'strata') {
+    for (let y = 40; y < ROOM.H; y += 46) { g.lineWidth = 2 + ((y / 46) % 3) * 2; g.beginPath(); g.moveTo(0, y); g.lineTo(ROOM.W, y + 18); g.stroke(); }
+  } else if (theme.motif === 'tendrils') {
+    for (let k = 0; k < 9; k++) {
+      g.beginPath();
+      let x = 60 + k * 110, y = ROOM.H;
+      g.moveTo(x, y);
+      for (let i = 0; i < 6; i++) { x += ((k + i) % 2 ? 22 : -18); y -= 70; g.quadraticCurveTo(x + 30, y + 35, x, y); }
+      g.stroke();
+    }
+  }
+  g.restore();
+}
+
 function drawTiles(ctx, room, theme) {
   if (!tileCache || tileCache.room !== room || tileCache.solid !== room.solid || tileCache.theme !== theme) {
     const c = document.createElement('canvas');
@@ -28,6 +51,7 @@ function drawTiles(ctx, room, theme) {
     const grad = g.createLinearGradient(0, 0, 0, ROOM.H);
     grad.addColorStop(0, theme.bg1); grad.addColorStop(1, theme.bg0);
     g.fillStyle = grad; g.fillRect(0, 0, ROOM.W, ROOM.H);
+    drawMotif(g, theme);
     g.strokeStyle = theme.grid; g.lineWidth = 1;
     for (let x = 0; x <= ROOM.COLS; x++) { g.beginPath(); g.moveTo(x * T + 0.5, 0); g.lineTo(x * T + 0.5, ROOM.H); g.stroke(); }
     for (let y = 0; y <= ROOM.ROWS; y++) { g.beginPath(); g.moveTo(0, y * T + 0.5); g.lineTo(ROOM.W, y * T + 0.5); g.stroke(); }
@@ -102,27 +126,46 @@ function drawShape(ctx, shape, x, y, s) {
   ctx.fill();
 }
 
+// A luminous simple humanoid (GDD: Art direction), drawn inside the 14×22
+// collision box: head, torso, arms, legs on a stride driven by position. Pure
+// presentation — collision stays the box.
 function drawPlayer(ctx, p, alpha, theme, fx, ghost) {
   const px = lerp(p.px, p.x, alpha), py = lerp(p.py, p.y, alpha);
   const cx = px + PLAYER.W / 2;
   const sq = fx && !ghost ? fx.squash : 0;
-  const w = PLAYER.W * (1 + sq), h = PLAYER.H * (1 - sq);
+  const H = PLAYER.H * (1 - sq), W = PLAYER.W * (1 + sq);
+  const top = py + PLAYER.H - H;
+  const moving = Math.abs(p.x - p.px) > 0.05;
+  const air = !p.grounded;
+  const stride = moving && !air ? Math.sin(px * 0.22) : 0;
+  const f = p.facing;
   ctx.save();
-  if (ghost) {
-    ctx.globalAlpha = 0.4;
-    ctx.strokeStyle = theme.playerGlow;
-    ctx.setLineDash([3, 3]);
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(cx - w / 2, py + PLAYER.H - h, w, h);
-  } else {
-    ctx.shadowColor = theme.playerGlow;
-    ctx.shadowBlur = 16;
-    ctx.fillStyle = theme.player;
-    ctx.fillRect(cx - w / 2, py + PLAYER.H - h, w, h);
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = theme.bg0;
-    ctx.fillRect(cx + p.facing * 3 - 1.5, py + PLAYER.H - h + 5, 3, 4); // eye shows facing
-  }
+  ctx.lineCap = 'round';
+  if (ghost) { ctx.globalAlpha = 0.4; ctx.setLineDash([2, 3]); } else { ctx.shadowColor = theme.playerGlow; ctx.shadowBlur = 14; }
+  ctx.strokeStyle = theme.player;
+  ctx.fillStyle = theme.player;
+  const headR = W * 0.27;
+  const neck = top + headR * 2 + 0.5, hip = top + H * 0.62, foot = py + PLAYER.H;
+  // head
+  ctx.beginPath(); ctx.arc(cx + f * 0.8, top + headR, headR, 0, Math.PI * 2);
+  if (ghost) ctx.stroke(); else ctx.fill();
+  // torso
+  ctx.lineWidth = W * 0.32;
+  ctx.beginPath(); ctx.moveTo(cx, neck + 1); ctx.lineTo(cx, hip); ctx.stroke();
+  // legs
+  ctx.lineWidth = W * 0.2;
+  const legSpread = air ? 3 : 2 + Math.abs(stride) * 3;
+  ctx.beginPath();
+  ctx.moveTo(cx, hip); ctx.lineTo(cx - legSpread + stride * 3 * f, foot - (air ? 3 : 0));
+  ctx.moveTo(cx, hip); ctx.lineTo(cx + legSpread - stride * 3 * f, foot);
+  ctx.stroke();
+  // arms: swing with the stride, raised in the air
+  ctx.lineWidth = W * 0.16;
+  const sh = neck + 2.5, armY = air ? sh - 3 : sh + 6;
+  ctx.beginPath();
+  ctx.moveTo(cx, sh); ctx.lineTo(cx - 5 - stride * 2 * f, armY);
+  ctx.moveTo(cx, sh); ctx.lineTo(cx + 5 + stride * 2 * f, armY);
+  ctx.stroke();
   ctx.restore();
   return [cx, py + PLAYER.H / 2];
 }
@@ -219,6 +262,24 @@ export function render(ctx, {
     const [gx, gy] = pathEnd(state, room, s.x, s.y, s.vx, s.vy);
     ctx.strokeStyle = s.reflected ? theme.ghostReflected : theme.ghost;
     ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(gx, gy); ctx.stroke();
+  }
+  ctx.restore();
+
+  // short motion trails (presentation): where each projectile was a moment ago
+  ctx.save();
+  ctx.lineCap = 'round';
+  for (const s of state.projectiles) {
+    if (s.stuck) continue;
+    const sp = Math.hypot(s.vx, s.vy);
+    if (!sp) continue;
+    const len = Math.min(26, sp * 0.12);
+    const g = ctx.createLinearGradient(s.x, s.y, s.x - (s.vx / sp) * len, s.y - (s.vy / sp) * len);
+    const col = s.reflected ? theme.orbReflected : s.type === 'seed' ? theme.seed : s.type === 'anchor' ? theme.anchor : theme.orb;
+    g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.strokeStyle = g;
+    ctx.globalAlpha = 0.5;
+    ctx.lineWidth = s.r * 1.4;
+    ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x - (s.vx / sp) * len, s.y - (s.vy / sp) * len); ctx.stroke();
   }
   ctx.restore();
 
