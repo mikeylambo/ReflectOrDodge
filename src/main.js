@@ -1,5 +1,4 @@
 import { ROOM } from '../config/tunables.js';
-import { startGame } from './game/game.js';
 
 const canvas = document.getElementById('c');
 const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -11,5 +10,5 @@ ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 if (new URLSearchParams(location.search).get('edit') === '1') {
   import('./editor/editor.js').then((m) => m.startEditor(canvas, ctx));
 } else {
-  startGame(canvas, ctx);
+  import('./shell/app.js').then((m) => m.startApp(canvas, ctx));
 }

@@ -15,6 +15,15 @@
     #touch [data-btn] { pointer-events: auto; position: absolute; width: 56px; height: 56px; border-radius: 50%;
       border: 2px solid rgba(200,220,255,0.25); background: rgba(200,220,255,0.06); touch-action: none; user-select: none;
       display: flex; align-items: center; justify-content: center; font-size: 18px; color: rgba(220,230,255,0.5); }
+    #ui[hidden] { display: none; }
+    /* Web Shell UI, tuned to the game's diagram look */
+    .slu-screen { background: radial-gradient(circle at 50% 30%, rgba(20,26,44,.35), rgba(4,5,8,.82)) !important; }
+    .slu-panel { border-color: rgba(127,212,255,.18) !important; background: rgba(9,11,18,.88) !important; backdrop-filter: none !important; }
+    .slu-header h1 { font-size: clamp(26px, 5vw, 44px) !important; letter-spacing: .02em !important; color: #e8f4ff; }
+    .slu-choice[data-focused="true"], .slu-choice:focus-visible { border-color: rgba(127,212,255,.6) !important; background: rgba(127,212,255,.10) !important; }
+    .slu-choice-label { font-size: 16px !important; font-weight: 600 !important; white-space: pre; }
+    .slu-choice-desc { font-size: 13px; }
+    .slu-choice, .slu-back { min-height: 44px; font-family: inherit !important; }
     body.editing { padding-right: 280px; box-sizing: border-box; }
     body.editing #wrap { width: min(calc(100vw - 296px), calc(100vh * 16 / 9)); }
   </style>
@@ -22,6 +31,7 @@
 <body>
   <div id="wrap">
     <canvas id="c"></canvas>
+    <div id="ui" hidden></div>
     <div id="touch">
       <div data-btn="U" style="left:72px;bottom:120px">▲</div>
       <div data-btn="L" style="left:16px;bottom:64px">◀</div>
@@ -29,7 +39,8 @@
       <div data-btn="D" style="left:72px;bottom:8px">▼</div>
       <div data-btn="JUMP" style="right:16px;bottom:24px">⤒</div>
       <div data-btn="REFLECT" style="right:84px;bottom:72px">◇</div>
-      <div data-btn="reset" style="right:16px;top:16px;width:40px;height:40px">↺</div>
+      <div data-btn="reset" style="right:64px;top:16px;width:40px;height:40px">↺</div>
+      <div data-btn="pause" style="right:16px;top:16px;width:40px;height:40px">Ⅱ</div>
     </div>
   </div>
   <script type="module" src="/src/main.js"></script>
