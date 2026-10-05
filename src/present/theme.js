@@ -23,6 +23,24 @@ export const THEME = {
   door: '#c49bff',
   doorFill: '#2a1f40',
   exit: '#f5f7ff',
+  spike: '#ff4d6d',
+  spikeBase: '#3a1622',
+  wall: '#2a2f3f',
+  wallHeavy: '#343846',
+  wallEdge: '#9aa6c8',
   hud: 'rgba(230,236,255,0.8)',
   hudDim: 'rgba(230,236,255,0.35)',
+};
+
+// High-contrast variant (assist): stronger edges, brighter hazards, no glow-only cues.
+export const HIGH_CONTRAST = {
+  ...THEME,
+  bg0: '#000000',
+  bg1: '#000000',
+  grid: 'rgba(255,255,255,0.0)',
+  tile: '#3a4260',
+  tileEdge: '#ffffff',
+  ghost: 'rgba(255,200,90,0.9)',
+  ghostReflected: 'rgba(150,230,255,0.95)',
+  wallEdge: '#ffffff',
 };

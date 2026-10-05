@@ -9,6 +9,7 @@ import { createState, step } from '../sim/world.js';
 import { encodeLog } from '../sim/input.js';
 import { createFx, fxEvents, fxTick } from '../present/fx.js';
 import { playEvent } from '../engine/audio.js';
+import { haptic } from '../engine/haptics.js';
 import { TIMESTEP } from '../../config/tunables.js';
 
 export function medalFor({ reflects, par, deaths }) {
@@ -47,7 +48,11 @@ export function createSession({ onClear = () => {}, opts = {} } = {}) {
     S.log.push(mask);
     const events = step(st, S.room, mask);
     fxEvents(S.fx, events, st);
-    for (const e of events) playEvent(e);
+    for (const e of events) {
+      playEvent(e);
+      if (e.type === 'projectile.reflect') haptic('light');
+      else if (e.type === 'player.death' || e.type === 'room.clear') haptic('medium');
+    }
     if (st.status === 'clear') {
       const reflects = st.stats.reflects;
       S.lastClear = {

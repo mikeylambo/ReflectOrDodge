@@ -51,7 +51,7 @@ export function startGame(canvas, ctx) {
       session.tick(mask);
     },
     render: (alpha) => {
-      render(ctx, { state: session.state, room: session.room, alpha, fx: session.fx, time });
+      render(ctx, { state: session.state, room: session.room, alpha, fx: session.fx, time, hud: { par: session.room.par } });
       if (card) drawCard(ctx, card.result);
     },
   });
