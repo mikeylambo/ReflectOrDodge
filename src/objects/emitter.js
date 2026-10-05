@@ -83,6 +83,18 @@ export function render(ctx, s, theme) {
     ctx.arc(cx, cy, 3 + 7 * s.charge, 0, Math.PI * 2);
     ctx.fill();
   }
+  // limited emitters show their remaining shots as pips (GDD: no hidden information)
+  if (s.count) {
+    const left = s.count - s.fired;
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    for (let k = 0; k < s.count; k++) {
+      const px = x + 7 + k * ((T - 14) / Math.max(1, s.count - 1)) * (s.count > 1 ? 1 : 0) + (s.count === 1 ? (T - 14) / 2 : 0);
+      ctx.beginPath();
+      ctx.arc(px, y + T - 6, 2.2, 0, Math.PI * 2);
+      if (k < left) { ctx.fillStyle = theme.emitter; ctx.fill(); } else { ctx.strokeStyle = theme.emitterOff; ctx.lineWidth = 1; ctx.stroke(); }
+    }
+  }
   if (!s.on) {
     ctx.strokeStyle = theme.emitterOff;
     ctx.beginPath();
