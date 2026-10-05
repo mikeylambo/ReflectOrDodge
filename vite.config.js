@@ -43,6 +43,7 @@ function levelsApi() {
 // base './' so the bundle works from file:// wrappers and itch subpaths.
 export default defineConfig({
   base: './',
+  resolve: { alias: { '@slu/web-shell': fileURLToPath(new URL('./vendor/web-shell', import.meta.url)) } },
   server: { host: true },
   plugins: [levelsApi()],
 });
