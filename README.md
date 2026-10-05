@@ -53,7 +53,7 @@ src/editor/              the level editor
 src/content/rooms/       one JSON per room + index.json (chapter order)
 src/content/ideas.md     ideas catalogue
 vendor/web-shell/        built Web Shell modules (see its README)
-tools/                   solver CLI, screenshots
+tools/                   solve.mjs (solver CLI for authoring), screenshot.mjs
 test/                    npm test
 ```
 

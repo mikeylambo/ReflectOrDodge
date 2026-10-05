@@ -17,6 +17,7 @@ import { OBJECTS } from '../src/objects/index.js';
 import { validateProjectileType } from '../src/projectiles/_projectile.js';
 import { validateObjectType } from '../src/objects/_object.js';
 import { runUnit } from './unit.mjs';
+import { cachedSolve, saveSolveCache, cacheStats } from './solve-cache.mjs';
 
 let failures = 0;
 const report = (ok, label, detail = '') => {
@@ -80,6 +81,38 @@ for (const { room } of rooms) {
   const ok = state.status === 'clear' && state.stats.reflects <= room.par;
   report(ok, `${room.id}: solution clears`, `status ${state.status}, ◇${state.stats.reflects}/${room.par}, ${(state.tick / 120).toFixed(2)}s`);
 }
+
+// The solver gates and diagnostics (GDD: Testing). Decision rates model a
+// human: 5 Hz = an input change every 0.2 s.
+const SOLVE_HZ = 5;
+const COMFORT_HZ = [4, 3];
+const diag = (label, detail) => console.log(`⚑ ${label}${detail ? ` — ${detail}` : ''}`);
+
+console.log(`── solvability: solver finds a clear within par (${SOLVE_HZ} Hz) ──`);
+for (const { room } of rooms) {
+  const r = cachedSolve(room, { mode: 'any', decisionHz: SOLVE_HZ, maxReflects: room.par });
+  report(r.solvable, `${room.id}: solver clears within par`, r.solvable ? `◇${r.reflects}/${room.par} in ${r.seconds}s, ${r.explored} states` : `${r.reason} (${r.explored} states)`);
+}
+
+console.log('── under-par search (diagnostic: a cheaper solution than the designer\'s) ──');
+for (const { room } of rooms) {
+  if (room.par === 0) continue;
+  const r = cachedSolve(room, { mode: 'any', decisionHz: SOLVE_HZ, maxReflects: room.par - 1 });
+  if (r.solvable) diag(`${room.id}: solvable with ◇${r.reflects} (par ${room.par})`, 'expression or a bypass — review');
+  else console.log(`· ${room.id}: none with ◇≤${room.par - 1} (${r.reason.startsWith('state cap') ? 'search capped — unproven' : 'exhausted'})`);
+}
+
+console.log(`── comfort (diagnostic: still solvable at ${COMFORT_HZ.join(' / ')} Hz) ──`);
+for (const { room } of rooms) {
+  const cells = COMFORT_HZ.map((hz) => {
+    const r = cachedSolve(room, { mode: 'any', decisionHz: hz, maxReflects: room.par });
+    return r.solvable ? `${hz}Hz ${r.seconds}s` : `${hz}Hz FAIL`;
+  });
+  const ok = !cells.some((c) => c.endsWith('FAIL'));
+  (ok ? (l, d) => console.log(`· ${l} — ${d}`) : diag)(`${room.id}: comfort`, cells.join(' · '));
+}
+saveSolveCache();
+{ const { hits, misses } = cacheStats(); console.log(`  (solver cache: ${hits} hit, ${misses} solved)`); }
 
 if (!process.argv.includes('--no-browser')) {
   console.log('── browser smoke ──');
