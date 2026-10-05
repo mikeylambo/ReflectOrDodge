@@ -67,6 +67,7 @@ export function createSession({ onClear = () => {}, onEvent = () => {}, opts = {
     S.clearHold = 0;
     S.replayAt = 0;
     S.ghost = null;
+    S.reflectPaths = []; // this attempt's answers: where each reflect went (Examiner collapse)
   };
 
   S.hintAvailable = (msInRoom) => !!S.solution && S.mode === 'play'
@@ -116,6 +117,12 @@ export function createSession({ onClear = () => {}, onEvent = () => {}, opts = {
       playEvent(e);
       if (e.type === 'projectile.reflect') haptic('light');
       else if (e.type === 'player.death' || e.type === 'room.clear') haptic('medium');
+    }
+    for (const e of events) {
+      if (e.type !== 'projectile.reflect') continue;
+      const pr = st.projectiles.find((q) => q.id === e.id);
+      const sp = pr ? Math.hypot(pr.vx, pr.vy) : 0;
+      if (sp) S.reflectPaths.push({ x: e.x, y: e.y, dx: pr.vx / sp, dy: pr.vy / sp });
     }
     if (st.status === 'clear') {
       const reflects = st.stats.reflects;

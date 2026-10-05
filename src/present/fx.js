@@ -60,7 +60,13 @@ export function fxEvents(fx, events, state) {
         fx.wipe = FEEL.DEATH_FLASH;
         fx.shake = FEEL.SHAKE_TIME;
         break;
-      case 'room.clear': fx.clearGlow = 0.6; break;
+      case 'room.clear': fx.clearGlow = 0.6; fx.clearAt = { x: e.x, y: e.y }; break;
+      case 'examiner.core':
+        fx.pulses.push({ x: e.x, y: e.y, t: 0.6, max: 0.6, color: 'examinerCore' });
+        burst(fx, e.x, e.y, 'diamond', 'examinerCore', 12, 160, 0.6, 3);
+        fx.shake = 0.12;
+        break;
+      case 'seed.stick': fx.rings.push({ x: e.x, y: e.y, t: 0.3, max: 0.3, color: 'seed' }); break;
       default:
     }
   }
@@ -79,6 +85,7 @@ export function fxTick(fx, dt) {
   fx.wipe = Math.max(0, fx.wipe - dt);
   fx.shake = Math.max(0, fx.shake - dt);
   fx.clearGlow = Math.max(0, fx.clearGlow - dt);
+  if (fx.collapse) { fx.collapse.k = Math.min(1, fx.collapse.k + dt / fx.collapse.dur); }
   fx.squash *= Math.pow(0.0005, dt); // ease back to 0
   for (const [id, t] of fx.flashIds) { if (t - dt <= 0) fx.flashIds.delete(id); else fx.flashIds.set(id, t - dt); }
 }

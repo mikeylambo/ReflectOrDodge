@@ -301,9 +301,17 @@ export function step(state, room, input) {
   }
 
   // ── exit ──
-  if (state.status === 'play' && rectsOverlap(playerBox(p), { x: room.exit[0] * T, y: room.exit[1] * T, w: T, h: T })) {
-    state.status = 'clear';
-    events.push({ type: 'room.clear', reflects: state.stats.reflects, x: (room.exit[0] + 0.5) * T, y: (room.exit[1] + 0.5) * T });
+  if (state.status === 'play') {
+    if (room.goal === 'cores') {
+      // Examiner phase: cleared by breaking every core, not by an exit
+      if (state.objects.every((o) => o.kind !== 'core' || o.broken)) {
+        state.status = 'clear';
+        events.push({ type: 'room.clear', reflects: state.stats.reflects, x: pcx, y: pcy });
+      }
+    } else if (rectsOverlap(playerBox(p), { x: room.exit[0] * T, y: room.exit[1] * T, w: T, h: T })) {
+      state.status = 'clear';
+      events.push({ type: 'room.clear', reflects: state.stats.reflects, x: (room.exit[0] + 0.5) * T, y: (room.exit[1] + 0.5) * T });
+    }
   }
 
   state.frame++;

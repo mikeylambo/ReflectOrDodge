@@ -11,6 +11,9 @@
 //   objects   [{ kind:"switch", at, links:[doorId], mode?:"once"|"toggle" }
 //              { kind:"door", id, at, h?:3, open?:false }
 //              { kind:"wall", at, h?:1, heavy?:false }]
+//              { kind:"core", at }             Examiner target: breaks only to a reflected projectile
+//              { kind:"body", at, w, h }        Examiner mass: solid block w×h tiles
+//   goal      "exit" (default) or "cores": clear when every core is broken (Examiner phases)
 //   par       minimal reflect count
 //   solution  compact input log (see sim/input.js) or null
 //   mirrorOf  room id or null
@@ -46,8 +49,12 @@ export function validateRoom(r) {
 
   if (!inBounds(r.spawn)) e('spawn must be an in-bounds [tx, ty]');
   else if (solidAt(...r.spawn) || spikeAt(...r.spawn)) e('spawn is inside a solid or spike tile');
-  if (!inBounds(r.exit)) e('exit must be an in-bounds [tx, ty]');
-  else if (solidAt(...r.exit)) e('exit is inside a solid tile');
+  const goal = r.goal || 'exit';
+  if (!['exit', 'cores'].includes(goal)) e('goal must be "exit" or "cores"');
+  if (goal === 'exit' || r.exit != null) {
+    if (!inBounds(r.exit)) e('exit must be an in-bounds [tx, ty]');
+    else if (solidAt(...r.exit)) e('exit is inside a solid tile');
+  }
 
   const occupied = new Map(); // "tx,ty" → what, so objects never overlap
   const claim = (at, what) => {
@@ -76,6 +83,11 @@ export function validateRoom(r) {
       const w = `objects[${i}]`;
       if (!OBJECTS[o.kind] || o.kind === 'emitter') { e(`${w}.kind "${o.kind}" is not a placeable object`); return; }
       if (!inBounds(o.at)) { e(`${w}.at out of bounds`); return; }
+      if (o.kind === 'body') {
+        if (!(Number.isInteger(o.w) && o.w >= 1 && Number.isInteger(o.h) && o.h >= 1 && o.at[0] + o.w <= ROOM.COLS && o.at[1] + o.h <= ROOM.ROWS)) e(`${w} body w/h must fit inside the room`);
+        else for (let yy = 0; yy < o.h; yy++) for (let xx = 0; xx < o.w; xx++) claim([o.at[0] + xx, o.at[1] + yy], w);
+        return;
+      }
       if (o.kind === 'door' || o.kind === 'wall') {
         const tall = o.kind === 'door' ? 3 : 1;
         if (o.kind === 'door') {
@@ -99,6 +111,7 @@ export function validateRoom(r) {
     });
   }
 
+  if (goal === 'cores' && !(Array.isArray(r.objects) && r.objects.some((o) => o.kind === 'core'))) e('goal "cores" needs at least one core');
   if (!(Number.isInteger(r.par) && r.par >= 0)) e('par must be a non-negative integer');
   if (r.solution !== null && r.solution !== undefined) {
     try { decodeLog(r.solution); } catch (err) { e(`solution: ${err.message}`); }
@@ -120,7 +133,8 @@ export function compileRoom(r) {
     name: r.name || r.id,
     solid,
     spawn: r.spawn,
-    exit: r.exit,
+    exit: r.exit || null,
+    goal: r.goal || 'exit',
     emitters: r.emitters,
     objects: r.objects,
     par: r.par,

@@ -59,6 +59,7 @@ function drawTiles(ctx, room, theme) {
 export const invalidateTiles = () => { tileCache = null; };
 
 function drawExit(ctx, room, t, theme) {
+  if (!room.exit) return; // Examiner phases have no exit
   const [ex, ey] = room.exit;
   const x = ex * T, y = ey * T;
   ctx.save();
@@ -184,7 +185,8 @@ export function render(ctx, {
   }
   ctx.restore();
 
-  for (const o of state.objects) OBJECTS[o.kind].render(ctx, o, theme);
+  const objView = { look: [state.player.x + PLAYER.W / 2, state.player.y + PLAYER.H / 2], collapse: fx && fx.collapse ? fx.collapse.k : 0 };
+  for (const o of state.objects) OBJECTS[o.kind].render(ctx, o, theme, objView);
 
   // door light trails
   if (fx) for (const tr of fx.trails) {
@@ -288,14 +290,29 @@ export function render(ctx, {
     ctx.restore();
   }
 
-  if (fx && fx.clearGlow > 0) {
-    const [ex, ey] = room.exit;
+  if (fx && fx.clearGlow > 0 && fx.clearAt) {
     const k = 1 - fx.clearGlow / 0.6;
     ctx.save();
     ctx.strokeStyle = theme.exit;
     ctx.globalAlpha = 1 - k;
     ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc((ex + 0.5) * T, (ey + 0.5) * T, 20 + k * 700, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(fx.clearAt.x, fx.clearAt.y, 20 + k * 700, 0, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+  }
+
+  // Examiner defeated: light runs along every path your reflections took
+  if (fx && fx.collapse) {
+    const k = fx.collapse.k;
+    ctx.save();
+    ctx.strokeStyle = theme.examinerCore;
+    ctx.shadowColor = theme.examinerCore;
+    ctx.shadowBlur = flashes ? 16 : 0;
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = Math.min(1, k * 3) * (1 - Math.max(0, k - 0.6) / 0.4);
+    for (const pth of fx.collapse.paths) {
+      const len = 1200 * Math.min(1, k * 1.6);
+      ctx.beginPath(); ctx.moveTo(pth.x, pth.y); ctx.lineTo(pth.x + pth.dx * len, pth.y + pth.dy * len); ctx.stroke();
+    }
     ctx.restore();
   }
   ctx.restore();
@@ -321,6 +338,17 @@ export function render(ctx, {
       ctx.fillStyle = state.stats.reflects <= hud.par ? theme.hud : theme.emitter;
       ctx.textAlign = 'right';
       ctx.fillText(`◇ ${state.stats.reflects} / ${hud.par}`, ROOM.W - 12, 9);
+    }
+    if (hud.phase) {
+      // Examiner phase pips: filled = beaten
+      for (let k = 0; k < hud.phase.n; k++) {
+        const px = ROOM.W - 20 - (hud.phase.n - 1 - k) * 18, py = 16;
+        ctx.beginPath();
+        for (let v = 0; v < 6; v++) { const a = (v / 6) * Math.PI * 2 + Math.PI / 6; ctx[v ? 'lineTo' : 'moveTo'](px + Math.cos(a) * 6, py + Math.sin(a) * 6); }
+        ctx.closePath();
+        ctx.fillStyle = theme.examinerCore; ctx.strokeStyle = theme.examinerCore; ctx.lineWidth = 1.5;
+        if (k < hud.phase.i) ctx.fill(); else ctx.stroke();
+      }
     }
     if (hud.hint) {
       // hint glyph: a small eye-like lens, pulsing gently

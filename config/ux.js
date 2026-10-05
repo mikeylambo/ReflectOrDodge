@@ -16,3 +16,8 @@ export const ASSIST_STEPS = {
   WINDOWS: [1, 1.5, 2],
 };
 export const VOLUMES = [1, 0.75, 0.5, 0.25, 0];
+
+// Examiner defeated (GDD: Game feel): slow motion while it collapses along
+// the paths of your reflections.
+export const SLOWMO = { SPEED: 0.35, TIME: 0.5 }; // sim speed, real seconds
+export const COLLAPSE_TIME = 1.2; // s the collapse lines take to sweep out

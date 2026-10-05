@@ -26,7 +26,8 @@ import { decodeLog, BTN } from '../sim/input.js';
 import { ROOM } from '../../config/tunables.js';
 import { openSave, MEDAL, MEDAL_GLYPH, MEDAL_NAME } from './save.js';
 import { createTelemetry } from './telemetry.js';
-import { INTRO_TIME, ASSIST_STEPS, VOLUMES } from '../../config/ux.js';
+import { createMap } from './map.js';
+import { INTRO_TIME, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME } from '../../config/ux.js';
 
 const { SPEEDS, WINDOWS } = ASSIST_STEPS;
 const WINDOW_LABEL = { 1: 'Normal', 1.5: 'Wide', 2: 'Very wide' };
@@ -47,6 +48,9 @@ export async function startApp(canvas, ctx) {
     { action: 'ui_down', keyboard: ['ArrowDown', 'KeyS'], gamepadButtons: [13], gamepadAxes: [{ axis: 1, direction: 1, threshold: 0.5 }] },
     { action: 'ui_accept', keyboard: ['Enter', 'Space', 'KeyJ'], gamepadButtons: [0] },
     { action: 'ui_back', keyboard: ['Escape', 'Backspace'], gamepadButtons: [1, 9] },
+    { action: 'ui_left', keyboard: ['ArrowLeft', 'KeyA'], gamepadButtons: [14], gamepadAxes: [{ axis: 0, direction: -1, threshold: 0.5 }] },
+    { action: 'ui_right', keyboard: ['ArrowRight', 'KeyD'], gamepadButtons: [15], gamepadAxes: [{ axis: 0, direction: 1, threshold: 0.5 }] },
+    { action: 'ui_flip', keyboard: ['KeyM', 'Tab'], gamepadButtons: [3] },
   ];
   uiInput.setBindings(bindings);
   const uiSource = new LatchedInputSource(bindings);
@@ -68,7 +72,7 @@ export async function startApp(canvas, ctx) {
   // click on top of the shell's ui_accept — a double activation. Keyboard
   // activation goes through the shell only; pointer clicks still work.
   uiRoot.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); });
-  const SCREENS = ['title', 'chapters', 'rooms', 'pause', 'assists', 'settings', 'results'];
+  const SCREENS = ['title', 'chapters', 'pause', 'assists', 'settings', 'results'];
   ui.register(SCREENS.map((id) => ({ id, title: '', choices: [] })));
 
   let uiPolling = false;
@@ -81,6 +85,7 @@ export async function startApp(canvas, ctx) {
   // (re-rendering the screen already showing — a toggle — never re-arms it)
   let current = null;
   function showScreen(id, model, { guard = true } = {}) {
+    if (map.active) { map.hide(); current = null; }
     const same = current === id && !uiRoot.hidden;
     ui.updateScreen(id, model);
     if (same) { current = id; return; } // updateScreen re-rendered it in place, keeping focus
@@ -88,15 +93,38 @@ export async function startApp(canvas, ctx) {
     current = id;
     shownAt = guard ? performance.now() : -Infinity;
     uiRoot.hidden = false;
-    if (!uiPolling) { uiPolling = true; requestAnimationFrame(pollUI); ui.startInputLoop(); }
+    if (!uiPolling) { uiPolling = true; requestAnimationFrame(pollUI); }
+    ui.startInputLoop();
   }
   function hideUI() {
+    map.hide();
     current = null;
     uiRoot.hidden = true;
     uiRoot.innerHTML = '';
     ui.stopInputLoop();
     uiPolling = false;
     input.clear();
+  }
+
+  // the chapter map: its own 2D focus model over the same UI input
+  const map = createMap({
+    root: uiRoot,
+    input: uiInput,
+    onPick: (it) => { initAudio(); if (it.kind === 'examiner') enterEncounter(mapChapter); else enterRoom(it.id); },
+    onBack: () => showChapters(),
+    onFlip: () => { mirrorView = !mirrorView; showMap(mapChapter, { guard: false }); },
+  });
+  let mapChapter = 0;
+  let mirrorView = false;
+  function showMap(ci, { guard = true, focusId = null } = {}) {
+    state = 'menu';
+    menuBehind = 'title';
+    mapChapter = chapterIdx = ci;
+    ui.stopInputLoop();
+    current = 'map';
+    uiRoot.hidden = false;
+    if (!uiPolling) { uiPolling = true; requestAnimationFrame(pollUI); }
+    map.show(mapModel(ci), { guard, focusId: focusId || roomId });
   }
 
   // ── game ──
@@ -112,11 +140,18 @@ export async function startApp(canvas, ctx) {
   let pauseFrom = 'play';
   let swallow = 0;
   let frozenDrawn = false;
+  let encounter = null; // { ci, phase } while fighting an Examiner
+  let collapseUntil = 0; // real-time ms: slow-motion + collapse after the final core
 
   const session = createSession({
     onClear: (r) => onRoomClear(r),
     onEvent: (e) => {
       if (state !== 'play') return;
+      if (e.type === 'room.clear' && encounter && encounter.phase === CHAPTERS[encounter.ci].examiner.length - 1) {
+        session.fx.collapse = { k: 0, dur: COLLAPSE_TIME, paths: session.reflectPaths.slice() };
+        loop.setSpeed(SLOWMO.SPEED);
+        collapseUntil = performance.now() + SLOWMO.TIME * 1000;
+      }
       if (e.type === 'player.death') { save.recordDeath(roomId); telemetry.death(roomId); telemetry.attempt(roomId); }
     },
   });
@@ -141,14 +176,69 @@ export async function startApp(canvas, ctx) {
   const chapterOf = (id) => CHAPTERS.findIndex((c) => c.rooms.includes(id));
   const scored = (ci) => CHAPTERS[ci] && CHAPTERS[ci].scored !== false;
   const clearedIn = (ci) => CHAPTERS[ci].rooms.filter((id) => save.room(id) && save.room(id).cleared).length;
-  // Prologue → Chapter 1 opens when the prologue is done. Later chapters open
-  // on 15 of 20 (their Examiners arrive in M2). ?all=1 unlocks everything.
-  const chapterOpen = (ci) => UNLOCK_ALL || ci === 0
-    || (scored(ci - 1) ? clearedIn(ci - 1) >= 15 : clearedIn(ci - 1) >= CHAPTERS[ci - 1].rooms.length);
+  // Unlocks (GDD: World map): the Prologue opens Chapter 1 when it's done; a
+  // chapter's Examiner opens on 15 of its rooms; beating it opens the next
+  // chapter. ?all=1 unlocks everything for playtests.
+  const examinerOpen = (ci) => UNLOCK_ALL || clearedIn(ci) >= 15;
+  const examinerDefeated = (ci) => !!(save.data.chapters[CHAPTERS[ci].id] && save.data.chapters[CHAPTERS[ci].id].examinerDefeated);
+  const chapterOpen = (ci) => {
+    if (UNLOCK_ALL || ci === 0) return true;
+    const prev = CHAPTERS[ci - 1];
+    if (!scored(ci - 1)) return clearedIn(ci - 1) >= prev.rooms.length;
+    return prev.examiner ? examinerDefeated(ci - 1) : clearedIn(ci - 1) >= 15;
+  };
+  const mirrorOf = (id) => ROOM_BY_ID[`${id}-m`] ? `${id}-m` : null;
+  const mirrorOpen = (id) => UNLOCK_ALL || save.data.mirrorsUnlocked.includes(id);
 
-  function enterRoom(id, { replay = false } = {}) {
+  function mapModel(ci) {
+    const c = CHAPTERS[ci];
+    const sc = c.scored !== false;
+    const hasMirrors = sc && c.rooms.some(mirrorOf);
+    const flipped = mirrorView && hasMirrors;
+    const nodes = c.rooms.map((baseId, k) => {
+      const id = flipped ? mirrorOf(baseId) || `${baseId}-m` : baseId;
+      const r = ROOM_BY_ID[id];
+      const locked = flipped ? !(r && mirrorOpen(baseId)) : false;
+      const rec = save.room(id);
+      const glyph = locked ? '·' : !sc ? (rec && rec.cleared ? '●' : '·') : MEDAL_GLYPH[rec ? rec.medal || 0 : 0];
+      const best = r && sc ? `◇ ${rec && rec.bestReflects != null ? rec.bestReflects : '–'} / ${r.par}` : '';
+      return {
+        id, locked, mirror: flipped,
+        html: `<span class="n">${String(k + 1).padStart(2, '0')}</span><span class="g">${locked ? '🔒' : glyph}</span>`,
+        foot: locked ? (r ? '★ → ⇋' : '') : `<span class="name">${(r && r.name) || id}</span>  ${best}`,
+      };
+    });
+    const done = clearedIn(ci);
+    const gold = c.rooms.filter((id) => save.medal(id) === MEDAL.GOLD).length;
+    const model = {
+      title: ci === 0 ? c.name : `${ci} · ${c.name}${flipped ? '  ⇋' : ''}`,
+      tally: sc ? `${done}/${c.rooms.length}   ★ ${gold}` : `${done}/${c.rooms.length}`,
+      nodes,
+    };
+    if (c.examiner && c.examiner.length) {
+      const open = examinerOpen(ci), beaten = examinerDefeated(ci);
+      model.examiner = {
+        id: 'examiner', locked: !open,
+        html: `<span class="g">⬢</span><span>${beaten ? '✓' : open ? '' : `● ${done}/15`}</span>`,
+        foot: open ? '<span class="name">⬢</span>' : `● ${done}/15`,
+      };
+    }
+    if (hasMirrors) {
+      const any = UNLOCK_ALL || c.rooms.some((id) => mirrorOf(id) && mirrorOpen(id));
+      model.flip = { id: 'flip', locked: !any, html: `<span class="g">⇋</span>`, foot: any ? '⇋' : '★ → ⇋' };
+    }
+    return model;
+  }
+
+  function enterEncounter(ci, phase = 0) {
+    encounter = { ci, phase };
+    enterRoom(CHAPTERS[ci].examiner[phase], { encounter: true });
+  }
+
+  function enterRoom(id, { replay = false, encounter: isEncounter = false } = {}) {
+    if (!isEncounter) encounter = null;
     roomId = id;
-    chapterIdx = chapterOf(id);
+    chapterIdx = encounter ? encounter.ci : chapterOf(id) >= 0 ? chapterOf(id) : chapterIdx;
     const data = ROOM_BY_ID[id];
     hideUI();
     applyAssists();
@@ -171,6 +261,16 @@ export async function startApp(canvas, ctx) {
 
   function onRoomClear(r) {
     if (r.replay) { showResults(resultsFor); return; }
+    if (encounter) {
+      const ex = CHAPTERS[encounter.ci].examiner;
+      telemetry.clear(roomId, msInRoom);
+      if (encounter.phase < ex.length - 1) { enterEncounter(encounter.ci, encounter.phase + 1); return; }
+      const cid = CHAPTERS[encounter.ci].id;
+      save.data.chapters[cid] = { ...(save.data.chapters[cid] || {}), examinerDefeated: true };
+      save.save();
+      showExaminerResults(encounter.ci);
+      return;
+    }
     const sc = scored(chapterIdx);
     const change = save.recordClear(roomId, { ...r, medal: sc ? r.medal : MEDAL.BRONZE });
     telemetry.clear(roomId, msInRoom);
@@ -196,31 +296,11 @@ export async function startApp(canvas, ctx) {
       return {
         id: c.id,
         label: `${open ? '' : '🔒 '}${i === 0 ? c.name : `${i} · ${c.name}`}`,
-        description: open ? `${done}/${n}${c.scored === false ? '' : `  ★ ${gold}`}` : undefined,
+        description: open ? `${done}/${n}${c.scored === false ? '' : `  ★ ${gold}`}${c.examiner ? `  ⬢${examinerDefeated(i) ? '✓' : ''}` : ''}` : undefined,
         disabled: !open,
       };
     });
     showScreen('chapters', { title: 'REFLECT / DODGE', choices, backTarget: 'title' });
-  }
-
-  function showRooms(ci) {
-    state = 'menu';
-    menuBehind = 'title';
-    chapterIdx = ci;
-    const c = CHAPTERS[ci];
-    const choices = c.rooms.map((id, k) => {
-      const r = ROOM_BY_ID[id];
-      const rec = save.room(id);
-      const glyph = c.scored === false ? (rec && rec.cleared ? '●' : '·') : MEDAL_GLYPH[rec ? rec.medal || 0 : 0];
-      const best = rec && rec.bestReflects != null && c.scored !== false ? `◇ ${rec.bestReflects} / ${r.par}` : c.scored !== false ? `◇ – / ${r.par}` : undefined;
-      return { id, label: `${glyph}  ${String(k + 1).padStart(2, '0')}  ${r.name || id}`, description: best };
-    });
-    showScreen('rooms', { title: ci === 0 ? c.name : `${ci} · ${c.name}`, choices, backTarget: 'chapters' });
-    // cursor remembers the last room
-    if (roomId && c.rooms.includes(roomId)) {
-      const k = c.rooms.indexOf(roomId);
-      for (let i = 0; i < k; i++) ui.move(1);
-    }
   }
 
   function showPause() {
@@ -277,11 +357,20 @@ export async function startApp(canvas, ctx) {
 
   // guard: true when a keypress (leaving a replay) opened it, so that same
   // press doesn't also act as Back on the results screen
+  // the next room in map order (mirror rooms follow the mirror of the next room)
+  function nextRoomAfter(id) {
+    const c = CHAPTERS[chapterIdx];
+    const base = id.endsWith('-m') ? id.slice(0, -2) : id;
+    const n = c.rooms[c.rooms.indexOf(base) + 1];
+    if (!n) return null;
+    if (id.endsWith('-m')) return mirrorOf(n) && mirrorOpen(n) ? mirrorOf(n) : null;
+    return n;
+  }
+
   function showResults(r, { guard = false } = {}) {
     state = 'menu';
     menuBehind = 'room';
-    const c = CHAPTERS[chapterIdx];
-    const next = c.rooms[c.rooms.indexOf(roomId) + 1];
+    const next = nextRoomAfter(roomId);
     const subtitle = r.scored
       ? `◇ ${r.reflects} / ${r.par}   ✕ ${r.deaths}${r.underPar ? '   ★ under par' : ''}${r.change.medalUp && !r.change.firstClear ? '   ▲' : ''}`
       : undefined;
@@ -297,6 +386,20 @@ export async function startApp(canvas, ctx) {
     }, { guard });
   }
 
+  function showExaminerResults(ci) {
+    state = 'menu';
+    menuBehind = 'room';
+    const next = CHAPTERS[ci + 1] && chapterOpen(ci + 1) ? CHAPTERS[ci + 1] : null;
+    showScreen('results', {
+      title: '⬢',
+      subtitle: undefined,
+      choices: [
+        ...(next ? [{ id: 'next-chapter', label: next.name }] : []),
+        { id: 'map', label: 'Map' },
+      ],
+    }, { guard: false });
+  }
+
   // ── UI handlers ──
   async function onActivate(screen, choice) {
     initAudio();
@@ -307,16 +410,14 @@ export async function startApp(canvas, ctx) {
         else showChapters();
       } else if (choice === 'settings') showSettings('title');
     } else if (screen === 'chapters') {
-      showRooms(CHAPTERS.findIndex((c) => c.id === choice));
-    } else if (screen === 'rooms') {
-      enterRoom(choice);
+      showMap(CHAPTERS.findIndex((c) => c.id === choice));
     } else if (screen === 'pause') {
       if (choice === 'resume') resume();
       else if (choice === 'reset') { session.reset(); telemetry.attempt(roomId); resume(); }
       else if (choice === 'hint') { if (session.useHint()) { save.recordHint(roomId); telemetry.hint(roomId); } resume(); }
       else if (choice === 'assists') showAssists();
       else if (choice === 'settings') showSettings('pause');
-      else if (choice === 'map') { leaveRoom(); showRooms(chapterIdx); }
+      else if (choice === 'map') { leaveRoom(); showMap(chapterIdx); }
     } else if (screen === 'assists') {
       if (choice === 'speed') a.speed = SPEEDS[(SPEEDS.indexOf(a.speed) + 1) % SPEEDS.length];
       else if (choice === 'window') a.window = WINDOWS[(WINDOWS.indexOf(a.window) + 1) % WINDOWS.length];
@@ -342,22 +443,21 @@ export async function startApp(canvas, ctx) {
       applySettings();
       showSettings();
     } else if (screen === 'results') {
-      const c = CHAPTERS[chapterIdx];
-      const next = c.rooms[c.rooms.indexOf(roomId) + 1];
-      if (choice === 'next') { if (next) enterRoom(next); else showRooms(chapterIdx); }
+      const next = nextRoomAfter(roomId);
+      if (choice === 'next') { if (next) enterRoom(next); else showMap(chapterIdx); }
+      else if (choice === 'next-chapter') showMap(chapterIdx + 1, { guard: false });
       else if (choice === 'retry') enterRoom(roomId);
       else if (choice === 'watch') enterRoom(roomId, { replay: true });
-      else if (choice === 'map') showRooms(chapterIdx);
+      else if (choice === 'map') showMap(chapterIdx);
     }
   }
 
   function onBack(screen) {
     if (screen === 'chapters') showTitle();
-    else if (screen === 'rooms') showChapters();
-    else if (screen === 'pause') resume();
+        else if (screen === 'pause') resume();
     else if (screen === 'assists') showPause2();
     else if (screen === 'settings') { if (settingsBack === 'pause') showPause2(); else showTitle(); }
-    else if (screen === 'results') showRooms(chapterIdx);
+    else if (screen === 'results') showMap(chapterIdx);
   }
   // back to the pause menu without re-recording where we paused from
   function showPause2() { const from = pauseFrom; showPause(); pauseFrom = from; }
@@ -389,6 +489,7 @@ export async function startApp(canvas, ctx) {
   const loop = createLoop({
     update: (dt, real) => {
       time += dt;
+      if (collapseUntil && performance.now() > collapseUntil) { collapseUntil = 0; applyAssists(); }
       if (state === 'title' || (state === 'menu' && menuBehind === 'title')) { demo.tick(0); return; }
       if (state === 'intro') {
         introT += real;
@@ -422,7 +523,11 @@ export async function startApp(canvas, ctx) {
       const sc = scored(chapterIdx);
       render(ctx, {
         state: session.state, room: session.room, alpha: state === 'menu' ? 1 : alpha, fx: session.fx, time,
-        hud: state === 'menu' ? false : { par: sc ? session.room.par : null, hint: state === 'play' && session.hintAvailable(msInRoom) },
+        hud: state === 'menu' ? false : {
+          par: sc && !encounter ? session.room.par : null,
+          hint: state === 'play' && session.hintAvailable(msInRoom),
+          phase: encounter ? { i: encounter.phase, n: CHAPTERS[encounter.ci].examiner.length } : null,
+        },
         preview: state === 'play' && save.data.assists.preview && (lastMask & BTN.REFLECT) ? { mask: lastMask } : null,
         ghost: session.ghost ? session.ghost.state : null,
         ...view,

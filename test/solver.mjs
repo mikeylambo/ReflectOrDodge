@@ -71,6 +71,7 @@ function key(s, posQ, velQ, K) {
     else if (o.kind === 'door') k += `|d${o.open ? 1 : 0}`;
     else if (o.kind === 'switch') k += `|s${o.mode === 'toggle' ? o.hits % 2 : Math.min(o.hits, 1)}`;
     else if (o.kind === 'wall') k += `|w${o.broken ? 1 : 0}`;
+    else if (o.kind === 'core') k += `|c${o.broken ? 1 : 0}`;
   }
   return k;
 }
@@ -107,7 +108,7 @@ function progress(st) {
   let n = 0;
   for (const o of st.objects) {
     if (o.kind === 'switch' && o.hits > 0) n++;
-    else if (o.kind === 'wall' && o.broken) n++;
+    else if ((o.kind === 'wall' || o.kind === 'core') && o.broken) n++;
   }
   return n;
 }
@@ -134,7 +135,7 @@ export function solve(data, {
   //               exhausts a budget level within the state cap.
   //   mode 'any': A*-style — tick + frames-to-exit at run speed (admissible) +
   //               a reflect penalty. Finds a clear fast; not minimal.
-  const ex = (room.exit[0] + 0.5) * 32, FPX = TIMESTEP.HZ / PLAYER.RUN;
+  const ex = room.exit ? (room.exit[0] + 0.5) * 32 : 480, FPX = TIMESTEP.HZ / PLAYER.RUN;
   const PRI = mode === 'min'
     ? (st) => st.stats.reflects * 1e7 + st.tick
     : (st) => st.tick + Math.round(Math.abs(st.player.x + PLAYER.W / 2 - ex) * FPX) + st.stats.reflects * reflectPenalty - progress(st) * PROGRESS_BONUS;
