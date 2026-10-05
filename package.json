@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node test/run.mjs",
-    "test:fast": "node test/run.mjs --no-browser"
+    "test:fast": "node test/run.mjs --no-browser",
+    "test:unit": "node test/unit-run.mjs"
   },
   "devDependencies": {
     "playwright": "1.56.1",

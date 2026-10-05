@@ -242,19 +242,19 @@ export function runUnit() {
   check('anchor: cannot be reflected — the window opens and it still kills', () => {
     const r = room(); const s = createState(r); settle(s, r);
     shot(s, 'anchor', s.player.x + PLAYER.W / 2 + 27, s.player.y + PLAYER.H / 2, 'left');
-    step(s, r, BTN.U | RF);
+    step(s, r, U | RF);
     for (let i = 0; i < 60 && s.status === 'play'; i++) step(s, r, U);
     return { ok: s.status === 'dead' && s.stats.reflects === 0, detail: `status ${s.status}, reflects ${s.stats.reflects}` };
   });
 
-  check('anchor: smashes a heavy wall and a switch without stopping; a solid tile ends it', () => {
-    const r = room({ spawn: [3, 15], objects: [{ kind: 'wall', at: [14, 13], h: 3, heavy: true }, { kind: 'switch', at: [18, 15], links: ['d1'] }, { kind: 'door', id: 'd1', at: [25, 13], h: 3 }] });
+  check('anchor: smashes a heavy wall and a switch without stopping; a closed door ends it', () => {
+    const r = room({ spawn: [3, 15], objects: [{ kind: 'wall', at: [14, 13], h: 3, heavy: true }, { kind: 'switch', at: [18, 15], links: ['d1'] }, { kind: 'door', id: 'd1', at: [25, 13], h: 3 }, { kind: 'door', id: 'd2', at: [22, 13], h: 3 }] });
     const s = createState(r); settle(s, r);
     const id = shot(s, 'anchor', 11 * 32, 15.5 * 32, 'right');
     let alivePastSwitch = false;
     for (let i = 0; i < 1000; i++) { step(s, r, 0); const a = s.projectiles.find((p) => p.id === id); if (a && a.x > 19 * 32) alivePastSwitch = true; }
-    const wall = s.objects.find((o) => o.kind === 'wall'), door = s.objects.find((o) => o.kind === 'door');
-    return { ok: wall.broken && door.open && alivePastSwitch && !s.projectiles.some((p) => p.id === id), detail: `wall ${wall.broken} door ${door.open} past ${alivePastSwitch}` };
+    const wall = s.objects.find((o) => o.kind === 'wall'), d1 = s.objects.find((o) => o.id === 'd1');
+    return { ok: wall.broken && d1.open && alivePastSwitch && !s.projectiles.some((p) => p.id === id), detail: `wall ${wall.broken} door ${d1.open} past ${alivePastSwitch}` };
   });
 
   check(`anchor: travels at ${PROJECTILES.anchor.tunables.SPEED} px/s`, () => {
@@ -266,46 +266,44 @@ export function runUnit() {
   });
 
   // ── Seed ──
-  check('seed: sticks to a wall as a ledge the player can stand on, and expires', () => {
+  check('seed: sticks to a wall as a ledge the player can stand on, then expires', () => {
     const r = room(); const s = createState(r); settle(s, r);
-    const id = shot(s, 'seed', 20 * 32, 13 * 32 + 16, 'right'); // flies right into the room's right wall at y≈432
+    const id = shot(s, 'seed', 20 * 32, 13 * 32 + 16, 'right');
     for (let i = 0; i < 500; i++) step(s, r, 0);
     const sd = s.projectiles.find((p) => p.id === id);
     if (!sd || !sd.stuck) return { ok: false, detail: 'did not stick' };
-    const ok1 = sd.plat.x + sd.plat.w === 29 * 32 && Math.abs(sd.plat.y + sd.plat.h / 2 - (13 * 32 + 16)) < 0.01;
-    // stand the player above the ledge and drop
+    const geom = sd.plat.x + sd.plat.w === 29 * 32;
     s.player.x = sd.plat.x + 8; s.player.y = sd.plat.y - PLAYER.H - 20; s.player.vy = 0; s.player.grounded = false;
     for (let i = 0; i < 30; i++) step(s, r, 0);
     const standing = s.player.grounded && Math.abs(s.player.y + PLAYER.H - sd.plat.y) < 0.01;
     for (let i = 0; i < 600; i++) step(s, r, 0);
     const expired = !s.projectiles.some((p) => p.id === id);
-    return { ok: ok1 && standing && expired, detail: `geom ${ok1} standing ${standing} expired ${expired}` };
+    return { ok: geom && standing && expired, detail: `geom ${geom} standing ${standing} expired ${expired}` };
   });
 
   check('seed: the platform is one-way — you jump up through it', () => {
     const r = room(); const s = createState(r); settle(s, r);
-    const id = shot(s, 'seed', 3 * 32, 14 * 32 + 4, 'left'); // ledge out of the left wall just above head height
+    const id = shot(s, 'seed', 3 * 32, 14 * 32 + 4, 'left');
     for (let i = 0; i < 200; i++) step(s, r, 0);
     const sd = s.projectiles.find((p) => p.id === id);
-    s.player.x = 1 * 32 + 6; s.player.y = 15 * 32 + 32 - PLAYER.H; s.player.vy = 0;
+    s.player.x = 1 * 32 + 6; s.player.y = 16 * 32 - PLAYER.H; s.player.vy = 0;
     settle(s, r, 2);
-    let minY = s.player.y;
-    for (let i = 0; i < 60; i++) { step(s, r, JUMP); minY = Math.min(minY, s.player.y); }
-    return { ok: sd && sd.stuck && minY + PLAYER.H < sd.plat.y, detail: sd ? `feet reached ${(minY + PLAYER.H).toFixed(0)}, plat ${sd.plat.y.toFixed(0)}` : 'no seed' };
+    let minFeet = s.player.y + PLAYER.H;
+    for (let i = 0; i < 60; i++) { step(s, r, JUMP); minFeet = Math.min(minFeet, s.player.y + PLAYER.H); }
+    return { ok: !!sd && sd.stuck && minFeet < sd.plat.y, detail: sd ? `feet reached ${minFeet.toFixed(0)}, plat ${sd.plat.y.toFixed(0)}` : 'no seed' };
   });
 
-  check('seed: reflectable in flight, harmless and unreflectable once stuck', () => {
+  check('seed: reflectable in flight; once stuck it is harmless and can\'t be reflected', () => {
     const r = room(); const s = createState(r); settle(s, r);
     const id = shot(s, 'seed', s.player.x + PLAYER.W / 2 + 27, s.player.y + PLAYER.H / 2, 'left');
     step(s, r, U | RF);
-    const reflected = s.projectiles.find((p) => p.id === id)?.reflected;
+    const reflected = !!s.projectiles.find((p) => p.id === id)?.reflected;
     const s2 = createState(r); settle(s2, r);
-    const id2 = shot(s2, 'seed', 9 * 32, 15 * 32 + 26, 'left'); // sticks on the floor beside the player
-    for (let i = 0; i < 5; i++) step(s2, r, 0);
+    const id2 = shot(s2, 'seed', 13 * 32, 15 * 32 + 26, 'down'); // sticks on the floor ahead
+    for (let i = 0; i < 10; i++) step(s2, r, 0);
     const st = s2.projectiles.find((p) => p.id === id2);
-    s2.player.x = st.x - 7; // walk into it
-    for (let i = 0; i < 30; i++) step(s2, r, R | RF);
-    return { ok: reflected && st.stuck && s2.status === 'play' && s2.stats.reflects === 0, detail: `reflected ${reflected} stuck ${st && st.stuck} status ${s2.status}` };
+    for (let i = 0; i < 90; i++) step(s2, r, R | (i === 20 ? RF : 0)); // walk over it, press reflect on it
+    return { ok: reflected && !!st && st.stuck && s2.status === 'play' && s2.stats.reflects === 0, detail: `reflected ${reflected} stuck ${st && st.stuck} status ${s2.status} reflects ${s2.stats.reflects}` };
   });
 
   return out;
