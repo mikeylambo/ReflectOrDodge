@@ -5,6 +5,7 @@
 //   node tools/solve.mjs c1-04 c1-05     just these rooms
 //   node tools/solve.mjs c1-04 --write   also store the solver's run as the room's
 //                                        solution and set par to its reflect count
+//                                        (refused when it beats the room's intended par)
 //   --hz N                               decision rate (default 5)
 //
 // Budgets are tried in order 0, 1, 2… A budget that ends "exhausted" proves no
@@ -36,7 +37,9 @@ for (const { file, room } of loadRooms()) {
   if (!found) { console.log(`✗ ${room.id}: no solution (${notes.join(' ')}) ${ms}ms`); process.exitCode = 1; continue; }
   const flag = found.reflects < room.par ? '  ⚑ under par' : found.reflects > room.par ? '  ⚠ over par' : '';
   console.log(`✓ ${room.id}: ◇${found.reflects} (par ${room.par}) in ${found.seconds}s  [${notes.join(' ') || 'first budget'}] ${ms}ms${flag}`);
-  if (write) {
+  if (write && found.reflects < room.par) {
+    console.log('  not written: beats the intended par — fix the bypass, or lower par by hand if it is the better design');
+  } else if (write) {
     room.solution = encodeLog(found.masks);
     room.par = found.reflects;
     writeFileSync(LEVELS_DIR + file, formatRoom(room));

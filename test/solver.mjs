@@ -96,6 +96,21 @@ function reflectUseful(s, K) {
   return false;
 }
 
+// 'any' mode: each change to the room (a switch fired, a wall broken, a door
+// opened) pulls the search forward, so multi-step rooms explore past each step
+// instead of re-exploring everything before it. Not admissible — 'any' only
+// promises a clear, not the earliest one.
+const PROGRESS_BONUS = 360; // frames
+function progress(st) {
+  let n = 0;
+  for (const o of st.objects) {
+    if (o.kind === 'switch' && o.hits > 0) n++;
+    else if (o.kind === 'wall' && o.broken) n++;
+    else if (o.kind === 'door' && o.open) n++;
+  }
+  return n;
+}
+
 /**
  * @param data room JSON
  * @param opts.decisionHz  input decisions per second (default 10)
@@ -121,7 +136,7 @@ export function solve(data, {
   const ex = (room.exit[0] + 0.5) * 32, FPX = TIMESTEP.HZ / PLAYER.RUN;
   const PRI = mode === 'min'
     ? (st) => st.stats.reflects * 1e7 + st.tick
-    : (st) => st.tick + Math.round(Math.abs(st.player.x + PLAYER.W / 2 - ex) * FPX) + st.stats.reflects * reflectPenalty;
+    : (st) => st.tick + Math.round(Math.abs(st.player.x + PLAYER.W / 2 - ex) * FPX) + st.stats.reflects * reflectPenalty - progress(st) * PROGRESS_BONUS;
   const buckets = new Map();
   const push = (n) => { const t = PRI(n.s); if (!buckets.has(t)) buckets.set(t, []); buckets.get(t).push(n); };
   const seen = new Set();
