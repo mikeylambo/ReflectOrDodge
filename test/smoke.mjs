@@ -1,5 +1,5 @@
 // Browser smoke: build → preview → drive the real game in Chromium.
-// Reads state through the window.__RD hook.
+// Reads state through the window.__RD hook and the Web Shell's DOM screens.
 import { build, preview } from 'vite';
 import { chromium } from 'playwright';
 
@@ -16,11 +16,14 @@ export async function runBrowser(nodeHashes, hash) {
     const errors = [];
     page.on('pageerror', (e) => errors.push(String(e)));
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+    const screen = () => page.evaluate(() => { const el = document.querySelector('#ui:not([hidden]) .slu-screen'); return el ? el.dataset.screenId : null; });
+    const st = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__RD.session.state)));
+    const appState = () => page.evaluate(() => window.__RD.state);
 
     await page.goto(url);
-    await page.waitForFunction(() => window.__RD && window.__RD.session && window.__RD.session.state);
-    await page.waitForTimeout(400);
-
+    await page.waitForFunction(() => window.__RD && window.__RD.state === 'title');
+    await page.waitForTimeout(500);
+    check(await screen() === 'title', 'boots to the title screen (Web Shell UI)');
     const bright = await page.evaluate(() => {
       const c = document.getElementById('c');
       const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
@@ -28,55 +31,125 @@ export async function runBrowser(nodeHashes, hash) {
       for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 300) n++;
       return n;
     });
-    check(bright > 200, 'boots and renders', `${bright} bright pixels`);
+    check(bright > 200, 'title demo renders behind the menu', `${bright} bright pixels`);
 
-    const st = () => page.evaluate(() => JSON.parse(JSON.stringify(window.__RD.session.state)));
-    const s0 = await st();
-    check(s0.player.grounded, 'gravity: player lands at spawn');
+    // first boot: Play goes straight into the prologue
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(300);
+    const s0state = await appState();
+    check(s0state === 'intro' || s0state === 'play', 'Play on first boot enters the first room', s0state);
+    await page.keyboard.press('k'); // skip intro (reflect key; swallowed)
+    await page.waitForTimeout(150);
+    check(await appState() === 'play', 'any button skips the room intro');
 
+    const a = await st();
+    check(a.player.grounded, 'gravity: player lands at spawn');
     await page.keyboard.down('d');
     await page.waitForTimeout(400);
     await page.keyboard.up('d');
-    const s1 = await st();
-    check(s1.player.x - s0.player.x > 40, 'input: holding D runs right', `${(s1.player.x - s0.player.x).toFixed(1)} px`);
-
+    const b = await st();
+    check(b.player.x - a.player.x > 40, 'input: holding D runs right', `${(b.player.x - a.player.x).toFixed(1)} px`);
     await page.keyboard.down(' ');
     await page.waitForTimeout(120);
-    const s2 = await st();
+    const c = await st();
     await page.keyboard.up(' ');
-    check(s2.player.vy < 0 || !s2.player.grounded, 'input: Space jumps');
-
+    check(c.player.vy < 0 || !c.player.grounded, 'input: Space jumps');
     await page.waitForTimeout(500);
     await page.keyboard.press('j');
     await page.waitForTimeout(30);
-    const s3 = await st();
-    check(s3.reflect.window > 0 || s3.reflect.cooldown > 0, 'input: J opens the reflect window');
-
+    const d = await st();
+    check(d.reflect.window > 0 || d.reflect.cooldown > 0, 'input: J opens the reflect window');
     await page.keyboard.press('r');
     await page.waitForTimeout(50);
-    const s4 = await st();
-    check(s4.tick < 30, 'R resets the room instantly', `tick ${s4.tick}`);
+    check((await st()).tick < 30, 'R resets the room instantly');
 
-    await page.waitForTimeout(1500);
+    // pause menu and back
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+    check(await screen() === 'pause', 'Esc opens the pause menu');
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+    check(await appState() === 'play' && await screen() === null, 'Esc again resumes');
+
+    await page.waitForTimeout(1200);
     const fps = await page.evaluate(() => window.__RD.fps);
-    check(fps >= 50, 'frame rate ≈ 60', `${fps} fps`);
+    check(fps >= 50, 'frame rate ≈ 60 in a room', `${fps} fps`);
 
-    // cross-runtime determinism: Chromium's replay must hash identically to Node's
+    // cross-runtime determinism + each solution clears through the live session
     const ids = await page.evaluate(() => window.__RD.rooms);
     for (const id of ids) {
       if (!nodeHashes[id]) continue;
-      const json = await page.evaluate((i) => window.__RD.replay(i), id);
-      const h = hash(json);
+      const h = hash(await page.evaluate((i) => window.__RD.replay(i), id));
       check(h === nodeHashes[id], `${id}: Chromium replay == Node replay`, h);
     }
-
-    // each stored solution, fed through the live game session, clears its room
+    let allClear = true;
     for (const id of ids) {
       const status = await page.evaluate((i) => { window.__RD.seek(i, 1e6); return window.__RD.session.state.status; }, id);
-      check(status === 'clear', `${id}: solution clears through the live session`, status);
+      if (status !== 'clear') { allClear = false; check(false, `${id}: solution clears through the live session`, status); }
     }
-    await page.evaluate(() => window.__RD.go(0));
-    await page.screenshot({ path: 'test-results/game.png' }).catch(() => {});
+    check(allClear, `all ${ids.length} solutions clear through the live session`);
+
+    // results screen appears after the clear hold, and the save records it
+    const target = ids.find((i) => i.startsWith('c1-')) || ids[0];
+    await page.evaluate((i) => window.__RD.seek(i, 1e6), target);
+    await page.waitForTimeout(1100);
+    check(await screen() === 'results', 'a clear leads to the results screen', await screen());
+    const rec = await page.evaluate((i) => window.__RD.save.rooms[i], target);
+    check(rec && rec.cleared && rec.medal >= 1, 'the clear is saved with a medal', JSON.stringify(rec));
+    await page.screenshot({ path: 'test-results/results.png' }).catch(() => {});
+
+    // watch solution from results → replay mode → back to results
+    const choices = await page.evaluate(() => [...document.querySelectorAll('[data-choice-id]')].map((b) => b.dataset.choiceId));
+    if (choices.includes('watch')) {
+      await page.click('[data-choice-id="watch"]');
+      await page.waitForTimeout(200);
+      check(await appState() === 'replay', 'Watch solution replays the designer run');
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(250);
+      check(await screen() === 'results', 'leaving the replay returns to results');
+    }
+
+    // assists: pause → assists → toggle preview; speed assist slows the sim
+    await page.evaluate((i) => window.__RD.enterRoom(i), target);
+    await page.keyboard.press('k');
+    await page.waitForTimeout(100);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+    await page.click('[data-choice-id="assists"]');
+    await page.waitForTimeout(150);
+    check(await screen() === 'assists', 'pause → assists screen');
+    await page.click('[data-choice-id="preview"]');
+    await page.click('[data-choice-id="speed"]');
+    await page.waitForTimeout(100);
+    const as = await page.evaluate(() => window.__RD.save.assists);
+    check(as.preview === true && as.speed === 0.75, 'assist toggles are saved', JSON.stringify(as));
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
+    const t0 = (await st()).tick;
+    await page.waitForTimeout(1000);
+    const t1 = (await st()).tick;
+    check(t1 - t0 > 70 && t1 - t0 < 105, 'game speed 75% → ~90 sim steps per real second', `${t1 - t0} steps`);
+    await page.evaluate(() => { const a = window.__RD.save.assists; a.speed = 1; a.preview = false; });
+
+    // hint: unlocked after 10 deaths, plays a ghost
+    await page.evaluate(() => { window.__RD.session.deaths = 10; });
+    await page.keyboard.press('h');
+    await page.waitForTimeout(100);
+    const ghost = await page.evaluate(() => !!window.__RD.session.ghost);
+    check(ghost, 'after 10 deaths, H plays the hint ghost');
+    await page.screenshot({ path: 'test-results/hint.png' }).catch(() => {});
+
+    // persistence survives a reload (SaveManager envelope in localStorage)
+    await page.reload();
+    await page.waitForFunction(() => window.__RD && window.__RD.state === 'title');
+    const rec2 = await page.evaluate((i) => window.__RD.save.rooms[i], target);
+    check(rec2 && rec2.cleared, 'save persists across reload', JSON.stringify(rec2));
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(250);
+    check(await screen() === 'chapters', 'returning players land on the chapter list', await screen());
+    await page.screenshot({ path: 'test-results/chapters.png' }).catch(() => {});
 
     // editor boots
     await page.goto(`${url}?edit=1`);
@@ -89,9 +162,7 @@ export async function runBrowser(nodeHashes, hash) {
     const playMode = await page.evaluate(() => window.__RD.mode);
     await page.keyboard.press('p');
     await page.waitForTimeout(50);
-    const editMode = await page.evaluate(() => window.__RD.mode);
-    check(playMode === 'play' && editMode === 'edit', 'editor: P toggles play-in-editor');
-    await page.screenshot({ path: 'test-results/editor.png' }).catch(() => {});
+    check(playMode === 'play' && await page.evaluate(() => window.__RD.mode) === 'edit', 'editor: P toggles play-in-editor');
 
     check(errors.length === 0, 'zero console errors', errors.join(' | '));
   } finally {
