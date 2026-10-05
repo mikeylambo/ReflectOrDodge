@@ -277,7 +277,9 @@ export async function startApp(canvas, ctx) {
     });
   }
 
-  function showResults(r) {
+  // guard: true when a keypress (leaving a replay) opened it, so that same
+  // press doesn't also act as Back on the results screen
+  function showResults(r, { guard = false } = {}) {
     state = 'menu';
     menuBehind = 'room';
     const c = CHAPTERS[chapterIdx];
@@ -294,7 +296,7 @@ export async function startApp(canvas, ctx) {
         ...(ROOM_BY_ID[roomId].solution && r.scored ? [{ id: 'watch', label: 'Watch solution' }] : []),
         ...(next ? [{ id: 'map', label: 'Map' }] : []),
       ],
-    }, { guard: false });
+    }, { guard });
   }
 
   // ── UI handlers ──
@@ -374,7 +376,7 @@ export async function startApp(canvas, ctx) {
       initAudio();
       if (state === 'intro') { state = 'play'; return; }
       if (state === 'replay') {
-        if (k === 'escape' || k === 'enter' || k === 'r') showResults(resultsFor);
+        if (k === 'escape' || k === 'enter' || k === 'r') showResults(resultsFor, { guard: true });
         return;
       }
       if (state !== 'play') return;
