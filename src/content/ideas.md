@@ -48,6 +48,22 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c2-15 Sluice | 2 Weight | Open the gate so the weight smashes the wall, then shut it so you can cross: one toggle, two answers. |  |
 | c2-16 Deadweight | 2 Weight | One weight, one chance: its gate must be open before it gets there. |  |
 | c2-17 Overtaken | 2 Weight | The fast one opens the door the slow one needs: let both by. | ✓ |
+| c2-ex1 Examiner I | 2 Weight (Examiner) | One answer up into the core while a weight rolls in behind you. | |
+| c2-ex2 Examiner II | 2 Weight (Examiner) | Two cores; weight at your feet and at your head between the orbs. | |
+| c2-ex3 Examiner III | 2 Weight (Examiner) | Two cores; weight from the side and straight down the middle. | |
+| c3-01 Ground | 3 Ground | (intro) Seeds fly over your head and stick in the shelf's face: a step appears. Use it. | ✓ |
+| c3-02 Plant | 3 Ground | Send the falling seed sideways into the shelf: your step, where you need it. | |
+| c3-03 Wilt | 3 Ground | (twist) Steps don't last: plant the second while you stand on the first. | |
+| c3-04 Ladder | 3 Ground | A shaft whose rungs grow on their own clocks; climb them as they come. | ✓ |
+| c3-05 Grow Your Own | 3 Ground | Seeds fall down the shaft; send each into a wall to build your own rungs. | |
+| c3-06 Key or Step | 3 Ground | The first seed is a key for the switch, the next a step to the door it opened. | |
+| c3-07 Bridge | 3 Ground | A pillar in a spike pit; the seed lane gives it a foothold on its near face. | ✓ |
+| c3-08 Tower | 3 Ground | Every seed that falls is another stair, if you send it to the tower. | |
+| c3-09 Two Jobs | 3 Ground | The orb opens the door on the shelf; the seed gets you up to it. | |
+| c3-10 Stepping Stones | 3 Ground | Pillars too far apart over spikes: plant a stone on the next one. | |
+| c3-ex1 Examiner I | 3 Ground (Examiner) | The core hangs on the Examiner's flank above your reach: grow a step to the shelf, then answer. | |
+| c3-ex2 Examiner II | 3 Ground (Examiner) | The same on the other flank, with a weight rolling the floor. | |
+| c3-ex3 Examiner III | 3 Ground (Examiner) | Both flanks at once. | |
 | c4-01 Return to Sender | 4 Echo (draft) | In a tunnel you can't jump: send one orb home to shut its emitter, then hop the rest at the mouth. | |
 
 Chapter 1: 8 of 20 rooms are pass rooms, above the quota of 5.
