@@ -76,7 +76,8 @@ console.log('── content: chapter index + ideas catalogue ──');
   const missing = indexed.filter((id) => !byId.has(id));
   report(missing.length === 0, 'index.json: every listed room exists', missing.join(', '));
   report(new Set(indexed).size === indexed.length, 'index.json: no room listed twice');
-  const noIdea = [...byId].filter((id) => !rowsById.has(id));
+  const mirrorIds = new Set(rooms.filter((r) => r.room.mirrorOf).map((r) => r.room.id)); // mirrors share their original's idea
+  const noIdea = [...byId].filter((id) => !rowsById.has(id) && !mirrorIds.has(id));
   report(noIdea.length === 0, 'ideas.md: every room has an idea entry', noIdea.join(', '));
   const sentences = [...rowsById.values()].map((r) => r.idea.toLowerCase());
   report(new Set(sentences).size === sentences.length, 'ideas.md: no idea repeats');
@@ -84,6 +85,27 @@ console.log('── content: chapter index + ideas catalogue ──');
     if (c.scored === false) continue;
     const pass = c.rooms.filter((id) => rowsById.get(id) && rowsById.get(id).pass).length;
     report(pass * 4 >= c.rooms.length, `${c.id}: let-it-pass quota (≥ 1 in 4)`, `${pass}/${c.rooms.length}`);
+  }
+}
+
+console.log('── mirror rooms: one property changed, original solution defeated ──');
+{
+  const byId = Object.fromEntries(rooms.map((r) => [r.room.id, r.room]));
+  for (const { room: m } of rooms) {
+    if (!m.mirrorOf) continue;
+    const o = byId[m.mirrorOf];
+    if (!o) { report(false, `${m.id}: mirrorOf "${m.mirrorOf}" exists`); continue; }
+    // count changed properties: tiles, spawn, exit, goal, each emitter, each object
+    const changes = [];
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    for (const k of ['tiles', 'spawn', 'exit', 'goal']) if (!same(o[k], m[k])) changes.push(k);
+    const n = Math.max(o.emitters.length, m.emitters.length);
+    for (let i = 0; i < n; i++) if (!same(o.emitters[i], m.emitters[i])) changes.push(`emitter ${i}`);
+    const k2 = Math.max(o.objects.length, m.objects.length);
+    for (let i = 0; i < k2; i++) if (!same(o.objects[i], m.objects[i])) changes.push(`object ${i}`);
+    report(changes.length === 1, `${m.id}: changes exactly one property of ${o.id}`, changes.join(', '));
+    const { state } = runLog(compileRoom(m), decodeLog(o.solution));
+    report(state.status !== 'clear', `${m.id}: ${o.id}'s solution does not clear it`, state.status);
   }
 }
 

@@ -151,6 +151,32 @@ export async function runBrowser(nodeHashes, hash) {
     check(await screen() === 'chapters', 'returning players land on the chapter list', await screen());
     await page.screenshot({ path: 'test-results/chapters.png' }).catch(() => {});
 
+    // chapter map: a node grid with 2D focus; Enter enters the focused room
+    await page.keyboard.press('Enter'); // first chapter (Prologue)
+    await page.waitForTimeout(250);
+    const mapScreen = await page.evaluate(() => document.querySelector('.rd-map') ? 'map' : null);
+    check(mapScreen === 'map', 'chapter list → node-grid map');
+    const f0 = await page.evaluate(() => window.__RD.mapFocus);
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(80);
+    const f1 = await page.evaluate(() => window.__RD.mapFocus);
+    check(f0 !== f1 && !!f1, 'map: arrow keys move focus between nodes', `${f0} → ${f1}`);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+    check(await screen() === 'chapters', 'map: Back returns to the chapter list');
+    await page.screenshot({ path: 'test-results/map.png' }).catch(() => {});
+
+    // Examiner: clearing a phase goes straight into the next phase
+    const ex = await page.evaluate(() => (window.__RD.chapters.find((c) => c.examiner) || {}).examiner || null);
+    if (ex) {
+      await page.evaluate(() => { const ci = window.__RD.chapters.findIndex((c) => c.examiner); window.__RD.enterEncounter(ci, 0); });
+      const masks = await page.evaluate((id) => window.__RD.solutionOf(id), ex[0]);
+      await page.evaluate((m) => { for (const x of m) window.__RD.session.tick(x); }, masks);
+      await page.waitForTimeout(2000); // intro (0.8 s) + clear hold (0.6 s)
+      const enc = await page.evaluate(() => window.__RD.encounter);
+      check(enc && enc.phase === 1, 'Examiner: clearing phase 1 enters phase 2', JSON.stringify(enc));
+    }
+
     // editor boots
     await page.goto(`${url}?edit=1`);
     await page.waitForFunction(() => window.__RD && window.__RD.editor);

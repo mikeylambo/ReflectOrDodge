@@ -7,6 +7,9 @@
 //                                        solution and set par to its reflect count
 //                                        (refused when it beats the room's intended par)
 //   --hz N                               decision rate (default 5)
+//   --at-par                             search only at the room's par (skips proving
+//                                        cheaper budgets; npm test still does the
+//                                        under-par check)
 //
 // Budgets are tried in order 0, 1, 2… A budget that ends "exhausted" proves no
 // solution with that many reflects exists at this decision rate; "cap" means
@@ -19,6 +22,7 @@ import { formatRoom } from '../src/sim/format.js';
 
 const args = process.argv.slice(2);
 const write = args.includes('--write');
+const atPar = args.includes('--at-par');
 const hzAt = args.indexOf('--hz');
 const hz = hzAt >= 0 ? Number(args[hzAt + 1]) : 5;
 const ids = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--hz');
@@ -28,7 +32,7 @@ for (const { file, room } of loadRooms()) {
   const notes = [];
   let found = null;
   const t0 = Date.now();
-  for (let b = 0; b <= 4 && !found; b++) {
+  for (let b = atPar ? room.par : 0; b <= (atPar ? room.par : 4) && !found; b++) {
     const r = solve(room, { decisionHz: hz, mode: 'any', maxReflects: b });
     if (r.solvable) found = r;
     else notes.push(`${b}:${r.reason.startsWith('state cap') ? 'cap' : 'exhausted'}`);
