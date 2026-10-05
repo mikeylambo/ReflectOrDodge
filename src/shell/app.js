@@ -14,11 +14,14 @@ import { BrowserInputFamilyDetector } from '@slu/web-shell/platform/browser/Inpu
 
 import { createLoop } from '../engine/loop.js';
 import { createInput } from '../engine/input.js';
-import { initAudio, setVolume } from '../engine/audio.js';
+import { initAudio, setVolume, setKeyRatio, setCalibrationOffset, getCalibrationOffset, playPredicted } from '../engine/audio.js';
+import { initMusic, setMusicLayers, setMusicChapter, setMusicVolume, CHAPTER_KEYS } from '../engine/music.js';
+import { untilNext } from '../objects/emitter.js';
+import { TIMESTEP } from '../../config/tunables.js';
 import { initHaptics, setHapticsEnabled } from '../engine/haptics.js';
 import { createSession } from '../game/session.js';
 import { render } from '../present/render.js';
-import { THEME, HIGH_CONTRAST } from '../present/theme.js';
+import { chapterTheme } from '../present/theme.js';
 import { ROOMS, ROOM_BY_ID, CHAPTERS } from '../sim/levels.js';
 import { compileRoom } from '../sim/room.js';
 import { runLog } from '../sim/world.js';
@@ -27,7 +30,8 @@ import { ROOM } from '../../config/tunables.js';
 import { openSave, MEDAL, MEDAL_GLYPH, MEDAL_NAME } from './save.js';
 import { createTelemetry } from './telemetry.js';
 import { createMap } from './map.js';
-import { INTRO_TIME, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME } from '../../config/ux.js';
+import { drawPrompts, ROOM_PROMPTS } from '../present/prompts.js';
+import { INTRO_TIME, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
 
 const { SPEEDS, WINDOWS } = ASSIST_STEPS;
 const WINDOW_LABEL = { 1: 'Normal', 1.5: 'Wide', 2: 'Very wide' };
@@ -72,7 +76,7 @@ export async function startApp(canvas, ctx) {
   // click on top of the shell's ui_accept — a double activation. Keyboard
   // activation goes through the shell only; pointer clicks still work.
   uiRoot.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); });
-  const SCREENS = ['title', 'chapters', 'pause', 'assists', 'settings', 'results'];
+  const SCREENS = ['title', 'chapters', 'credits', 'pause', 'assists', 'settings', 'results'];
   ui.register(SCREENS.map((id) => ({ id, title: '', choices: [] })));
 
   let uiPolling = false;
@@ -110,7 +114,7 @@ export async function startApp(canvas, ctx) {
   const map = createMap({
     root: uiRoot,
     input: uiInput,
-    onPick: (it) => { initAudio(); if (it.kind === 'examiner') enterEncounter(mapChapter); else enterRoom(it.id); },
+    onPick: (it) => { startAudio(); if (it.kind === 'examiner') enterEncounter(mapChapter); else enterRoom(it.id); },
     onBack: () => showChapters(),
     onFlip: () => { mirrorView = !mirrorView; showMap(mapChapter, { guard: false }); },
   });
@@ -140,6 +144,7 @@ export async function startApp(canvas, ctx) {
   let pauseFrom = 'play';
   let swallow = 0;
   let frozenDrawn = false;
+  let prompts = []; // [{ id, alpha, used }]
   let encounter = null; // { ci, phase } while fighting an Examiner
   let collapseUntil = 0; // real-time ms: slow-motion + collapse after the final core
 
@@ -171,9 +176,35 @@ export async function startApp(canvas, ctx) {
   };
   const applySettings = () => {
     setVolume(save.data.settings.sfxVol);
+    setMusicVolume(save.data.settings.musicVol);
+    setCalibrationOffset(save.data.settings.audioOffsetMs);
   };
+  const startAudio = () => { initAudio(); initMusic(); applySettings(); };
+  // the room's key: ambient bed and event sounds move together
+  const setChapterAudio = (ci) => { setMusicChapter(ci); setKeyRatio((CHAPTER_KEYS[ci] || CHAPTER_KEYS[1]) / CHAPTER_KEYS[1]); };
+  // calibration: emitter shots are on fixed clocks, so with a positive offset
+  // they're scheduled that far ahead (the reactive copy is skipped)
+  const predicted = new Set();
+  function schedulePredictedShots() {
+    const off = getCalibrationOffset();
+    if (off <= 0 || !session.state) return;
+    const st = session.state;
+    st.objects.forEach((o, i) => {
+      if (o.kind !== 'emitter' || !o.on || (o.count && o.fired >= o.count)) return;
+      const inSec = untilNext(o, st.frame) / TIMESTEP.HZ / save.data.assists.speed;
+      const key = `${roomId}:${session.attempt}:${i}:${o.fired}`;
+      if (inSec * 1000 <= off && !predicted.has(key)) { predicted.add(key); playPredicted({ type: 'emitter.fire' }, inSec); }
+    });
+    if (predicted.size > 500) predicted.clear();
+  }
 
   const chapterOf = (id) => CHAPTERS.findIndex((c) => c.rooms.includes(id));
+  // chapter of any room id, mirrors and Examiner phases included (for art)
+  const chapterOfAny = (id) => {
+    const base = id.endsWith('-m') ? id.slice(0, -2) : id;
+    const i = CHAPTERS.findIndex((c) => c.rooms.includes(base) || (c.examiner || []).includes(base));
+    return i < 0 ? 0 : i;
+  };
   const scored = (ci) => CHAPTERS[ci] && CHAPTERS[ci].scored !== false;
   const clearedIn = (ci) => CHAPTERS[ci].rooms.filter((id) => save.room(id) && save.room(id).cleared).length;
   // Unlocks (GDD: World map): the Prologue opens Chapter 1 when it's done; a
@@ -243,6 +274,9 @@ export async function startApp(canvas, ctx) {
     hideUI();
     applyAssists();
     session.load(data, { mode: replay ? 'replay' : 'play' });
+    setChapterAudio(chapterIdx);
+    const seen = save.data.seenPrompts || (save.data.seenPrompts = []);
+    prompts = (ROOM_PROMPTS[id] || []).filter((k) => !seen.includes(k)).map((k) => ({ id: k, alpha: 1, used: false }));
     msInRoom = 0;
     if (replay) { state = 'replay'; return; }
     telemetry.attempt(id);
@@ -282,7 +316,7 @@ export async function startApp(canvas, ctx) {
   function showTitle() {
     state = 'title';
     menuBehind = 'title';
-    showScreen('title', { title: 'REFLECT / DODGE', choices: [{ id: 'play', label: 'Play' }, { id: 'settings', label: 'Settings' }] }, { guard: false });
+    showScreen('title', { title: 'REFLECT / DODGE', choices: [{ id: 'play', label: 'Play' }, { id: 'settings', label: 'Settings' }, { id: 'credits', label: 'Credits' }] }, { guard: false });
   }
 
   function showChapters() {
@@ -344,6 +378,9 @@ export async function startApp(canvas, ctx) {
       title: 'Settings',
       choices: [
         { id: 'sfx', label: `Sound: ${pct(s.sfxVol)}` },
+        { id: 'music', label: `Music: ${pct(s.musicVol)}` },
+        { id: 'offset-up', label: `Audio offset: ${s.audioOffsetMs > 0 ? '+' : ''}${s.audioOffsetMs} ms`, description: 'Sounds earlier' },
+        { id: 'offset-down', label: 'Audio offset −', description: 'Sounds later' },
         { id: 'contrast', label: `High contrast: ${onOff(s.highContrast)}` },
         { id: 'flashing', label: `Reduced flashing: ${onOff(s.reducedFlashing)}` },
         { id: 'shake', label: `Screen shake: ${onOff(s.shake)}` },
@@ -402,13 +439,19 @@ export async function startApp(canvas, ctx) {
 
   // ── UI handlers ──
   async function onActivate(screen, choice) {
-    initAudio();
+    startAudio();
     const s = save.data.settings, a = save.data.assists;
     if (screen === 'title') {
       if (choice === 'play') {
         if (!save.room(CHAPTERS[0].rooms[0])) enterRoom(CHAPTERS[0].rooms[0]); // first boot: straight into the prologue
         else showChapters();
       } else if (choice === 'settings') showSettings('title');
+      else if (choice === 'credits') showScreen('credits', {
+        title: 'REFLECT / DODGE',
+        subtitle: 'Mike · built with Claude Code · SLU Web Shell · Living Loop engine',
+        choices: [],
+        backTarget: 'title',
+      });
     } else if (screen === 'chapters') {
       showMap(CHAPTERS.findIndex((c) => c.id === choice));
     } else if (screen === 'pause') {
@@ -431,6 +474,9 @@ export async function startApp(canvas, ctx) {
       showAssists();
     } else if (screen === 'settings') {
       if (choice === 'sfx') s.sfxVol = VOLUMES[(VOLUMES.indexOf(s.sfxVol) + 1) % VOLUMES.length];
+      else if (choice === 'music') s.musicVol = VOLUMES[(VOLUMES.indexOf(s.musicVol) + 1) % VOLUMES.length] ?? 1;
+      else if (choice === 'offset-up') s.audioOffsetMs = Math.min(OFFSET.MAX, s.audioOffsetMs + OFFSET.STEP);
+      else if (choice === 'offset-down') s.audioOffsetMs = Math.max(OFFSET.MIN, s.audioOffsetMs - OFFSET.STEP);
       else if (choice === 'contrast') s.highContrast = !s.highContrast;
       else if (choice === 'flashing') s.reducedFlashing = !s.reducedFlashing;
       else if (choice === 'shake') s.shake = !s.shake;
@@ -455,6 +501,7 @@ export async function startApp(canvas, ctx) {
   function onBack(screen) {
     if (screen === 'chapters') showTitle();
         else if (screen === 'pause') resume();
+    else if (screen === 'credits') showTitle();
     else if (screen === 'assists') showPause2();
     else if (screen === 'settings') { if (settingsBack === 'pause') showPause2(); else showTitle(); }
     else if (screen === 'results') showMap(chapterIdx);
@@ -471,7 +518,7 @@ export async function startApp(canvas, ctx) {
   const input = createInput({
     touchRoot: document.getElementById('touch'),
     onMeta: (k) => {
-      initAudio();
+      startAudio();
       if (state === 'intro') { state = 'play'; return; }
       if (state === 'replay') {
         if (k === 'escape' || k === 'enter' || k === 'r') showResults(resultsFor, { guard: true });
@@ -483,14 +530,14 @@ export async function startApp(canvas, ctx) {
       else if (k === 'h' && session.hintAvailable(msInRoom)) { if (session.useHint()) { save.recordHint(roomId); telemetry.hint(roomId); } }
     },
   });
-  addEventListener('pointerdown', () => initAudio(), { once: true });
+  addEventListener('pointerdown', () => startAudio(), { once: true });
 
   // ── loop ──
   const loop = createLoop({
     update: (dt, real) => {
       time += dt;
       if (collapseUntil && performance.now() > collapseUntil) { collapseUntil = 0; applyAssists(); }
-      if (state === 'title' || (state === 'menu' && menuBehind === 'title')) { demo.tick(0); return; }
+      if (state === 'title' || (state === 'menu' && menuBehind === 'title')) { demo.tick(0); setMusicLayers(0); return; }
       if (state === 'intro') {
         introT += real;
         const m = input.sample();
@@ -503,15 +550,23 @@ export async function startApp(canvas, ctx) {
       let mask = input.sample();
       if (swallow) { swallow &= mask; mask &= ~swallow; }
       lastMask = mask;
+      for (const pr of prompts) {
+        const hit = pr.id === 'move' ? mask & (BTN.L | BTN.R) : pr.id === 'jump' ? mask & BTN.JUMP : pr.id === 'reflect' ? session.state.stats.reflects > 0 : 0;
+        if (hit && !pr.used) { pr.used = true; if (!save.data.seenPrompts.includes(pr.id)) { save.data.seenPrompts.push(pr.id); save.save(); } }
+        if (pr.used) pr.alpha = Math.max(0, pr.alpha - real * 1.5);
+      }
       if (state === 'play') { msInRoom += real * 1000; save.addPlayTime(real * 1000); }
       session.tick(mask);
+      setMusicLayers(session.state.objects.filter((o) => o.kind === 'emitter' && o.on && !(o.count && o.fired >= o.count)).length);
+      schedulePredictedShots();
     },
     render: (alpha) => {
       // a menu over a room shows a frozen frame: draw it once, not every frame
       if (state === 'menu' && menuBehind === 'room') { if (frozenDrawn) return; frozenDrawn = true; } else frozenDrawn = false;
       const s = save.data.settings;
+      const ci = state === 'title' || (state === 'menu' && menuBehind === 'title') ? (demo.room ? chapterOfAny(demo.room.id) : 0) : chapterIdx;
       const view = {
-        theme: s.highContrast ? HIGH_CONTRAST : THEME,
+        theme: chapterTheme(ci, s.highContrast),
         shake: s.shake,
         flashes: !s.reducedFlashing,
       };
@@ -532,6 +587,10 @@ export async function startApp(canvas, ctx) {
         ghost: session.ghost ? session.ghost.state : null,
         ...view,
       });
+      if (prompts.length && (state === 'play' || state === 'intro')) {
+        const p = session.state.player;
+        drawPrompts(ctx, prompts, document.body.dataset.input, { x: p.x, y: p.y }, 1, view.theme);
+      }
       if (state === 'intro') drawIntro(ctx, ROOM_BY_ID[roomId], sc, introT);
       if (state === 'replay') drawReplayBadge(ctx, time);
     },
@@ -551,7 +610,11 @@ export async function startApp(canvas, ctx) {
     rooms: ROOMS.map((r) => r.id),
     chapters: CHAPTERS,
     enterRoom,
+    enterEncounter,
     showTitle,
+    get encounter() { return encounter; },
+    solutionOf: (id) => decodeLog(ROOM_BY_ID[id].solution),
+    get mapFocus() { return map.active ? map.focused && map.focused.id : null; },
     replay(id) {
       const data = ROOM_BY_ID[id];
       const { state: st } = runLog(compileRoom(data), decodeLog(data.solution));

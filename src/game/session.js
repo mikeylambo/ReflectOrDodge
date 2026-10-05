@@ -61,7 +61,9 @@ export function createSession({ onClear = () => {}, onEvent = () => {}, opts = {
 
   S.setOpts = (o) => { S.opts = { ...S.opts, ...o }; };
 
+  S.attempt = 0;
   S.reset = () => {
+    S.attempt++;
     S.state = createState(S.room, S.mode === 'replay' ? {} : { invincible: S.opts.invincible, windowMult: S.opts.windowMult });
     S.log = [];
     S.clearHold = 0;
