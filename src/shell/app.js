@@ -26,12 +26,10 @@ import { decodeLog, BTN } from '../sim/input.js';
 import { ROOM } from '../../config/tunables.js';
 import { openSave, MEDAL, MEDAL_GLYPH, MEDAL_NAME } from './save.js';
 import { createTelemetry } from './telemetry.js';
+import { INTRO_TIME, ASSIST_STEPS, VOLUMES } from '../../config/ux.js';
 
-const INTRO_TIME = 0.8; // s (GDD: Room intro)
-const SPEEDS = [1, 0.75, 0.5];
-const WINDOWS = [1, 1.5, 2];
+const { SPEEDS, WINDOWS } = ASSIST_STEPS;
 const WINDOW_LABEL = { 1: 'Normal', 1.5: 'Wide', 2: 'Very wide' };
-const VOLUMES = [1, 0.75, 0.5, 0.25, 0];
 const UNLOCK_ALL = new URLSearchParams(location.search).get('all') === '1';
 const pct = (v) => `${Math.round(v * 100)}%`;
 const onOff = (v) => (v ? 'On' : 'Off');

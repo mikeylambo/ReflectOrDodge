@@ -20,11 +20,9 @@ import { playEvent } from '../engine/audio.js';
 import { haptic } from '../engine/haptics.js';
 import { TIMESTEP, frames } from '../../config/tunables.js';
 
-export const HINT = {
-  AFTER_DEATHS: 10,
-  AFTER_MS: 3 * 60 * 1000,
-  TAIL: 0.6, // s the ghost keeps going after its first reflect
-};
+import { HINT, CLEAR_HOLD } from '../../config/ux.js';
+
+export { HINT };
 
 export function medalFor({ reflects, par, deaths }) {
   if (reflects > par) return 1; // bronze
@@ -128,7 +126,7 @@ export function createSession({ onClear = () => {}, onEvent = () => {}, opts = {
         timeMs: Math.round((S.log.length / TIMESTEP.HZ) * 1000),
         assisted: !!(S.opts.invincible || (S.opts.windowMult && S.opts.windowMult !== 1)),
       };
-      S.clearHold = Math.round(0.6 * TIMESTEP.HZ); // room-clear glow before results
+      S.clearHold = Math.round(CLEAR_HOLD * TIMESTEP.HZ); // room-clear glow before results
     }
   };
 
