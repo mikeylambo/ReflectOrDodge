@@ -265,6 +265,16 @@ export function runUnit() {
     return { ok: a && near(a.x - 400, PROJECTILES.anchor.tunables.SPEED, 0.01), detail: a ? `${(a.x - 400).toFixed(2)} px` : 'gone' };
   });
 
+  check('emitters launch every type clear of themselves (an Anchor is not eaten by its own emitter)', () => {
+    for (const type of ['orb', 'anchor', 'seed']) {
+      const r = room({ emitters: [{ type, at: [20, 10], dir: 'left', period: 1, phase: 0 }] });
+      const s = createState(r);
+      for (let i = 0; i < 150; i++) step(s, r, 0);
+      if (!s.projectiles.some((p) => p.type === type && p.x < 20 * 32)) return { ok: false, detail: `${type} did not leave its emitter` };
+    }
+    return true;
+  });
+
   // ── Seed ──
   check('seed: sticks to a wall as a ledge the player can stand on, then expires', () => {
     const r = room(); const s = createState(r); settle(s, r);

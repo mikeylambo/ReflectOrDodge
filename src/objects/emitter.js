@@ -45,8 +45,9 @@ export function step(s, world) {
   if (left === tele) events.push({ type: 'emitter.telegraph', x: (s.tx + 0.5) * T, y: (s.ty + 0.5) * T });
   if (left === 0) {
     const [dx, dy] = DIRS[s.dir];
-    const off = T / 2 + 7; // spawn just outside the emitter tile
-    spawns.push({ type: s.ptype, x: (s.tx + 0.5) * T + dx * off, y: (s.ty + 0.5) * T + dy * off, dir: s.dir });
+    // spawn from the muzzle; the engine pushes the shot out by its own radius so
+    // it clears the emitter whatever its size (an Orb lands 23 px out, as before)
+    spawns.push({ type: s.ptype, x: (s.tx + 0.5) * T, y: (s.ty + 0.5) * T, dir: s.dir, muzzle: T / 2 + 1 });
     events.push({ type: 'emitter.fire', ptype: s.ptype, x: (s.tx + 0.5) * T, y: (s.ty + 0.5) * T });
     fired++;
     charge = 0;

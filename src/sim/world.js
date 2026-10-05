@@ -190,6 +190,11 @@ export function step(state, room, input) {
     events.push(...r.events);
     for (const sp of r.spawns) {
       const s = PROJECTILES[sp.type].spawn(sp);
+      if (sp.muzzle) {
+        // place the shot just outside the emitter, by its own radius
+        const sp2 = Math.hypot(s.vx, s.vy) || 1, d = sp.muzzle + s.r;
+        s.x = sp.x + (s.vx / sp2) * d; s.y = sp.y + (s.vy / sp2) * d; s.px = s.x; s.py = s.y;
+      }
       s.id = state.nextId++;
       state.projectiles.push(s);
     }
