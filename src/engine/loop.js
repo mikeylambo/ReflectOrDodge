@@ -3,7 +3,11 @@
 // receives an interpolation alpha so motion stays smooth at any Hz.
 import { TIMESTEP } from '../../config/tunables.js';
 
+// Game-speed assist: `setSpeed(0.5)` makes each fixed sim step take twice the
+// real time. The sim itself still advances exactly STEP per update, so
+// determinism holds (GDD: Assist mode).
 export function createLoop({ update, render, step = TIMESTEP.STEP }) {
+  let speed = 1;
   let raf = null;
   let last = 0;
   let acc = 0;
@@ -23,11 +27,12 @@ export function createLoop({ update, render, step = TIMESTEP.STEP }) {
     if (fpsT >= 0.5) { fps = Math.round(frames / fpsT); frames = 0; fpsT = 0; }
 
     acc += ft;
-    while (acc >= step) {
-      update(step);
-      acc -= step;
+    const real = step / speed; // real seconds per sim step
+    while (acc >= real) {
+      update(step, real);
+      acc -= real;
     }
-    render(acc / step);
+    render(acc / real, ft);
     raf = requestAnimationFrame(frame);
   }
 
@@ -44,6 +49,7 @@ export function createLoop({ update, render, step = TIMESTEP.STEP }) {
       if (raf !== null) cancelAnimationFrame(raf);
       raf = null;
     },
+    setSpeed(v) { speed = v > 0 ? v : 1; },
     get running() { return running; },
     get fps() { return fps; },
   };

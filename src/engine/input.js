@@ -24,7 +24,7 @@ export function createInput({ target = window, touchRoot = null, onMeta = () => 
   // Bits pressed since the last sample. A tap whose keydown and keyup both land
   // between two sim steps would otherwise never be seen by the simulation.
   let tapLatch = 0;
-  let padPrev = { reset: false };
+  let padPrev = { reset: false, pause: false };
   let enabled = true;
   let lastDevice = 'keyboard';
 
@@ -66,6 +66,7 @@ export function createInput({ target = window, touchRoot = null, onMeta = () => 
       e.preventDefault();
       lastDevice = 'touch';
       if (el.dataset.btn === 'reset') { onMeta('r', e); return; }
+      if (el.dataset.btn === 'pause') { onMeta('escape', e); return; }
       held.set(e.pointerId, BTN[el.dataset.btn]);
       tapLatch |= BTN[el.dataset.btn];
       update();
@@ -93,8 +94,10 @@ export function createInput({ target = window, touchRoot = null, onMeta = () => 
       if (m) lastDevice = 'gamepad';
       padMask |= m;
       const reset = b(8); // Back / Select
+      const pause = b(9); // Start / Options
       if (reset && !padPrev.reset) onMeta('r');
-      padPrev = { reset };
+      if (pause && !padPrev.pause) onMeta('escape');
+      padPrev = { reset, pause };
     }
   }
 

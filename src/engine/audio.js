@@ -16,13 +16,19 @@ export function initAudio() {
   if (!AC) return;
   actx = new AC();
   master = actx.createGain();
-  master.gain.value = AUDIO.MASTER_GAIN;
+  master.gain.value = AUDIO.MASTER_GAIN * volume;
   const comp = actx.createDynamicsCompressor();
   comp.threshold.value = -18; comp.knee.value = 6; comp.ratio.value = 12;
   comp.attack.value = 0.003; comp.release.value = 0.15;
   master.connect(comp);
   comp.connect(actx.destination);
   actx.resume();
+}
+
+let volume = 1;
+export function setVolume(v) {
+  volume = Math.max(0, Math.min(1, v));
+  if (master) master.gain.value = AUDIO.MASTER_GAIN * volume;
 }
 
 export function setCalibrationOffset(ms) {
@@ -74,7 +80,7 @@ const BANK = {
 };
 
 export function playEvent(ev) {
-  if (!actx || !BANK[ev.type]) return;
+  if (!actx || !BANK[ev.type] || volume <= 0) return;
   const now = actx.currentTime;
   const when = Math.max(now, now - calibrationOffsetMs / 1000);
   BANK[ev.type](ev, when);
