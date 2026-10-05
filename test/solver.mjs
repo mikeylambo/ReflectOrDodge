@@ -96,8 +96,7 @@ function reflectUseful(s, K) {
   return false;
 }
 
-// 'any' mode: each change to the room (a switch fired, a wall broken, a door
-// opened) pulls the search forward, so multi-step rooms explore past each step
+// 'any' mode: each change to the room (a switch fired, a wall broken) pulls the search forward, so multi-step rooms explore past each step
 // instead of re-exploring everything before it. Not admissible — 'any' only
 // promises a clear, not the earliest one.
 const PROGRESS_BONUS = 360; // frames
@@ -106,7 +105,6 @@ function progress(st) {
   for (const o of st.objects) {
     if (o.kind === 'switch' && o.hits > 0) n++;
     else if (o.kind === 'wall' && o.broken) n++;
-    else if (o.kind === 'door' && o.open) n++;
   }
   return n;
 }
@@ -120,7 +118,7 @@ function progress(st) {
  */
 export function solve(data, {
   decisionHz = 10, maxTime = 30, maxReflects = 3, stateCap = 400000, posQ = 8, velQ = 120,
-  mode = 'min', reflectPenalty = 240,
+  mode = 'min', reflectPenalty = 240, _probe: opts_probe = null,
 } = {}) {
   const room = compileRoom(data);
   const K = Math.max(1, Math.round(TIMESTEP.HZ / decisionHz));
@@ -181,6 +179,7 @@ export function solve(data, {
         const k = key(s, posQ, velQ, K);
         if (seen.has(k)) continue;
         seen.add(k);
+        if (opts_probe) opts_probe(s);
         if (++explored > stateCap) return { solvable: false, reason: `state cap ${stateCap} hit`, explored };
         push({ s, parent: node, masks });
       }

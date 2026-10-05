@@ -27,7 +27,7 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c1-17 Relay Up | 1 Answer | Leap to send a falling orb over the dam into its switch; the floor stream opens the exit. | |
 | c1-18 Ledge Relay | 1 Answer | Answer downward from the lip to open the dam below; the lower stream opens your door. | |
 | c1-19 Crossing | 1 Answer | Two drops land where you take off and where you land: read both clocks and let both fall. | ✓ |
-| c1-20 Answer | 1 Answer | Let the lane open the first lock, leap for the second, close the lane last. | |
+| c1-20 Answer | 1 Answer | Three locks fed by one lane: the switch that closes the lane must fire last. | |
 | c4-01 Return to Sender | 4 Echo (draft) | In a tunnel you can't jump: send one orb home to shut its emitter, then hop the rest at the mouth. | |
 
 Chapter 1: 8 of 20 rooms are pass rooms, above the quota of 5.
