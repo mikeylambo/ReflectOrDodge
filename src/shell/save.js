@@ -26,6 +26,7 @@ export function defaultSave() {
       reducedFlashing: false, telemetry: false,
     },
     stats: { totalDeaths: 0, totalReflects: 0, playTimeMs: 0 },
+    seenPrompts: [], // onboarding glyphs already learned (additive field; defaults fill old saves)
   };
 }
 
@@ -50,6 +51,7 @@ function withDefaults(data) {
     rooms: { ...(data.rooms || {}) },
     chapters: { ...(data.chapters || {}) },
     mirrorsUnlocked: [...(data.mirrorsUnlocked || [])],
+    seenPrompts: [...(data.seenPrompts || [])],
   };
 }
 
