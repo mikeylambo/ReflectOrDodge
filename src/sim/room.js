@@ -3,13 +3,14 @@
 // Room JSON:
 //   id        "p0-01"
 //   name      optional display name
-//   tiles     17 strings of 30 chars ('#' solid, '.' empty). A single string
+//   tiles     17 strings of 30 chars ('#' solid, '.' empty, '^' spikes). A single string
 //             with rows separated by '\n' is also accepted.
 //   spawn     [tx, ty]   player stands on the bottom of this tile
 //   exit      [tx, ty]
 //   emitters  [{ type, at:[tx,ty], dir, period, phase, count? }]
 //   objects   [{ kind:"switch", at, links:[doorId], mode?:"once"|"toggle" }
-//              { kind:"door", id, at, h?:3, open?:false }]
+//              { kind:"door", id, at, h?:3, open?:false }
+//              { kind:"wall", at, h?:1, heavy?:false }]
 //   par       minimal reflect count
 //   solution  compact input log (see sim/input.js) or null
 //   mirrorOf  room id or null
@@ -38,12 +39,13 @@ export function validateRoom(r) {
   if (rows.length !== ROOM.ROWS) e(`tiles must have ${ROOM.ROWS} rows (got ${rows.length})`);
   rows.forEach((row, i) => {
     if (typeof row !== 'string' || row.length !== ROOM.COLS) e(`tiles row ${i} must be ${ROOM.COLS} chars`);
-    else if (!/^[#.]+$/.test(row)) e(`tiles row ${i} has characters other than '#' and '.'`);
+    else if (!/^[#.^]+$/.test(row)) e(`tiles row ${i} has characters other than '#', '.' and '^'`);
   });
   const solidAt = (tx, ty) => rows[ty] && rows[ty][tx] === '#';
+  const spikeAt = (tx, ty) => rows[ty] && rows[ty][tx] === '^';
 
   if (!inBounds(r.spawn)) e('spawn must be an in-bounds [tx, ty]');
-  else if (solidAt(...r.spawn)) e('spawn is inside a solid tile');
+  else if (solidAt(...r.spawn) || spikeAt(...r.spawn)) e('spawn is inside a solid or spike tile');
   if (!inBounds(r.exit)) e('exit must be an in-bounds [tx, ty]');
   else if (solidAt(...r.exit)) e('exit is inside a solid tile');
 
@@ -74,13 +76,17 @@ export function validateRoom(r) {
       const w = `objects[${i}]`;
       if (!OBJECTS[o.kind] || o.kind === 'emitter') { e(`${w}.kind "${o.kind}" is not a placeable object`); return; }
       if (!inBounds(o.at)) { e(`${w}.at out of bounds`); return; }
-      if (o.kind === 'door') {
-        if (typeof o.id !== 'string' || !o.id) e(`${w} door needs an id`);
-        else if (doorIds.has(o.id)) e(`${w} duplicate door id "${o.id}"`);
-        doorIds.add(o.id);
-        const h = o.h === undefined ? 3 : o.h;
+      if (o.kind === 'door' || o.kind === 'wall') {
+        const tall = o.kind === 'door' ? 3 : 1;
+        if (o.kind === 'door') {
+          if (typeof o.id !== 'string' || !o.id) e(`${w} door needs an id`);
+          else if (doorIds.has(o.id)) e(`${w} duplicate door id "${o.id}"`);
+          doorIds.add(o.id);
+        }
+        const h = o.h === undefined ? tall : o.h;
         if (!(Number.isInteger(h) && h >= 1 && o.at[1] + h <= ROOM.ROWS)) e(`${w}.h must fit inside the room`);
         else for (let k = 0; k < h; k++) claim([o.at[0], o.at[1] + k], w);
+        if (o.kind === 'wall' && o.heavy !== undefined && typeof o.heavy !== 'boolean') e(`${w}.heavy must be a boolean`);
       } else {
         claim(o.at, w);
         if (o.mode !== undefined && !['once', 'toggle'].includes(o.mode)) e(`${w}.mode must be "once" or "toggle"`);
@@ -106,8 +112,9 @@ export function compileRoom(r) {
   const errs = validateRoom(r);
   if (errs.length) throw new Error(`room ${r && r.id}: ${errs.join('; ')}`);
   const rows = tileRows(r.tiles);
+  // per-tile type: 0 empty, 1 solid, 2 spikes
   const solid = new Uint8Array(ROOM.COLS * ROOM.ROWS);
-  for (let y = 0; y < ROOM.ROWS; y++) for (let x = 0; x < ROOM.COLS; x++) solid[y * ROOM.COLS + x] = rows[y][x] === '#' ? 1 : 0;
+  for (let y = 0; y < ROOM.ROWS; y++) for (let x = 0; x < ROOM.COLS; x++) solid[y * ROOM.COLS + x] = TILE_TYPE[rows[y][x]];
   return {
     id: r.id,
     name: r.name || r.id,
@@ -120,6 +127,11 @@ export function compileRoom(r) {
     solution: r.solution || null,
   };
 }
+
+const TILE_TYPE = { '.': 0, '#': 1, '^': 2 };
+
+export const isSpike = (room, tx, ty) =>
+  tx >= 0 && ty >= 0 && tx < ROOM.COLS && ty < ROOM.ROWS && room.solid[ty * ROOM.COLS + tx] === 2;
 
 export const isSolid = (room, tx, ty) =>
   tx < 0 || ty < 0 || tx >= ROOM.COLS || ty >= ROOM.ROWS || room.solid[ty * ROOM.COLS + tx] === 1;

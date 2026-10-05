@@ -7,11 +7,11 @@
 // Tick order:
 //   hitstop → player move/jump → reflect window → objects (emitters fire)
 //   → projectiles move + collide → reflect → grace → player contact → exit
-import { PLAYER, REFLECT, ROOM, TIMESTEP, frames } from '../../config/tunables.js';
+import { PLAYER, REFLECT, ROOM, SPIKES, TIMESTEP, frames } from '../../config/tunables.js';
 import { BTN, heldDir } from './input.js';
 import { PROJECTILES } from '../projectiles/index.js';
 import { OBJECTS } from '../objects/index.js';
-import { isSolid } from './room.js';
+import { isSolid, isSpike } from './room.js';
 import { circleRect, rectsOverlap } from './geom.js';
 
 const T = ROOM.TILE;
@@ -260,6 +260,12 @@ export function step(state, room, input) {
     }
   }
 
+  // ── spikes (static hazard; projectiles pass over them) ──
+  if (state.status === 'play' && touchesSpikes(room, playerBox(p))) {
+    state.status = 'dead';
+    events.push({ type: 'player.death', cause: 'spikes', ptype: null, x: pcx, y: pcy });
+  }
+
   // ── exit ──
   if (state.status === 'play' && rectsOverlap(playerBox(p), { x: room.exit[0] * T, y: room.exit[1] * T, w: T, h: T })) {
     state.status = 'clear';
@@ -268,6 +274,17 @@ export function step(state, room, input) {
 
   state.frame++;
   return events;
+}
+
+function touchesSpikes(room, box) {
+  const x0 = Math.floor(box.x / T), x1 = Math.floor((box.x + box.w) / T);
+  const y0 = Math.floor(box.y / T), y1 = Math.floor((box.y + box.h) / T);
+  for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
+    if (!isSpike(room, tx, ty)) continue;
+    const r = { x: tx * T + SPIKES.INSET_X, y: ty * T + SPIKES.TOP, w: T - 2 * SPIKES.INSET_X, h: T - SPIKES.TOP };
+    if (rectsOverlap(r, box)) return true;
+  }
+  return false;
 }
 
 function triggerLinks(state, links, events) {

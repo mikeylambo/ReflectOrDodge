@@ -203,5 +203,38 @@ export function runUnit() {
     return { ok, detail: `fires ${fires.slice(0, 3)} teles ${teles.slice(0, 3)}` };
   });
 
+  check('spikes kill on contact; projectiles pass over them', () => {
+    const tiles = emptyTiles();
+    tiles[15] = `#${'.'.repeat(14)}^${'.'.repeat(13)}#`;
+    const r = room({ tiles }); const s = createState(r); settle(s, r);
+    const o = { ...PROJECTILES.orb.spawn({ x: 18 * 32, y: 15.5 * 32, dir: 'left' }), id: s.nextId++ };
+    s.projectiles.push(o);
+    for (let i = 0; i < 100; i++) step(s, r, 0); // orb crosses the spike tile
+    const orbAlive = s.projectiles.some((p) => p.id === o.id && p.x < 15 * 32);
+    s.projectiles = []; // only the spikes may kill from here
+    for (let i = 0; i < 120 && s.status === 'play'; i++) step(s, r, R);
+    return { ok: orbAlive && s.status === 'dead', detail: `orb passed ${orbAlive}, status ${s.status}` };
+  });
+
+  check('jumping over a spike tile is safe', () => {
+    const tiles = emptyTiles();
+    tiles[15] = `#${'.'.repeat(11)}^${'.'.repeat(16)}#`;
+    const r = room({ tiles }); const s = createState(r); settle(s, r);
+    for (let i = 0; i < 120 && s.status === 'play'; i++) step(s, r, R | (i < 40 ? JUMP : 0));
+    return { ok: s.status === 'play' && s.player.x > 13 * 32, detail: `x ${s.player.x.toFixed(0)}, status ${s.status}` };
+  });
+
+  check('light wall: blocks the player, breaks to an Orb; heavy wall shrugs Orbs off', () => {
+    const r = room({ objects: [{ kind: 'wall', at: [13, 13], h: 3 }, { kind: 'wall', at: [20, 13], h: 3, heavy: true }] });
+    const s = createState(r); settle(s, r);
+    for (let i = 0; i < 90; i++) step(s, r, R);
+    const blocked = s.player.x + PLAYER.W <= 13 * 32;
+    s.projectiles.push({ ...PROJECTILES.orb.spawn({ x: 12 * 32, y: 14.5 * 32, dir: 'right' }), id: s.nextId++ });
+    s.projectiles.push({ ...PROJECTILES.orb.spawn({ x: 19 * 32, y: 14.5 * 32, dir: 'right' }), id: s.nextId++ });
+    for (let i = 0; i < 60; i++) step(s, r, 0);
+    const [light, heavy] = s.objects.filter((o) => o.kind === 'wall');
+    return { ok: blocked && light.broken && !heavy.broken && s.projectiles.length === 0, detail: `blocked ${blocked} light ${light.broken} heavy ${heavy.broken}` };
+  });
+
   return out;
 }

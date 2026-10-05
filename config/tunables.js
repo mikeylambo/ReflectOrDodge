@@ -42,6 +42,13 @@ export const PROJECTILE = {
   GHOST_LEN: 220, // px of dashed upcoming path drawn ahead of each projectile
 };
 
+// Spike tiles: only the pointed lower part of the tile is lethal, so brushing
+// the tips while jumping over reads as fair.
+export const SPIKES = {
+  INSET_X: 4, // px trimmed from each side of the tile
+  TOP: 14, // px from the tile top where the lethal region starts
+};
+
 export const EMITTER = {
   TELEGRAPH: 0.5, // s charge-up glow before each shot
 };
