@@ -21,3 +21,6 @@ export const VOLUMES = [1, 0.75, 0.5, 0.25, 0];
 // the paths of your reflections.
 export const SLOWMO = { SPEED: 0.35, TIME: 0.5 }; // sim speed, real seconds
 export const COLLAPSE_TIME = 1.2; // s the collapse lines take to sweep out
+
+// Audio calibration slider (Settings): ms, positive = sounds earlier.
+export const OFFSET = { MIN: -200, MAX: 200, STEP: 20 };

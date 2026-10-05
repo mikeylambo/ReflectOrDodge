@@ -25,8 +25,9 @@ export function create(def) {
   };
 }
 
-// frames until the next shot at sim frame f (shots at phase + k·period, k ≥ 1)
-function untilNext(s, f) {
+// frames until the next shot at sim frame f (shots at phase + k·period, k ≥ 1).
+// Exported for the audio layer, which schedules shots ahead for calibration.
+export function untilNext(s, f) {
   const c = f - s.phaseF;
   if (c < s.periodF) return s.periodF - c;
   const into = c % s.periodF;

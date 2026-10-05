@@ -31,6 +31,27 @@ export function setVolume(v) {
   if (master) master.gain.value = AUDIO.MASTER_GAIN * volume;
 }
 
+export const getAudioContext = () => actx;
+
+// Event sounds transpose with the chapter's key so they stay consonant with
+// that chapter's ambient bed (engine/music.js).
+let keyRatio = 1;
+export function setKeyRatio(r) { keyRatio = r; }
+
+// Calibration (GDD: Audio). Positive = sounds earlier. Reactive events can't be
+// played before they happen, so "earlier" is honoured where the future is
+// known: emitter shots are on fixed clocks, so the app schedules them ahead
+// via playPredicted() and the reactive copy is skipped. Everything else can
+// only be delayed (negative offsets).
+export function getCalibrationOffset() { return calibrationOffsetMs; }
+export function playPredicted(ev, inSec) {
+  if (!actx || !BANK[ev.type] || volume <= 0) return;
+  const now = actx.currentTime;
+  BANK[ev.type](ev, Math.max(now, now + inSec - calibrationOffsetMs / 1000));
+  stats.scheduled++;
+}
+export const PREDICTED = new Set(['emitter.fire']);
+
 export function setCalibrationOffset(ms) {
   calibrationOffsetMs = Math.max(AUDIO.OFFSET_MIN, Math.min(AUDIO.OFFSET_MAX, ms));
 }
@@ -51,8 +72,8 @@ function voice(freq, dur, type, gain, glideTo, when) {
   const o = actx.createOscillator();
   const g = actx.createGain();
   o.type = type;
-  o.frequency.setValueAtTime(freq, when);
-  if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, when + dur);
+  o.frequency.setValueAtTime(freq * keyRatio, when);
+  if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo * keyRatio, when + dur);
   g.gain.setValueAtTime(0.0001, when);
   g.gain.exponentialRampToValueAtTime(gain, when + 0.008);
   g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
@@ -81,6 +102,7 @@ const BANK = {
 
 export function playEvent(ev) {
   if (!actx || !BANK[ev.type] || volume <= 0) return;
+  if (calibrationOffsetMs > 0 && PREDICTED.has(ev.type)) return; // already scheduled ahead
   const now = actx.currentTime;
   const when = Math.max(now, now - calibrationOffsetMs / 1000);
   BANK[ev.type](ev, when);
