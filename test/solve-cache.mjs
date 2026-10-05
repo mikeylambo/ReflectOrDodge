@@ -36,7 +36,7 @@ let hits = 0, misses = 0, dirty = false;
 
 // Returns a compact result (no input log) — the log is only needed by tools/solve.mjs.
 export function cachedSolve(room, opts) {
-  const k = `${roomHash(room)}:${opts.mode}:${opts.decisionHz}:${opts.maxReflects}`;
+  const k = `${roomHash(room)}:${opts.mode}:${opts.decisionHz}:${opts.maxReflects}${opts.stateCap ? `:${opts.stateCap}` : ''}`;
   if (cache.entries[k]) { hits++; return cache.entries[k]; }
   misses++;
   const r = solve(room, opts);

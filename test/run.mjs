@@ -134,6 +134,7 @@ for (const { room } of rooms) {
 // human: 5 Hz = an input change every 0.2 s.
 const SOLVE_HZ = 5;
 const COMFORT_HZ = [4, 3];
+const DEEP_CAP = 2500000; // last-resort search for rooms the default cap can't prove
 const diag = (label, detail) => console.log(`⚑ ${label}${detail ? ` — ${detail}` : ''}`);
 
 console.log(`── solvability: solver finds a clear within par (${SOLVE_HZ} Hz) ──`);
@@ -144,6 +145,11 @@ for (const { room } of rooms) {
   for (hz of [SOLVE_HZ, ...COMFORT_HZ]) {
     r = cachedSolve(room, { mode: 'any', decisionHz: hz, maxReflects: room.par });
     if (r.solvable) break;
+  }
+  // multi-answer rooms (Examiner phases) can need a deeper search to prove
+  if (!r.solvable && r.reason.startsWith('state cap')) {
+    hz = COMFORT_HZ[0];
+    r = cachedSolve(room, { mode: 'any', decisionHz: hz, maxReflects: room.par, stateCap: DEEP_CAP });
   }
   report(r.solvable, `${room.id}: solver clears within par`, r.solvable ? `◇${r.reflects}/${room.par} in ${r.seconds}s at ${hz} Hz, ${r.explored} states` : `${r.reason} (${r.explored} states)`);
 }
