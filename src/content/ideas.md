@@ -37,7 +37,7 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c2-04 Two Birds | 2 Weight | One weight goes through a switch and then through a wall. | ✓ |
 | c2-05 Floodgate | 2 Weight | Weight piles up behind a closed gate; send an orb to open it and let the weight through. |  |
 | c2-06 Shield | 2 Weight | Weight pours out of a tunnel you can't hop in; send an orb to shut the gate behind it. |  |
-| c2-07 Undertow | 2 Weight | Weight passes at head height, so hopping the orb at your feet means death: answer it instead. |  |
+| c2-07 Undertow | 2 Weight | A tunnel too low to hop in, orbs head-on: answer one home, then mind the weight falling at the mouth. |  |
 | c2-08 Counterweight | 2 Weight | Weight trips a toggle on the exit door: a clock you can't stop, only read. | ✓ |
 | c2-09 Trapdoor | 2 Weight | The weight falls on the floor you're standing on; step aside and let it open the way down. | ✓ |
 | c2-10 Detour | 2 Weight | A heavy wall shields the switch from the orbs; the weight clears it, then the orbs do the rest. | ✓ |
