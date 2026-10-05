@@ -8,7 +8,8 @@
 //      zero console errors
 // Any room added to src/content/rooms/ is covered automatically.
 import { createHash } from 'node:crypto';
-import { loadRooms } from './levels-node.mjs';
+import { loadRooms, loadIndex } from './levels-node.mjs';
+import { readFileSync } from 'node:fs';
 import { validateRoom, compileRoom } from '../src/sim/room.js';
 import { runLog } from '../src/sim/world.js';
 import { decodeLog, encodeLog } from '../src/sim/input.js';
@@ -59,6 +60,31 @@ for (const { file, room } of rooms) {
   ids.add(room.id);
   if (!room.solution) errs.push('no recorded solution');
   report(errs.length === 0, `${file}: well formed`, errs.join('; '));
+}
+
+console.log('── content: chapter index + ideas catalogue ──');
+{
+  const index = loadIndex();
+  const byId = new Set(rooms.map((r) => r.room.id));
+  const ideas = readFileSync(new URL('../src/content/ideas.md', import.meta.url), 'utf8');
+  const rowsById = new Map();
+  for (const line of ideas.split('\n')) {
+    const m = /^\| ([a-z0-9-]+) [^|]*\| [^|]*\| ([^|]+)\| *(✓?) *\|/.exec(line);
+    if (m) rowsById.set(m[1], { idea: m[2].trim(), pass: m[3] === '✓' });
+  }
+  const indexed = index.chapters.flatMap((c) => c.rooms);
+  const missing = indexed.filter((id) => !byId.has(id));
+  report(missing.length === 0, 'index.json: every listed room exists', missing.join(', '));
+  report(new Set(indexed).size === indexed.length, 'index.json: no room listed twice');
+  const noIdea = [...byId].filter((id) => !rowsById.has(id));
+  report(noIdea.length === 0, 'ideas.md: every room has an idea entry', noIdea.join(', '));
+  const sentences = [...rowsById.values()].map((r) => r.idea.toLowerCase());
+  report(new Set(sentences).size === sentences.length, 'ideas.md: no idea repeats');
+  for (const c of index.chapters) {
+    if (c.scored === false) continue;
+    const pass = c.rooms.filter((id) => rowsById.get(id) && rowsById.get(id).pass).length;
+    report(pass * 4 >= c.rooms.length, `${c.id}: let-it-pass quota (≥ 1 in 4)`, `${pass}/${c.rooms.length}`);
+  }
 }
 
 console.log('── determinism ──');

@@ -3,12 +3,14 @@
 A 2D puzzle-platformer where the only answers to danger are **reflect** or **dodge**.
 [`docs/GDD.md`](docs/GDD.md) is the source of truth; its Design laws are non-negotiable.
 
-M0 is one goal: *reflecting feels satisfying with nothing at stake.*
+Current build: **M1, proof of game**. It has the Prologue and Chapter 1 (20 Orb rooms), medals, saves, assists, hints and solution replays, all on the Web Shell's menus.
+Milestone reports: [`docs/reports/`](docs/reports/).
 
 ```sh
 npm install
 npm run dev            # game        → http://localhost:5173
                        # editor      → http://localhost:5173/?edit=1
+                       # all chapters unlocked (playtests) → ?all=1
 npm test               # all gates (headless + Chromium smoke)
 npm run test:fast      # headless gates only
 ```
@@ -22,7 +24,9 @@ npm run test:fast      # headless gates only
 | Jump | Space | A / Cross | ⤒ |
 | Reflect | J / K / Shift | X / Square or RB | ◇ |
 | Reset room | R | Back / Select | ↺ |
-| Prev / next room | [ / ] | | |
+| Pause (assists, hint, settings) | Esc / P | Start | Ⅱ |
+| Hint (when the eye glyph shows) | H | via Pause | via Pause |
+| Menus | arrows / W S, Enter / Space / J, Esc back | D-pad / stick, A, B | tap |
 
 **One GDD deviation:** W and Up don't jump. In the GDD table they both jump *and* aim up,
 so you could never reflect upward from the ground. Jump is Space only.
@@ -56,6 +60,14 @@ vendor/web-shell/        built Web Shell modules (see its README)
 tools/                   solve.mjs (solver CLI for authoring), screenshot.mjs
 test/                    npm test
 ```
+
+## Authoring a room
+
+1. Build it in the editor (`?edit=1`) and save it.
+2. Add it to `src/content/rooms/index.json` and give it a one-line idea in `src/content/ideas.md`.
+3. Run `node tools/solve.mjs <id> --write`. The solver records a solution and sets par to the fewest reflects it can find. It refuses to write when that beats the par you intended; that's a bypass.
+4. If you want to see how it was solved, run `node tools/trace.mjs <id>` (add `--solve 0` to trace the bypass instead).
+5. Run `npm test`. Solver results are cached in `test/.solve-cache.json` (commit it). Editing one room re-solves only that room. Any change to the sim, objects, projectiles or tunables re-solves everything.
 
 ## Rules the code enforces
 
