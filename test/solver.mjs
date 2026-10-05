@@ -62,7 +62,10 @@ function key(s, posQ, velQ, K) {
   if (!k) k = 'static,';
   k += `|${q(p.x, posQ)},${q(p.y, posQ)},${q(p.vy, velQ)},${p.grounded ? 1 : 0}${p.coyote > 0 ? 1 : 0}${p.rising ? 1 : 0}${p.jumpBuf > 0 ? 1 : 0}${s.prevInput & JUMP ? 1 : 0}`;
   k += `|${q(s.reflect.window, 6)},${q(s.reflect.cooldown, 6)},${s.hitstop > 0 ? 1 : 0},${s.stats.reflects}`;
-  for (const pr of s.projectiles) k += `|${pr.type}${q(pr.x, posQ)},${q(pr.y, posQ)},${Math.sign(pr.vx)}${Math.sign(pr.vy)}${pr.reflected ? 'r' : ''}${pr.grace ? 'g' : ''}`;
+  for (const pr of s.projectiles) {
+    k += `|${pr.type}${q(pr.x, posQ)},${q(pr.y, posQ)},${Math.sign(pr.vx)}${Math.sign(pr.vy)}${pr.reflected ? 'r' : ''}${pr.grace ? 'g' : ''}`;
+    if (pr.stuck) k += `s${q(pr.life, K)}`;
+  }
   for (const o of s.objects) {
     if (o.kind === 'emitter') continue;
     else if (o.kind === 'door') k += `|d${o.open ? 1 : 0}`;
@@ -77,7 +80,7 @@ function inZone(s) {
   const cx = s.player.x + PLAYER.W / 2, cy = s.player.y + PLAYER.H / 2;
   const r = REFLECT.RADIUS + 3;
   for (const pr of s.projectiles) {
-    if (!PROJECTILES[pr.type].reflectable || pr.grace) continue;
+    if (!PROJECTILES[pr.type].reflectable || pr.grace || pr.stuck) continue;
     const dx = pr.x - cx, dy = pr.y - cy;
     if (dx * dx + dy * dy <= r * r) return true;
   }
@@ -89,7 +92,7 @@ function reflectUseful(s, K) {
   const cx = s.player.x + PLAYER.W / 2, cy = s.player.y + PLAYER.H / 2;
   const reach = REFLECT.RADIUS + 3 + ((PLAYER.RUN + 160) * K) / TIMESTEP.HZ;
   for (const pr of s.projectiles) {
-    if (!PROJECTILES[pr.type].reflectable) continue;
+    if (!PROJECTILES[pr.type].reflectable || pr.stuck) continue;
     const dx = pr.x - cx, dy = pr.y - cy;
     if (dx * dx + dy * dy <= reach * reach) return true;
   }

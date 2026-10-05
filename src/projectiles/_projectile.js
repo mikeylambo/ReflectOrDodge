@@ -8,6 +8,10 @@
 //   step(state, dt, world) -> { state, events[] }
 //   onReflect(state, dir) -> state[]      array so Splitter can return two
 //   onHit(state, object) -> { state | null, events[] }
+//                                         object = { kind: 'tile' | object kind, rect, ... }
+//                                         returning a state = the projectile keeps going (or sticks)
+//   platforms(state) -> Rect[]            optional: one-way platforms for the player
+//   (step may return { state: null } to remove the projectile, e.g. a platform expiring)
 //   render(ctx, state, alpha, theme)
 //
 // Rules:
@@ -44,7 +48,7 @@ export function validateProjectileType(mod) {
     if (JSON.stringify(s0) !== frozen) fail('onReflect() mutated its input');
   }
 
-  const h = mod.onHit(s0, { kind: 'wall' });
+  const h = mod.onHit(s0, { kind: 'tile', rect: { x: 0, y: 84, w: 32, h: 32 } });
   if (!h || !('state' in h) || !Array.isArray(h.events)) fail('onHit() must return { state | null, events[] }');
   if (JSON.stringify(JSON.parse(JSON.stringify(s0))) !== frozen) fail('state is not plain data');
   return mod;

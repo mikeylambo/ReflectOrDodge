@@ -82,6 +82,10 @@ function movePlayer(state, room) {
     if (!rectsOverlap(r, { x: p.x, y: ny, w: PLAYER.W, h: PLAYER.H })) continue;
     if (p.vy > 0) { ny = Math.min(ny, r.y - PLAYER.H); landed = true; } else if (p.vy < 0) { ny = Math.max(ny, r.y + r.h); }
   }
+  if (p.vy > 0) {
+    const top = landOnPlatforms(state, p, ny);
+    if (top !== null && top - PLAYER.H <= ny) { ny = top - PLAYER.H; landed = true; }
+  }
   if (ny !== p.y + p.vy * DT) { p.vy = 0; p.rising = false; }
   p.y = ny;
   return landed;
@@ -90,13 +94,31 @@ function movePlayer(state, room) {
 const playerBox = (p) => ({ x: p.x, y: p.y, w: PLAYER.W, h: PLAYER.H });
 const playerCenter = (p) => [p.x + PLAYER.W / 2, p.y + PLAYER.H / 2];
 
+// First solid tile the projectile overlaps (its rect), or null.
 function projectileHitsWall(room, s) {
   const x0 = Math.floor((s.x - s.r) / T), x1 = Math.floor((s.x + s.r) / T);
   const y0 = Math.floor((s.y - s.r) / T), y1 = Math.floor((s.y + s.r) / T);
   for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
-    if (isSolid(room, tx, ty) && circleRect(s.x, s.y, s.r, { x: tx * T, y: ty * T, w: T, h: T })) return true;
+    const rect = { x: tx * T, y: ty * T, w: T, h: T };
+    if (isSolid(room, tx, ty) && circleRect(s.x, s.y, s.r, rect)) return rect;
   }
-  return false;
+  return null;
+}
+
+// One-way platforms some projectiles leave behind (a stuck Seed): the player
+// lands on them from above and passes through from below or the side.
+function landOnPlatforms(state, p, ny) {
+  let best = null;
+  const bottom0 = p.y + PLAYER.H, bottom1 = ny + PLAYER.H;
+  for (const pr of state.projectiles) {
+    const mod = PROJECTILES[pr.type];
+    if (!mod.platforms) continue;
+    for (const r of mod.platforms(pr)) {
+      if (p.x + PLAYER.W <= r.x || p.x >= r.x + r.w) continue;
+      if (bottom0 <= r.y + 0.001 && bottom1 >= r.y && (best === null || r.y < best)) best = r.y;
+    }
+  }
+  return best;
 }
 
 // ── the tick ───────────────────────────────────────────────────────
@@ -174,19 +196,28 @@ export function step(state, room, input) {
   }
 
   // ── projectiles move + collide ──
+  // A projectile that survives a hit (an Anchor through a wall, or a switch)
+  // remembers the object in `passed` so it never re-triggers it. A stuck one
+  // (a Seed platform) no longer collides at all. step() may return null to
+  // remove the projectile (a platform expiring).
   const survivors = [];
   for (const pr of state.projectiles) {
     const mod = PROJECTILES[pr.type];
     const st = mod.step(pr, DT, world);
     events.push(...st.events);
+    if (!st.state) continue;
     let s = st.state;
     s.id = pr.id;
     if (pr.grace) s.grace = true;
+    if (pr.passed) s.passed = pr.passed;
+    if (s.stuck) { survivors.push(s); continue; }
 
-    let hit = null;
-    if (projectileHitsWall(room, s)) hit = { kind: 'wall' };
+    let hit = null, hitIndex = -1;
+    const tile = projectileHitsWall(room, s);
+    if (tile) hit = { kind: 'tile', rect: tile };
     else {
       for (let i = 0; i < state.objects.length; i++) {
+        if (s.passed && s.passed.includes(i)) continue;
         const o = state.objects[i];
         const om = OBJECTS[o.kind];
         const rect = om.hitRect(o);
@@ -195,7 +226,8 @@ export function step(state, room, input) {
         state.objects[i] = res.state;
         events.push(...res.events);
         for (const ev of res.events) if (ev.type === 'switch.hit') triggerLinks(state, ev.links, events);
-        hit = o;
+        hit = { ...o, rect };
+        hitIndex = i;
         break;
       }
     }
@@ -204,6 +236,8 @@ export function step(state, room, input) {
       events.push(...h.events);
       if (!h.state) continue;
       s = { ...h.state, id: pr.id };
+      if (pr.grace) s.grace = true;
+      if (hitIndex >= 0 && !s.stuck) s.passed = [...(s.passed || []), hitIndex];
     }
     survivors.push(s);
   }
@@ -218,7 +252,7 @@ export function step(state, room, input) {
     for (const pr of state.projectiles) {
       const mod = PROJECTILES[pr.type];
       const dx = pr.x - pcx, dy = pr.y - pcy;
-      if (!mod.reflectable || rf.hitIds.includes(pr.id) || dx * dx + dy * dy > REFLECT.RADIUS * REFLECT.RADIUS) {
+      if (!mod.reflectable || pr.stuck || rf.hitIds.includes(pr.id) || dx * dx + dy * dy > REFLECT.RADIUS * REFLECT.RADIUS) {
         next.push(pr);
         continue;
       }
@@ -251,7 +285,7 @@ export function step(state, room, input) {
     const box = playerBox(p);
     for (const pr of state.projectiles) {
       const mod = PROJECTILES[pr.type];
-      if (mod.lethal === false || pr.grace) continue;
+      if (mod.lethal === false || pr.grace || pr.stuck) continue;
       if (circleRect(pr.x, pr.y, pr.r, box)) {
         state.status = 'dead';
         events.push({ type: 'player.death', ptype: pr.type, x: pcx, y: pcy });

@@ -49,6 +49,24 @@ export const SPIKES = {
   TOP: 14, // px from the tile top where the lethal region starts
 };
 
+// Anchor (Chapter 2): heavy square. Not reflectable; slower; unstoppable —
+// it smashes through breakable walls (heavy ones included) and switches.
+export const ANCHOR = {
+  SPEED: 90, // px/s
+  HALF: 9, // px half-size (collision uses the inscribed circle)
+};
+
+// Seed (Chapter 3): diamond. Reflectable. Where it hits a surface it sticks and
+// becomes a one-way platform for LIFE seconds.
+export const SEED = {
+  SPEED: 140, // px/s
+  RADIUS: 6,
+  LIFE: 4.0, // s a platform lasts
+  PLATFORM_W: 32, // px
+  PLATFORM_H: 6, // px (drawn thickness; only the top surface matters)
+  BLINK: 1.0, // s of warning blink before it expires (presentation)
+};
+
 export const EMITTER = {
   TELEGRAPH: 0.5, // s charge-up glow before each shot
 };
