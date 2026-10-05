@@ -1,4 +1,4 @@
-import { ROOM } from './config/tunables.js';
+import { ROOM } from '../config/tunables.js';
 import { startGame } from './game/game.js';
 
 const canvas = document.getElementById('c');

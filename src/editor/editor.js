@@ -2,20 +2,20 @@
 //
 //   Paint tiles, place spawn / exit / emitters / switches / doors, edit their
 //   params, play-in-editor (P) and back with the room untouched, save/load
-//   JSON to levels/, scrub the room's clocks with the timeline, and keep the
+//   JSON to src/content/rooms/, scrub the room's clocks with the timeline, and keep the
 //   last clear's input log as the room's solution.
 import { createLoop } from '../engine/loop.js';
 import { createInput } from '../engine/input.js';
 import { initAudio } from '../engine/audio.js';
 import { createSession } from '../game/session.js';
-import { render, invalidateTiles } from '../render/render.js';
+import { render, invalidateTiles } from '../present/render.js';
 import { ROOMS } from '../sim/levels.js';
-import { ROOM, TIMESTEP } from '../config/tunables.js';
+import { ROOM, TIMESTEP } from '../../config/tunables.js';
 import { compileRoom, validateRoom, emptyTiles, tileRows } from '../sim/room.js';
 import { createState, step } from '../sim/world.js';
-import { PROJECTILES } from '../sim/projectiles/index.js';
+import { PROJECTILES } from '../projectiles/index.js';
 import { formatRoom } from '../sim/format.js';
-import { THEME } from '../render/theme.js';
+import { THEME } from '../present/theme.js';
 
 const T = ROOM.TILE;
 const TOOLS = [

@@ -12,7 +12,7 @@ import { compileRoom } from '../src/sim/room.js';
 import { createState, step } from '../src/sim/world.js';
 import { BTN, encodeLog } from '../src/sim/input.js';
 import { formatRoom } from '../src/sim/format.js';
-import { PLAYER } from '../src/config/tunables.js';
+import { PLAYER } from '../config/tunables.js';
 
 const { L, R, U, JUMP, REFLECT } = BTN;
 const MAX_FRAMES = 120 * 30;

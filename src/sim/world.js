@@ -7,10 +7,10 @@
 // Tick order:
 //   hitstop → player move/jump → reflect window → objects (emitters fire)
 //   → projectiles move + collide → reflect → grace → player contact → exit
-import { PLAYER, REFLECT, ROOM, TIMESTEP, frames } from '../config/tunables.js';
+import { PLAYER, REFLECT, ROOM, TIMESTEP, frames } from '../../config/tunables.js';
 import { BTN, heldDir } from './input.js';
-import { PROJECTILES } from './projectiles/index.js';
-import { OBJECTS } from './objects/index.js';
+import { PROJECTILES } from '../projectiles/index.js';
+import { OBJECTS } from '../objects/index.js';
 import { isSolid } from './room.js';
 import { circleRect, rectsOverlap } from './geom.js';
 

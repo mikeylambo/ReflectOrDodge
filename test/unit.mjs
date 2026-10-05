@@ -2,8 +2,8 @@
 import { compileRoom, emptyTiles } from '../src/sim/room.js';
 import { createState, step } from '../src/sim/world.js';
 import { BTN, encodeLog, decodeLog, heldDir } from '../src/sim/input.js';
-import { PROJECTILES } from '../src/sim/projectiles/index.js';
-import { PLAYER, REFLECT, frames } from '../src/config/tunables.js';
+import { PROJECTILES } from '../src/projectiles/index.js';
+import { PLAYER, REFLECT, frames } from '../config/tunables.js';
 
 const { L, R, U, D, JUMP, REFLECT: RF } = BTN;
 

@@ -4,11 +4,11 @@ import { fileURLToPath } from 'node:url';
 import { formatRoom } from './src/sim/format.js';
 import { validateRoom } from './src/sim/room.js';
 
-const LEVELS = fileURLToPath(new URL('./levels/', import.meta.url));
+const LEVELS = fileURLToPath(new URL('./src/content/rooms/', import.meta.url));
 
-// Dev-only endpoint so the in-browser editor can save straight into levels/.
+// Dev-only endpoint so the in-browser editor can save straight into src/content/rooms/.
 //   GET  /__levels          → [room, …]
-//   POST /__levels/<id>     → validate + write levels/<id>.json
+//   POST /__levels/<id>     → validate + write src/content/rooms/<id>.json
 function levelsApi() {
   return {
     name: 'levels-api',
@@ -17,7 +17,7 @@ function levelsApi() {
       server.middlewares.use('/__levels', (req, res) => {
         const send = (code, body) => { res.statusCode = code; res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(body)); };
         if (req.method === 'GET' && (req.url === '/' || req.url === '')) {
-          const rooms = readdirSync(LEVELS).filter((f) => f.endsWith('.json')).sort()
+          const rooms = readdirSync(LEVELS).filter((f) => f.endsWith('.json') && f !== 'index.json').sort()
             .map((f) => JSON.parse(readFileSync(LEVELS + f, 'utf8')));
           return send(200, rooms);
         }
@@ -32,7 +32,7 @@ function levelsApi() {
             const errs = validateRoom(room);
             if (errs.length) return send(400, { error: errs.join('; ') });
             writeFileSync(`${LEVELS}${room.id}.json`, formatRoom(room));
-            send(200, { ok: true, path: `levels/${room.id}.json` });
+            send(200, { ok: true, path: `src/content/rooms/${room.id}.json` });
           } catch (e) { send(400, { error: String(e.message || e) }); }
         });
       });

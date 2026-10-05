@@ -434,38 +434,120 @@ The BFS is the riskiest port. Reflect adds a timed action with five direction ch
 - Whether Examiner phases count toward medals.
 - Per-room or per-chapter music beds.
 
-## M0 handoff to Claude Code
+## Build brief for Claude Code
 
-Paste this as the kickoff prompt in a new repo that has `living-loop` and `Web-Game-Shell-v1.02` available locally.
+This brief covers the whole game, M0 through launch. Claude Code builds it in milestone order and stops at each gate marked HUMAN GATE for Mike's playtest sign-off. Save this GDD as `docs/GDD.md` in the repo; the brief points to it for all specifics.
 
 ```markdown
-Build M0 of REFLECT / DODGE, a 2D puzzle-platformer. The full GDD is the source of truth; read it first and treat its Design laws as non-negotiable.
+# REFLECT / DODGE — Full Build Brief
 
-Foundation:
-- Start from Living Loop's engine: engine/loop.js (fixed 120 Hz, interpolated render), engine/input.js, engine/audio.js, config/tunables.js pattern, and its test harness approach. Copy, don't import across repos.
-- Do NOT integrate the Web Shell yet (that's M2). Keep M0 a single Vite + Canvas2D app.
-- Plain JS modules, no new dependencies beyond Vite and Playwright.
+You are building a complete, shippable 2D puzzle-platformer. docs/GDD.md is the source of truth for every value, rule and system named here. Read it fully before writing code. Its "Design laws" are non-negotiable. Where this brief and the GDD disagree, the GDD wins; flag the conflict.
+
+The Web Shell's AGENTS.md constitution also applies. Build the largest playable, closest-to-release version each milestone allows.
+
+## Stack and sources
+
+- Vite + Canvas2D, plain JS modules for gameplay, TypeScript where the shell requires it.
+- Engine foundation copied (not imported) from living-loop: engine/loop.js, engine/input.js, engine/audio.js, engine/music.js, engine/haptics.js, config/tunables.js pattern, game/progress.js (adapt to reflect par), test/ harness (solvable, comfort, smoke, ghost-verify).
+- Production shell: Web-Game-Shell-v1.02, generated with the canvas2d renderer and the platformer + puzzle frames. Use its menus, pause, results, settings, persistence, UI navigation, replay, accessibility and onboarding modules rather than building equivalents.
+- Desktop: Tauri (preferred) or Electron. Mobile: Capacitor (living-loop docs/ios-build.md).
+- No other runtime dependencies without justification in the commit message.
+
+## Repo structure
+
+src/engine/        loop, input, audio, music, haptics, render (from living-loop)
+src/sim/           world state, player, reflect, collision, room runtime. Pure, deterministic, no DOM.
+src/projectiles/   one module per type against the projectile interface (GDD: Core interfaces)
+src/objects/       emitter, switch, door, wall, exit, spikes, Examiner parts
+src/present/       rendering, VFX, game feel, theme per chapter. Reads sim state, never writes it.
+src/editor/        level editor (?edit=1)
+src/shell/         shell integration: screens, map, results, settings, saves
+src/content/rooms/ room JSON, one file per room, plus index.json (chapter order)
+src/content/ideas.md  ideas catalogue (GDD: Level design guide)
+config/tunables.js all gameplay numbers
+test/              schema, determinism, solvability, par, comfort, smoke
+docs/GDD.md
+
+## Hard rules
+
+- Simulation is deterministic: fixed 120 Hz step, no Math.random, no wall clock, no variable dt, plain-data state. Assists scale steps per real second; they never change sim logic.
+- Gameplay authority (sim/) is separate from presentation (present/). Art upgrades never touch collision.
+- Every number lives in tunables.js. No magic numbers.
+- Every room ships with a recorded solution input log. CI fails without one.
+- Audio is reactive via semantic events, never tempo-locked.
+- Shape and behavior before color for every gameplay category.
+- One intent per commit. Reports state what was tested and what wasn't. Never claim untested coverage.
+
+## M0 — Core feel
 
 Build:
-1. Player: run, variable jump, coyote time, jump buffer. All values in tunables.js.
-2. Reflect: zone + window + cooldown + hitstop, 4 directions + neutral per the GDD.
-3. Projectile type interface (spawn, step, onReflect returning an array, onHit, render, tunables). Implement Orb only.
-4. Room objects: emitter (with 0.5 s telegraph, shut off by reflected hit), switch, door, exit, solid tiles.
-5. Room loader from JSON per the GDD schema, including the solution field.
-6. Instant reset on death and on R.
-7. Editor behind ?edit=1: paint tiles, place objects, edit emitter params, play-in-editor toggle, save/load JSON, timeline scrubber.
-8. Record input logs; save one as a room's solution.
-9. Placeholder visuals per Art direction: dark background, luminous player, ghost lines, reflect arc.
+- Player: run, variable jump, coyote time, jump buffer.
+- Reflect: zone, window, cooldown, hitstop; 4 directions + neutral; midair; multi-projectile.
+- Projectile interface + Orb.
+- Objects: emitter (telegraph, shutdown on reflected hit), switch, door, exit, solid tiles, spikes.
+- Room JSON loader (GDD schema incl. solution, par, mirrorOf).
+- Instant reset (death and R).
+- Input recording and replay; save a recording as a room's solution.
+- Editor: paint tiles, place/link objects, edit emitter period/phase/direction, play-in-editor toggle, timeline scrubber, save/load JSON, duplicate-as-mirror.
+- Placeholder presentation per GDD Art direction + the full Game feel table at placeholder fidelity.
+- Tests: schema, determinism replay, solution-clears-within-par, browser smoke.
+- Content: 3 rooms (let-it-pass, reflect-into-switch, return-to-sender).
 
-Tests (npm test):
-- Room schema validation.
-- Determinism: replaying a room's solution log twice yields identical final state.
-- Solution check: the stored solution clears the room within par.
-- Browser smoke: boots, renders, input works, zero console errors.
+HUMAN GATE: Mike playtests reflect feel. Tune tunables until approved.
 
-Deliver: 3 sample rooms (one let-it-pass solution, one reflect-into-switch, one return-to-sender emitter), each with a recorded solution.
+## M1 — Proof of game
 
-Rules: no Math.random or wall-clock in simulation; one intent per commit; report honestly what was and wasn't tested. Stop at M0. Do not add projectile types, menus or art beyond placeholders.
+Build:
+- Medals (Bronze/Silver/Gold per GDD), per-room records.
+- Save schema v1 (GDD) with versioning and migration stub.
+- Assist mode: speed, reflect window, reflect preview, invincibility, visual options.
+- Stuck-player system: hint ghost (first reflect of solution after 10 deaths or 3 min), solution replay after Bronze.
+- Port living-loop's BFS solver to the new action space: decision windows, 5 reflect directions + jump + move, state pruning by position bucket + projectile/object state, depth cap. Fallback: verify recorded solution + comfort test. CI fails any unsolvable room.
+- Comfort diagnostic adapted from living-loop.
+- Opt-in local telemetry: attempts, deaths, time to clear, hints, quits per room.
+- Content: Prologue (3 rooms) + Chapter 1 (20 rooms, Orb only) + ideas catalogue entries.
+
+HUMAN GATE (kill-or-commit): Mike and 3 outside playtesters run Chapter 1. Pass all four GDD kill criteria or stop and report.
+
+## M2 — Vertical slice and demo
+
+Build:
+- Full shell integration: title, chapter map (node grid, mirror flip, 15-of-20 unlock), room intro, HUD, pause, results, settings, credits stub. Complete on keyboard, gamepad and touch.
+- Device-aware input glyphs, wordless onboarding prompts.
+- Anchor and Seed projectile types.
+- Examiner framework: 3 phases, each a deterministic room, phase-local restart; Chapter 1 Examiner.
+- Mirror rooms for Chapter 1 (solver must fail the original solution on each mirror).
+- First art pass and Art bible draft (docs/ART.md), chapter 1–3 palettes.
+- Audio: semantic event map, chapter 1 ambient bed, calibration slider.
+- Content: Chapters 2–3 (40 rooms) with Examiners.
+- Builds: web demo (Prologue + Ch1 + Examiner) for itch; Tauri desktop build.
+
+HUMAN GATE: Mike approves slice; story-layer decision locked (GDD Story layer).
+
+## M3 — Full content and launch
+
+Build:
+- Splitter, Charge, Twin projectile types.
+- Chapters 4–8 (100 rooms), all mirror rooms (160), all Examiners (8), final line and credits.
+- Final art and audio for all chapters; Game feel at full fidelity.
+- Steam: achievements (GDD list), cloud saves, glyph switching, Steam Deck Verified checklist.
+- Speedrun timer and replay-verified runs.
+- Performance pass at worst-case rooms (most projectiles + VFX) on Steam Deck and a mid mobile device.
+- Editor polished to player quality behind a feature flag (community levels ship post-launch).
+- Mobile control redesign (separate pass) and Capacitor builds.
+- Store assets: trailer capture mode (UI hidden, slow-mo toggle), screenshot mode.
+
+HUMAN GATES: per chapter content review; release candidate sign-off.
+
+## Per-room definition of done
+
+- Valid schema, links resolve.
+- Recorded solution clears within par; solver confirms solvable.
+- Comfort diagnostic passes or is approved by Mike.
+- Idea logged in ideas.md; no duplicate idea.
+- Mirror (when made) changes exactly one property and defeats the original solution.
+
+## Reporting
+
+At the end of each milestone, write docs/reports/M<n>.md: what was built, what was tested and how, what wasn't tested, known issues, tunables changed, and the exact commit.
 ```
-
-M0 is done when reflecting feels satisfying in those three rooms with nothing else at stake.

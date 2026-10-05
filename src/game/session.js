@@ -7,9 +7,9 @@
 import { compileRoom } from '../sim/room.js';
 import { createState, step } from '../sim/world.js';
 import { encodeLog } from '../sim/input.js';
-import { createFx, fxEvents, fxTick } from '../render/fx.js';
+import { createFx, fxEvents, fxTick } from '../present/fx.js';
 import { playEvent } from '../engine/audio.js';
-import { TIMESTEP } from '../config/tunables.js';
+import { TIMESTEP } from '../../config/tunables.js';
 
 export function medalFor({ reflects, par, deaths }) {
   if (reflects > par) return 1; // bronze

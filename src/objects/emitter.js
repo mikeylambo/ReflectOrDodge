@@ -3,7 +3,7 @@
 // first included, gets the full charge-up telegraph. A REFLECTED projectile
 // hitting it shuts it off for the rest of the attempt ("return to sender").
 import { EMITTER, ROOM, frames } from '../../config/tunables.js';
-import { DIRS } from '../input.js';
+import { DIRS } from '../sim/input.js';
 
 const T = ROOM.TILE;
 export const kind = 'emitter';

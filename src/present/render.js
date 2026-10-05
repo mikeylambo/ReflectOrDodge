@@ -1,8 +1,8 @@
 // Draws one frame from sim state + presentation fx. Reads, never writes, sim state.
-import { ROOM, PLAYER, REFLECT, PROJECTILE, FEEL } from '../config/tunables.js';
+import { ROOM, PLAYER, REFLECT, PROJECTILE, FEEL } from '../../config/tunables.js';
 import { THEME } from './theme.js';
-import { PROJECTILES } from '../sim/projectiles/index.js';
-import { OBJECTS } from '../sim/objects/index.js';
+import { PROJECTILES } from '../projectiles/index.js';
+import { OBJECTS } from '../objects/index.js';
 import { isSolid } from '../sim/room.js';
 import { circleRect } from '../sim/geom.js';
 

@@ -34,23 +34,26 @@ Up beats Left/Right when you hold both, because you're usually still holding a r
 right-click erases. **P** plays the room in place and returns to editing with the room untouched.
 The timeline scrubs the room's clocks with an inert player, so you can design without playing.
 Reach the exit in play mode, then press **Use as solution** to store that run's input log.
-**Save** writes `levels/<id>.json` via the dev server. **Mirror** duplicates the room with `mirrorOf` set.
+**Save** writes `src/content/rooms/<id>.json` via the dev server. **Mirror** duplicates the room with `mirrorOf` set.
 
 ## Layout
 
 ```
-src/config/tunables.js   every number (GDD: never inline)
-src/engine/              loop (fixed 120 Hz, from Living Loop), input, reactive audio
-src/sim/                 the deterministic simulation — pure data, runs headless
+config/tunables.js       every number (GDD: never inline)
+src/engine/              loop (fixed 120 Hz, from Living Loop), input, reactive audio, haptics
+src/sim/                 the deterministic simulation: plain data, runs headless
   world.js               the tick: player, reflect, emitters, projectiles, contact, exit
-  projectiles/           one module per type against _projectile.js (Orb only in M0)
-  objects/               emitter, switch, door against _object.js
   room.js                schema validation + compile;  input.js  masks + input-log codec
-src/render/              presentation only (never read by the sim)
-src/game/                session (recording, deaths, medals) + play mode
+src/projectiles/         one module per type against _projectile.js
+src/objects/             emitter, switch, door, wall against _object.js
+src/present/             rendering + game feel; reads sim state, never writes it
+src/game/                session runtime (recording, deaths, hints, replay)
+src/shell/               Web Shell integration: screens, saves, settings
 src/editor/              the level editor
-levels/*.json            rooms (one tile row per line for clean diffs)
-tools/                   author-solutions.mjs, screenshot.mjs
+src/content/rooms/       one JSON per room + index.json (chapter order)
+src/content/ideas.md     ideas catalogue
+vendor/web-shell/        built Web Shell modules (see its README)
+tools/                   solver CLI, screenshots
 test/                    npm test
 ```
 

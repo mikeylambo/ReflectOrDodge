@@ -1,0 +1,5 @@
+{
+  "chapters": [
+    { "id": "c0", "name": "Prologue", "scored": false, "rooms": ["p0-01", "p0-02", "p0-03"] }
+  ]
+}

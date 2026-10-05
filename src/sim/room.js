@@ -13,11 +13,11 @@
 //   par       minimal reflect count
 //   solution  compact input log (see sim/input.js) or null
 //   mirrorOf  room id or null
-import { ROOM } from '../config/tunables.js';
-import { PROJECTILES } from './projectiles/index.js';
-import { OBJECTS } from './objects/index.js';
+import { ROOM } from '../../config/tunables.js';
+import { PROJECTILES } from '../projectiles/index.js';
+import { OBJECTS } from '../objects/index.js';
 import { decodeLog } from './input.js';
-import { EMITTER } from '../config/tunables.js';
+import { EMITTER } from '../../config/tunables.js';
 
 const DIR_NAMES = ['up', 'down', 'left', 'right'];
 

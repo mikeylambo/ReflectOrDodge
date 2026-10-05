@@ -1,7 +1,7 @@
 // Fixed-timestep game loop (from Living Loop engine/loop.js). Simulation
 // advances in constant STEP increments regardless of display refresh; render
 // receives an interpolation alpha so motion stays smooth at any Hz.
-import { TIMESTEP } from '../config/tunables.js';
+import { TIMESTEP } from '../../config/tunables.js';
 
 export function createLoop({ update, render, step = TIMESTEP.STEP }) {
   let raf = null;

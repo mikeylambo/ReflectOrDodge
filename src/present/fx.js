@@ -1,6 +1,6 @@
 // Presentation-only feedback state, fed by sim events. Nothing here is ever
 // read by the simulation (GDD: Game feel — "presentation only").
-import { FEEL } from '../config/tunables.js';
+import { FEEL } from '../../config/tunables.js';
 
 export function createFx() {
   return { arcs: [], rings: [], afterimages: [], flash: 0, shake: 0, flashIds: new Map(), squash: 0, clearGlow: 0 };

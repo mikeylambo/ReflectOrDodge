@@ -1,7 +1,7 @@
 // Orb — circle. Reflectable. Destroyed by anything it hits, triggering it.
 // The baseline routing primitive (GDD: Projectiles).
 import { PROJECTILE } from '../../config/tunables.js';
-import { DIRS } from '../input.js';
+import { DIRS } from '../sim/input.js';
 
 export const type = 'orb';
 export const reflectable = true;

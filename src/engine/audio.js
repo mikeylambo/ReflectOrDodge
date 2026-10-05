@@ -2,7 +2,7 @@
 // only because a semantic sim event exists — never tempo-locked (GDD law 5).
 // The sim emits events (`projectile.reflect`, `emitter.fire`, `switch.hit`…);
 // this file alone decides what they sound like.
-import { AUDIO } from '../config/tunables.js';
+import { AUDIO } from '../../config/tunables.js';
 
 let actx = null;
 let master = null;

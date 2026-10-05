@@ -6,16 +6,16 @@
 //   4. browser smoke (skip with --no-browser): boots, renders, input works,
 //      reflect works, editor boots, Node and Chromium replays agree bit for bit,
 //      zero console errors
-// Any room added to levels/ is covered automatically.
+// Any room added to src/content/rooms/ is covered automatically.
 import { createHash } from 'node:crypto';
 import { loadRooms } from './levels-node.mjs';
 import { validateRoom, compileRoom } from '../src/sim/room.js';
 import { runLog } from '../src/sim/world.js';
 import { decodeLog, encodeLog } from '../src/sim/input.js';
-import { PROJECTILES } from '../src/sim/projectiles/index.js';
-import { OBJECTS } from '../src/sim/objects/index.js';
-import { validateProjectileType } from '../src/sim/projectiles/_projectile.js';
-import { validateObjectType } from '../src/sim/objects/_object.js';
+import { PROJECTILES } from '../src/projectiles/index.js';
+import { OBJECTS } from '../src/objects/index.js';
+import { validateProjectileType } from '../src/projectiles/_projectile.js';
+import { validateObjectType } from '../src/objects/_object.js';
 import { runUnit } from './unit.mjs';
 
 let failures = 0;
