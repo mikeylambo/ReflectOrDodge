@@ -28,6 +28,9 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c1-18 Ledge Relay | 1 Answer | Answer downward from the lip to open the dam below; the lower stream opens your door. | |
 | c1-19 Crossing | 1 Answer | Two drops land where you take off and where you land: read both clocks and let both fall. | ✓ |
 | c1-20 Answer | 1 Answer | Three locks fed by one lane: the switch that closes the lane must fire last. | |
+| c1-ex1 Examiner I | 1 Answer (Examiner) | The Examiner speaks once: answer it up into its own core. | |
+| c1-ex2 Examiner II | 1 Answer (Examiner) | One lane and a drop from its flank: two answers, keep clear of the drop. | |
+| c1-ex3 Examiner III | 1 Answer (Examiner) | One lane, a drop on each flank: three answers between them. | |
 | c4-01 Return to Sender | 4 Echo (draft) | In a tunnel you can't jump: send one orb home to shut its emitter, then hop the rest at the mouth. | |
 
 Chapter 1: 8 of 20 rooms are pass rooms, above the quota of 5.

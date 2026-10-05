@@ -5,3 +5,4 @@ test-results
 dist-demo
 reflect-dodge-demo.zip
 src-tauri/target
+src-tauri/gen
