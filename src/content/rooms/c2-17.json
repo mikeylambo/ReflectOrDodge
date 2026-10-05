@@ -1,6 +1,6 @@
 {
-  "id": "c1-ex1",
-  "name": "Examiner I",
+  "id": "c2-17",
+  "name": "Overtaken",
   "tiles": [
     "##############################",
     "#............................#",
@@ -20,16 +20,18 @@
     "#............................#",
     "##############################"
   ],
-  "spawn": [14,15],
+  "spawn": [20,15],
+  "exit": [2,15],
   "emitters": [
-    {"type":"orb","at":[28,15],"dir":"left","period":2.2,"phase":0}
+    {"type":"orb","at":[28,14],"dir":"left","period":3.6,"phase":0},
+    {"type":"anchor","at":[28,15],"dir":"left","period":3.6,"phase":0}
   ],
   "objects": [
-    {"kind":"body","at":[9,5],"w":12,"h":4},
-    {"kind":"core","at":[14,9]}
+    {"kind":"switch","at":[16,14],"links":["d"]},
+    {"kind":"door","id":"d","at":[12,13],"h":3},
+    {"kind":"wall","at":[6,13],"h":3,"heavy":true}
   ],
-  "par": 1,
-  "solution": "1:1*80,2*80,g*o,0*o,5*2,11,5*l,2*o,0*34",
-  "mirrorOf": null,
-  "goal": "cores"
+  "par": 0,
+  "solution": null,
+  "mirrorOf": null
 }
