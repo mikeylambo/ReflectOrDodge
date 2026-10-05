@@ -1,0 +1,72 @@
+# REFLECT / DODGE — M0
+
+A 2D puzzle-platformer where the only answers to danger are **reflect** or **dodge**.
+[`docs/GDD.md`](docs/GDD.md) is the source of truth; its Design laws are non-negotiable.
+
+M0 is one goal: *reflecting feels satisfying with nothing at stake.*
+
+```sh
+npm install
+npm run dev            # game        → http://localhost:5173
+                       # editor      → http://localhost:5173/?edit=1
+npm test               # all gates (headless + Chromium smoke)
+npm run test:fast      # headless gates only
+```
+
+## Controls
+
+| Action | Keyboard | Gamepad | Touch |
+| --- | --- | --- | --- |
+| Move | A/D, ←/→ | Left stick / D-pad | ◀ ▶ |
+| Aim reflect | hold W/A/S/D or arrows (nothing held = return to sender) | stick / D-pad | ▲▼◀▶ |
+| Jump | Space | A / Cross | ⤒ |
+| Reflect | J / K / Shift | X / Square or RB | ◇ |
+| Reset room | R | Back / Select | ↺ |
+| Prev / next room | [ / ] | | |
+
+**One GDD deviation:** W and Up don't jump. In the GDD table they both jump *and* aim up,
+so you could never reflect upward from the ground. Jump is Space only.
+Up beats Left/Right when you hold both, because you're usually still holding a run direction when you aim.
+
+## Editor (`?edit=1`)
+
+`1–8` pick tools (tile, erase, spawn, exit, emitter, switch, door, select). Left-click places,
+right-click erases. **P** plays the room in place and returns to editing with the room untouched.
+The timeline scrubs the room's clocks with an inert player, so you can design without playing.
+Reach the exit in play mode, then press **Use as solution** to store that run's input log.
+**Save** writes `levels/<id>.json` via the dev server. **Mirror** duplicates the room with `mirrorOf` set.
+
+## Layout
+
+```
+src/config/tunables.js   every number (GDD: never inline)
+src/engine/              loop (fixed 120 Hz, from Living Loop), input, reactive audio
+src/sim/                 the deterministic simulation — pure data, runs headless
+  world.js               the tick: player, reflect, emitters, projectiles, contact, exit
+  projectiles/           one module per type against _projectile.js (Orb only in M0)
+  objects/               emitter, switch, door against _object.js
+  room.js                schema validation + compile;  input.js  masks + input-log codec
+src/render/              presentation only (never read by the sim)
+src/game/                session (recording, deaths, medals) + play mode
+src/editor/              the level editor
+levels/*.json            rooms (one tile row per line for clean diffs)
+tools/                   author-solutions.mjs, screenshot.mjs
+test/                    npm test
+```
+
+## Rules the code enforces
+
+- **Determinism.** No `Math.random`, wall clock or variable dt in `src/sim`. Every timer is an integer frame count.
+  The tests replay each room's solution twice in Node, then again in Chromium, and require identical end-state hashes.
+- **Contracts.** Each projectile or object type is checked against its interface, including purity and no input mutation.
+- **Law 1.** Nothing in `objects/` reacts to the player. A unit test walks the player through a switch.
+- **Reflect count.** A press counts as one reflect if it redirects anything, however many projectiles it catches. A whiff costs nothing.
+
+## Room schema notes
+
+The schema is the GDD's, with these clarifications:
+
+- `tiles` is an array of 17 strings (`#` solid, `.` empty). One string with rows split by `\n` is also accepted.
+- An emitter fires shot *k* at `phase + k·period` for *k ≥ 1*, so every shot, including the first, gets its 0.5 s telegraph. `period` must exceed the telegraph.
+- A door is `{ kind:"door", id, at, h=3, open=false }` and grows down from `at`. A switch is `{ kind:"switch", at, links, mode:"once"|"toggle" }`.
+- `solution` is `"1:"` followed by run-length-encoded per-frame input masks in base 36. See `src/sim/input.js`.
