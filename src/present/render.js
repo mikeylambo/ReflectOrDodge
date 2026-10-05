@@ -163,6 +163,27 @@ export function render(ctx, {
   drawTiles(ctx, room, theme);
   drawExit(ctx, room, time, theme);
 
+  // switch → door links: faint, but always visible from room start (GDD:
+  // "Readable at a glance"). Fades once the switch has fired, if one-shot.
+  ctx.save();
+  ctx.setLineDash([2, 5]);
+  ctx.lineWidth = 1;
+  for (const sw of state.objects) {
+    if (sw.kind !== 'switch') continue;
+    const spent = sw.mode !== 'toggle' && sw.hits > 0;
+    ctx.strokeStyle = theme.door;
+    ctx.globalAlpha = spent ? 0.12 : 0.35;
+    for (const id of sw.links) {
+      const d = state.objects.find((o) => o.kind === 'door' && o.id === id);
+      if (!d) continue;
+      ctx.beginPath();
+      ctx.moveTo((sw.tx + 0.5) * T, (sw.ty + 0.5) * T);
+      ctx.lineTo((d.tx + 0.5) * T, (d.ty + d.h / 2) * T);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+
   for (const o of state.objects) OBJECTS[o.kind].render(ctx, o, theme);
 
   // door light trails

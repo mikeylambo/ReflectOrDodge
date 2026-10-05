@@ -33,6 +33,14 @@ export function render(ctx, s, theme) {
   ctx.strokeRect(cx - rr, cy - rr, rr * 2, rr * 2);
   ctx.beginPath();
   ctx.moveTo(cx, cy - rr + 3); ctx.lineTo(cx + rr - 3, cy); ctx.lineTo(cx, cy + rr - 3); ctx.lineTo(cx - rr + 3, cy); ctx.closePath();
+  if (s.mode === 'toggle') {
+    // toggle switches carry a ring: "this one flips back" (shape, not colour)
+    ctx.beginPath();
+    ctx.arc(cx, cy, rr + 5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - rr + 3); ctx.lineTo(cx + rr - 3, cy); ctx.lineTo(cx, cy + rr - 3); ctx.lineTo(cx - rr + 3, cy); ctx.closePath();
+  }
   if (lit) {
     ctx.fillStyle = theme.switch;
     ctx.shadowColor = theme.switch;
