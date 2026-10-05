@@ -1,17 +1,124 @@
 {
- "version": "c19e3882c80d6c7b",
+ "version": "66bd1c88f6cfc96b",
  "entries": {
-  "9f1d1282978bc42b:any:5:0": {
-   "solvable": true,
-   "reflects": 0,
-   "seconds": 8.12,
-   "explored": 3879
-  },
-  "f8370953a81a414c:any:5:1": {
+  "99eab21386d276b7:any:5:1": {
    "solvable": true,
    "reflects": 1,
-   "seconds": 7.82,
-   "explored": 68131
+   "seconds": 7.78,
+   "explored": 6603
+  },
+  "1777ed2249ca0a2d:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 6.64,
+   "explored": 1897
+  },
+  "43bae410742cf8c6:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.63,
+   "explored": 6341
+  },
+  "f928418e24481dfc:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.16,
+   "explored": 100817
+  },
+  "0886c0eb8b41de07:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.32,
+   "explored": 3643
+  },
+  "b83af7f01ab3ed8a:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.34,
+   "explored": 9519
+  },
+  "7a56e5a4b5d050a9:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 3.33,
+   "explored": 1060
+  },
+  "52eece8ad199b40c:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 6.22,
+   "explored": 3607
+  },
+  "838f7fc02a8d03bc:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "a34be7b170b560be:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.57,
+   "explored": 142933
+  },
+  "02991daf31186583:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.14,
+   "explored": 43273
+  },
+  "cda60b7412a43efd:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.94,
+   "explored": 9488
+  },
+  "0ac6d1be73271b46:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.92,
+   "explored": 17996
+  },
+  "47caec9ed0dbea4a:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.72,
+   "explored": 16213
+  },
+  "af318fd09a75178e:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.52,
+   "explored": 2767
+  },
+  "b00e1b49f254ecce:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.57,
+   "explored": 15422
+  },
+  "83cf28d7ee4cef99:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.53,
+   "explored": 5856
+  },
+  "9e340583df772b2b:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.53,
+   "explored": 9075
+  },
+  "fa039c276490e247:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.24,
+   "explored": 1117
+  },
+  "08c48881d892d333:any:5:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 12.57,
+   "explored": 275271
   },
   "71cd61eb33f2d1c6:any:5:1": {
    "solvable": true,
@@ -19,39 +126,348 @@
    "seconds": 4.03,
    "explored": 1346
   },
-  "f8370953a81a414c:any:5:0": {
+  "42aecd8ed06364d8:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 3.97,
+   "explored": 94
+  },
+  "0fb7afb24c2a7008:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.64,
+   "explored": 51532
+  },
+  "9f1d1282978bc42b:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.12,
+   "explored": 3709
+  },
+  "99eab21386d276b7:any:5:0": {
    "solvable": false,
    "reason": "search exhausted",
-   "explored": 8719
+   "explored": 3393
+  },
+  "43bae410742cf8c6:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 10067
+  },
+  "f928418e24481dfc:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 7374
+  },
+  "b83af7f01ab3ed8a:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8692
+  },
+  "7a56e5a4b5d050a9:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 966
+  },
+  "838f7fc02a8d03bc:any:5:1": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "a34be7b170b560be:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 10640
+  },
+  "02991daf31186583:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 2796
+  },
+  "cda60b7412a43efd:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 4806
+  },
+  "0ac6d1be73271b46:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 3540
+  },
+  "47caec9ed0dbea4a:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8692
+  },
+  "b00e1b49f254ecce:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8875
+  },
+  "83cf28d7ee4cef99:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 10079
+  },
+  "9e340583df772b2b:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8262
+  },
+  "08c48881d892d333:any:5:1": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
   },
   "71cd61eb33f2d1c6:any:5:0": {
    "solvable": false,
    "reason": "search exhausted",
    "explored": 4709
   },
-  "9f1d1282978bc42b:any:4:0": {
-   "solvable": true,
-   "reflects": 0,
-   "seconds": 8.12,
-   "explored": 3147
+  "0fb7afb24c2a7008:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 10985
   },
-  "9f1d1282978bc42b:any:3:0": {
-   "solvable": true,
-   "reflects": 0,
-   "seconds": 8.12,
-   "explored": 670
-  },
-  "f8370953a81a414c:any:4:1": {
+  "99eab21386d276b7:any:4:1": {
    "solvable": true,
    "reflects": 1,
-   "seconds": 7.81,
-   "explored": 30655
+   "seconds": 7.88,
+   "explored": 3144
   },
-  "f8370953a81a414c:any:3:1": {
+  "99eab21386d276b7:any:3:1": {
    "solvable": true,
    "reflects": 1,
-   "seconds": 7.82,
-   "explored": 8763
+   "seconds": 8.02,
+   "explored": 2487
+  },
+  "1777ed2249ca0a2d:any:4:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 6.64,
+   "explored": 1253
+  },
+  "1777ed2249ca0a2d:any:3:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 6.64,
+   "explored": 301
+  },
+  "43bae410742cf8c6:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.52,
+   "explored": 29067
+  },
+  "43bae410742cf8c6:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.84,
+   "explored": 1241
+  },
+  "f928418e24481dfc:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.14,
+   "explored": 53509
+  },
+  "f928418e24481dfc:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.22,
+   "explored": 13517
+  },
+  "0886c0eb8b41de07:any:4:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.32,
+   "explored": 2567
+  },
+  "0886c0eb8b41de07:any:3:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.32,
+   "explored": 673
+  },
+  "b83af7f01ab3ed8a:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.38,
+   "explored": 10503
+  },
+  "b83af7f01ab3ed8a:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.43,
+   "explored": 3536
+  },
+  "7a56e5a4b5d050a9:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 3.38,
+   "explored": 1102
+  },
+  "7a56e5a4b5d050a9:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 3.42,
+   "explored": 355
+  },
+  "52eece8ad199b40c:any:4:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 6.22,
+   "explored": 2506
+  },
+  "52eece8ad199b40c:any:3:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 6.22,
+   "explored": 543
+  },
+  "838f7fc02a8d03bc:any:4:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 10.68,
+   "explored": 280746
+  },
+  "838f7fc02a8d03bc:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 10.68,
+   "explored": 101017
+  },
+  "a34be7b170b560be:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.18,
+   "explored": 70446
+  },
+  "a34be7b170b560be:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.57,
+   "explored": 20772
+  },
+  "02991daf31186583:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.13,
+   "explored": 27037
+  },
+  "02991daf31186583:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.13,
+   "explored": 6578
+  },
+  "cda60b7412a43efd:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.94,
+   "explored": 9756
+  },
+  "cda60b7412a43efd:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.94,
+   "explored": 2693
+  },
+  "0ac6d1be73271b46:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.18,
+   "explored": 17443
+  },
+  "0ac6d1be73271b46:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.18,
+   "explored": 11070
+  },
+  "47caec9ed0dbea4a:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.74,
+   "explored": 24608
+  },
+  "47caec9ed0dbea4a:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.76,
+   "explored": 7844
+  },
+  "af318fd09a75178e:any:4:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.52,
+   "explored": 1799
+  },
+  "af318fd09a75178e:any:3:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.52,
+   "explored": 415
+  },
+  "b00e1b49f254ecce:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.63,
+   "explored": 7926
+  },
+  "b00e1b49f254ecce:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 11.11,
+   "explored": 5294
+  },
+  "83cf28d7ee4cef99:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.62,
+   "explored": 5504
+  },
+  "83cf28d7ee4cef99:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.42,
+   "explored": 1331
+  },
+  "9e340583df772b2b:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.53,
+   "explored": 8715
+  },
+  "9e340583df772b2b:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.53,
+   "explored": 2604
+  },
+  "fa039c276490e247:any:4:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.24,
+   "explored": 1069
+  },
+  "fa039c276490e247:any:3:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.24,
+   "explored": 281
+  },
+  "08c48881d892d333:any:4:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 12.6,
+   "explored": 178999
+  },
+  "08c48881d892d333:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 12.68,
+   "explored": 76355
   },
   "71cd61eb33f2d1c6:any:4:1": {
    "solvable": true,
@@ -64,6 +480,42 @@
    "reflects": 1,
    "seconds": 4.03,
    "explored": 550
+  },
+  "42aecd8ed06364d8:any:4:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 3.97,
+   "explored": 80
+  },
+  "42aecd8ed06364d8:any:3:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 3.97,
+   "explored": 33
+  },
+  "0fb7afb24c2a7008:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.61,
+   "explored": 27439
+  },
+  "0fb7afb24c2a7008:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.65,
+   "explored": 9945
+  },
+  "9f1d1282978bc42b:any:4:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.12,
+   "explored": 3116
+  },
+  "9f1d1282978bc42b:any:3:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.12,
+   "explored": 661
   }
  }
 }

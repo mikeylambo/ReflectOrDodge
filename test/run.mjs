@@ -116,8 +116,14 @@ const diag = (label, detail) => console.log(`⚑ ${label}${detail ? ` — ${deta
 
 console.log(`── solvability: solver finds a clear within par (${SOLVE_HZ} Hz) ──`);
 for (const { room } of rooms) {
-  const r = cachedSolve(room, { mode: 'any', decisionHz: SOLVE_HZ, maxReflects: room.par });
-  report(r.solvable, `${room.id}: solver clears within par`, r.solvable ? `◇${r.reflects}/${room.par} in ${r.seconds}s, ${r.explored} states` : `${r.reason} (${r.explored} states)`);
+  // any successful solve proves the room; coarser rates search a smaller space,
+  // so a room the 5 Hz search caps on can still be proven at 4 or 3 Hz
+  let r, hz;
+  for (hz of [SOLVE_HZ, ...COMFORT_HZ]) {
+    r = cachedSolve(room, { mode: 'any', decisionHz: hz, maxReflects: room.par });
+    if (r.solvable) break;
+  }
+  report(r.solvable, `${room.id}: solver clears within par`, r.solvable ? `◇${r.reflects}/${room.par} in ${r.seconds}s at ${hz} Hz, ${r.explored} states` : `${r.reason} (${r.explored} states)`);
 }
 
 console.log('── under-par search (diagnostic: a cheaper solution than the designer\'s) ──');
