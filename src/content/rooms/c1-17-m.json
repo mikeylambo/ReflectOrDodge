@@ -32,7 +32,7 @@
     {"kind":"switch","at":[5,15],"links":["d1"]},
     {"kind":"door","id":"d1","at":[3,13],"h":3}
   ],
-  "par": 2,
-  "solution": "1:1*3c,0*g0,2*o,i*1c,x,1*1b,h*o,1*o,a*2,16,a*l,1*1o",
+  "par": 1,
+  "solution": "1:1*3c,0*go,2*o,i*o,2*o,x,1*3r",
   "mirrorOf": "c1-17"
 }
