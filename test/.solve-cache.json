@@ -470,6 +470,21 @@
    "reflects": 0,
    "seconds": 8.28,
    "explored": 2972
+  },
+  "6f51b9e64bd34614:any:5:3": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "6f51b9e64bd34614:any:4:3": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "6f51b9e64bd34614:any:3:3": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
   }
  }
 }
