@@ -401,6 +401,22 @@
    "solvable": false,
    "reason": "state cap 400000 hit",
    "explored": 400001
+  },
+  "d41b0a766e7ee8b2:any:4:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "d41b0a766e7ee8b2:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 9.81,
+   "explored": 98080
+  },
+  "8490be5139e6dc46:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
   }
  }
 }
