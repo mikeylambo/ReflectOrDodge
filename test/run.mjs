@@ -147,8 +147,9 @@ for (const { room } of rooms) {
     if (r.solvable) break;
   }
   // multi-answer rooms (Examiner phases) can need a deeper search to prove
-  if (!r.solvable && r.reason.startsWith('state cap')) {
-    hz = COMFORT_HZ[0];
+  for (const deepHz of [COMFORT_HZ[0], SOLVE_HZ]) {
+    if (r.solvable || !r.reason.startsWith('state cap')) break;
+    hz = deepHz;
     r = cachedSolve(room, { mode: 'any', decisionHz: hz, maxReflects: room.par, stateCap: DEEP_CAP });
   }
   report(r.solvable, `${room.id}: solver clears within par`, r.solvable ? `◇${r.reflects}/${room.par} in ${r.seconds}s at ${hz} Hz, ${r.explored} states` : `${r.reason} (${r.explored} states)`);
