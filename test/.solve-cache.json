@@ -322,6 +322,55 @@
    "solvable": false,
    "reason": "state cap 400000 hit",
    "explored": 400001
+  },
+  "1b6eacb7bfc1d46d:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.57,
+   "explored": 10161
+  },
+  "5f05f03c0eca36b1:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 11.92,
+   "explored": 36459
+  },
+  "023d9289eb3738b0:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.73,
+   "explored": 5409
+  },
+  "f489c52071afd6a3:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "f489c52071afd6a3:any:4:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "f489c52071afd6a3:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 9.81,
+   "explored": 151589
+  },
+  "d16304bf87932da4:any:5:3:p32": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "d16304bf87932da4:any:5:3": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "d16304bf87932da4:any:4:3": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
   }
  }
 }
