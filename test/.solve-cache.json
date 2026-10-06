@@ -1609,6 +1609,11 @@
    "reflects": 2,
    "seconds": 7.63,
    "explored": 71930
+  },
+  "fb13f0e315362eb1:any:5:1": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
   }
  }
 }
