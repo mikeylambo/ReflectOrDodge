@@ -371,6 +371,358 @@
    "solvable": false,
    "reason": "state cap 400000 hit",
    "explored": 400001
+  },
+  "d16304bf87932da4:any:3:3": {
+   "solvable": true,
+   "reflects": 3,
+   "seconds": 10.91,
+   "explored": 244573
+  },
+  "779c3a469fa55419:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.53,
+   "explored": 2751
+  },
+  "4a9f8a180f65b74b:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 13.53,
+   "explored": 12674
+  },
+  "b5dae61176b57d7c:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 4.6,
+   "explored": 913
+  },
+  "344561c6b9612f53:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 11.36,
+   "explored": 8748
+  },
+  "b4fbf78269efe354:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 11.47,
+   "explored": 8480
+  },
+  "c352f55a35a6d86e:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 9.97,
+   "explored": 7012
+  },
+  "eb633066b4a506a8:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 12.9,
+   "explored": 7761
+  },
+  "e4288156bc6c4e4d:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 11.2,
+   "explored": 5833
+  },
+  "206a044f1a068561:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 11.82,
+   "explored": 137865
+  },
+  "a687977bbbc6d088:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.32,
+   "explored": 63397
+  },
+  "d8016879c5cf7e09:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 12.59,
+   "explored": 40737
+  },
+  "0db6aed59f20f77d:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 11.99,
+   "explored": 33887
+  },
+  "250591a8fbd9daab:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 4.2,
+   "explored": 620
+  },
+  "6df31888ed7d59c4:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 4.2,
+   "explored": 651
+  },
+  "7861ba43da4bfaad:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 9.6,
+   "explored": 5575
+  },
+  "08e5d08f2594cc77:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 5.69,
+   "explored": 1519
+  },
+  "1203e7f3488a43f2:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.74,
+   "explored": 4230
+  },
+  "994bc758fbdb8b22:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.92,
+   "explored": 5139
+  },
+  "e2f5df0deb418137:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 14.39,
+   "explored": 8350
+  },
+  "e1f58ea4c3ce273c:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 13.39,
+   "explored": 7892
+  },
+  "713630d59c9bdc1a:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.53,
+   "explored": 5261
+  },
+  "2e5d17caac665480:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10,
+   "explored": 5170
+  },
+  "2f996ff947ba5fec:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.02,
+   "explored": 606
+  },
+  "0424307c8c59f7b0:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 6.82,
+   "explored": 481
+  },
+  "bcc4e547507c1a0f:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 4.33,
+   "explored": 771
+  },
+  "1a1de1fad269e759:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 10.38,
+   "explored": 5577
+  },
+  "61b62e9edf73b16a:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 17.93,
+   "explored": 11013
+  },
+  "80be93a7fe98dc80:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 13.93,
+   "explored": 7540
+  },
+  "8b53dfb2f3aeeb4a:any:5:2:p32": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "8b53dfb2f3aeeb4a:any:5:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 7.42,
+   "explored": 39451
+  },
+  "457a78c472e8d5f7:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 11.22,
+   "explored": 19200
+  },
+  "9e531b0d7cf547c1:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.23,
+   "explored": 109471
+  },
+  "32191d86ec70c6b7:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.23,
+   "explored": 81639
+  },
+  "4822126ff100561c:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.85,
+   "explored": 2241
+  },
+  "7eaaa25e5cc99baf:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 11.57,
+   "explored": 4889
+  },
+  "69ea95eb00e24754:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.67,
+   "explored": 66307
+  },
+  "d41b0a766e7ee8b2:any:5:2:p32": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "d41b0a766e7ee8b2:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "d41b0a766e7ee8b2:any:4:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "d41b0a766e7ee8b2:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 9.81,
+   "explored": 98042
+  },
+  "8490be5139e6dc46:any:5:2:p32": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "8490be5139e6dc46:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "8490be5139e6dc46:any:4:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "8490be5139e6dc46:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 9.81,
+   "explored": 94099
+  },
+  "7a23b8a1f0772f20:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 5.3,
+   "explored": 12234
+  },
+  "40e818ab41e0435b:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 9.89,
+   "explored": 9380
+  },
+  "3497aa2824248cdf:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.57,
+   "explored": 50861
+  },
+  "d68ea9997f13d615:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.48,
+   "explored": 6548
+  },
+  "8ad1dd0b0b7eace8:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 8.11,
+   "explored": 77449
+  },
+  "3e83484c7fdd59ca:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 7.11,
+   "explored": 76850
+  },
+  "26b82b0d2209de04:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.66,
+   "explored": 2435
+  },
+  "ae733326bdec4c64:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.39,
+   "explored": 2674
+  },
+  "81a44b4e012de4c6:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 6.47,
+   "explored": 105433
+  },
+  "196006639e971135:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 6.72,
+   "explored": 96523
+  },
+  "1e97a31a71c92195:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.68,
+   "explored": 127933
+  },
+  "728169f323d66492:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.68,
+   "explored": 88417
+  },
+  "dd2c58d6cb38514f:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 9.68,
+   "explored": 3583
+  },
+  "da8113fa023299eb:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.28,
+   "explored": 2984
+  },
+  "d6727268b790c2a3:any:5:3:p32": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
   }
  }
 }
