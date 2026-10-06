@@ -31,7 +31,7 @@
     {"kind":"switch","at":[24,8],"links":["g"],"mode":"toggle"},
     {"kind":"wall","at":[5,13],"h":3,"heavy":true}
   ],
-  "par": 2,
+  "par": 1,
   "solution": null,
   "mirrorOf": null
 }

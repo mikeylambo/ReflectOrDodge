@@ -41,11 +41,11 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c2-08 Counterweight | 2 Weight | Weight trips a toggle on the exit door: a clock you can't stop, only read. | ✓ |
 | c2-09 Trapdoor | 2 Weight | The weight falls on the floor you're standing on; step aside and let it open the way down. | ✓ |
 | c2-10 Detour | 2 Weight | A heavy wall shields the switch from the orbs; the weight clears it, then the orbs do the rest. | ✓ |
-| c2-11 Weighbridge | 2 Weight | Your stepping stones are cracked walls the weight would eat; shut its gate before you cross. |  |
+| c2-11 Weighbridge | 2 Weight | Your stepping stones are cracked walls the weight would eat; one switch opens your pen and shuts its gate. |  |
 | c2-12 Curtain | 2 Weight | Weight falls across your path on its own clock; read it and cross. | ✓ |
 | c2-13 Two Weights | 2 Weight | Weight at your feet and at your head: hop the low one only when the high one isn't over you. | ✓ |
 | c2-14 Valve | 2 Weight | An orb clock opens and shuts the gate on a stream of weight; cross the tunnel while it's shut. | ✓ |
-| c2-15 Sluice | 2 Weight | Open the gate so the weight smashes the wall, then shut it so you can cross: one toggle, two answers. |  |
+| c2-15 Sluice | 2 Weight | Open the gate, then walk in the weight's wake: it clears the wall ahead of you, and the next one is far behind. |  |
 | c2-16 Deadweight | 2 Weight | One weight, one chance: its gate must be open before it gets there. |  |
 | c2-17 Overtaken | 2 Weight | The fast one opens the door the slow one needs: let both by. | ✓ |
 | c2-ex1 Examiner I | 2 Weight (Examiner) | One answer up into the core while a weight rolls in behind you. | |
