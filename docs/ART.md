@@ -25,6 +25,16 @@ Status: a **draft**. The GDD locks this after the first art pass, and it needs M
 3. **Gameplay colours are constant across chapters.** Orb amber, reflected projectiles cyan, emitters red, switches green, doors violet, hazards rose, cores gold.
 4. **Links are always visible.** Faint dashed lines join each switch to its doors from room start. A one-shot switch's lines fade once it has fired.
 
+## Locked choices (style tile v3)
+
+- **Wordmark:** concept 1, "Diamond O". Single-stroke letters on a 4×6 grid with 45° cut corners; the O in DODGE is the reflect diamond. The slash runs amber to ice. Source: `src/present/brand.js` (`wordmarkSVG`).
+- **Type:** pairing D. Tektur for titles and room names, Doto (dot matrix) for numbers, Atkinson Hyperlegible for menus and body text. Self-hosted in `public/fonts/` under the OFL.
+- **Character:** A, a cuffed watch cap in indigo (`#5b5fae`, cuff `#8387cf`) and round glasses. Pale warm body (`#f3ece0`) with a warm glow, off the old ice blue. Source: `src/present/hero.js`.
+  - The reflect is a frame-grab: the far hand touches the glasses at the temple, the lenses flash, then the near hand parries toward the aim while the lenses glint that way.
+  - No pose crosses the face (the right half of the head when facing right).
+  - He never fires: open hands, parry stance. This keeps him clear of Mega Man and Neon Striker.
+- **Panels:** square, chamfered corners instead of rounded cards.
+
 ## Light and material (first art pass)
 
 The diagram now has depth. All of it is presentation only (`render.js`, `theme.js`), and none of it can change a read:

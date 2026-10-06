@@ -23,7 +23,7 @@ export function drawPrompts(ctx, prompts, family, player, alpha, theme) {
   const cx = player.x + PLAYER.W / 2;
   let y = player.y - 18;
   ctx.save();
-  ctx.font = '600 13px ui-monospace, Menlo, monospace';
+  ctx.font = '700 13px "Atkinson Hyperlegible", Arial, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   for (const p of prompts) {

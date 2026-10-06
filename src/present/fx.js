@@ -26,7 +26,7 @@ function burst(fx, x, y, shape, color, n, speed, life, size) {
 export function fxEvents(fx, events, state) {
   for (const e of events) {
     switch (e.type) {
-      case 'reflect.open': fx.arcs.push({ dir: e.dir, t: FEEL.ARC_TIME, strong: false }); break;
+      case 'reflect.open': fx.arcs.push({ dir: e.dir, t: FEEL.ARC_TIME, strong: false }); fx.reflectPose = { dir: e.dir, t: 0 }; break;
       case 'projectile.reflect':
         fx.arcs.push({ dir: e.dir, t: FEEL.ARC_TIME * 1.6, strong: true });
         fx.flashIds.set(e.id, 0.1);
@@ -85,6 +85,7 @@ export function fxTick(fx, dt) {
   fx.wipe = Math.max(0, fx.wipe - dt);
   fx.shake = Math.max(0, fx.shake - dt);
   fx.clearGlow = Math.max(0, fx.clearGlow - dt);
+  if (fx.reflectPose) { fx.reflectPose.t += dt; if (fx.reflectPose.t > 0.3) fx.reflectPose = null; }
   if (fx.collapse) { fx.collapse.k = Math.min(1, fx.collapse.k + dt / fx.collapse.dur); }
   fx.squash *= Math.pow(0.0005, dt); // ease back to 0
   for (const [id, t] of fx.flashIds) { if (t - dt <= 0) fx.flashIds.delete(id); else fx.flashIds.set(id, t - dt); }

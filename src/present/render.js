@@ -13,6 +13,8 @@ import { PROJECTILES } from '../projectiles/index.js';
 import { OBJECTS } from '../objects/index.js';
 import { isSolid, isSpike } from '../sim/room.js';
 import { circleRect } from '../sim/geom.js';
+import { heroPose, drawHero } from './hero.js';
+import { f } from './brand.js';
 
 const T = ROOM.TILE;
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -238,48 +240,16 @@ function drawShape(ctx, shape, x, y, s) {
   ctx.fill();
 }
 
-// A luminous simple humanoid (GDD: Art direction), drawn inside the 14×22
-// collision box: head, torso, arms, legs on a stride driven by position. Pure
-// presentation — collision stays the box.
+// The hero (src/present/hero.js), drawn inside the 14×22 collision box.
 function drawPlayer(ctx, p, alpha, theme, fx, ghost) {
   const px = lerp(p.px, p.x, alpha), py = lerp(p.py, p.y, alpha);
-  const cx = px + PLAYER.W / 2;
-  const sq = fx && !ghost ? fx.squash : 0;
-  const H = PLAYER.H * (1 - sq), W = PLAYER.W * (1 + sq);
-  const top = py + PLAYER.H - H;
   const moving = Math.abs(p.x - p.px) > 0.05;
-  const air = !p.grounded;
-  const stride = moving && !air ? Math.sin(px * 0.22) : 0;
-  const f = p.facing;
-  ctx.save();
-  ctx.lineCap = 'round';
-  if (ghost) { ctx.globalAlpha = 0.4; ctx.setLineDash([2, 3]); } else { ctx.shadowColor = theme.playerGlow; ctx.shadowBlur = 14; }
-  ctx.strokeStyle = theme.player;
-  ctx.fillStyle = theme.player;
-  const headR = W * 0.27;
-  const neck = top + headR * 2 + 0.5, hip = top + H * 0.62, foot = py + PLAYER.H;
-  // head
-  ctx.beginPath(); ctx.arc(cx + f * 0.8, top + headR, headR, 0, Math.PI * 2);
-  if (ghost) ctx.stroke(); else ctx.fill();
-  // torso
-  ctx.lineWidth = W * 0.32;
-  ctx.beginPath(); ctx.moveTo(cx, neck + 1); ctx.lineTo(cx, hip); ctx.stroke();
-  // legs
-  ctx.lineWidth = W * 0.2;
-  const legSpread = air ? 3 : 2 + Math.abs(stride) * 3;
-  ctx.beginPath();
-  ctx.moveTo(cx, hip); ctx.lineTo(cx - legSpread + stride * 3 * f, foot - (air ? 3 : 0));
-  ctx.moveTo(cx, hip); ctx.lineTo(cx + legSpread - stride * 3 * f, foot);
-  ctx.stroke();
-  // arms: swing with the stride, raised in the air
-  ctx.lineWidth = W * 0.16;
-  const sh = neck + 2.5, armY = air ? sh - 3 : sh + 6;
-  ctx.beginPath();
-  ctx.moveTo(cx, sh); ctx.lineTo(cx - 5 - stride * 2 * f, armY);
-  ctx.moveTo(cx, sh); ctx.lineTo(cx + 5 + stride * 2 * f, armY);
-  ctx.stroke();
-  ctx.restore();
-  return [cx, py + PLAYER.H / 2];
+  const stride = moving && p.grounded ? Math.sin(px * 0.22) : 0;
+  const reflect = fx && !ghost && fx.reflectPose ? fx.reflectPose : null;
+  const pose = heroPose(p, moving, stride, reflect);
+  const f = pose.dir === 'left' ? -1 : pose.dir === 'right' ? 1 : p.facing;
+  drawHero(ctx, px, py, f, pose, theme, { sq: fx && !ghost ? fx.squash : 0, ghost });
+  return [px + PLAYER.W / 2, py + PLAYER.H / 2];
 }
 
 function drawPreview(ctx, state, room, cx, cy, theme) {
@@ -507,10 +477,11 @@ export function render(ctx, {
 
   if (hud) {
     ctx.save();
-    ctx.font = '600 14px ui-monospace, Menlo, monospace';
+    ctx.font = f('display', 600, 15);
     ctx.textBaseline = 'top';
     ctx.fillStyle = theme.hudDim;
     ctx.fillText(room.name.toUpperCase(), 12, 9);
+    ctx.font = f('mono', 800, 18);
     if (hud.par !== null && hud.par !== undefined) {
       ctx.fillStyle = state.stats.reflects <= hud.par ? theme.hud : theme.emitter;
       ctx.textAlign = 'right';

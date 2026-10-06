@@ -4,10 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <title>REFLECT / DODGE</title>
+  <link rel="stylesheet" href="./fonts/fonts.css" />
   <style>
     :root { color-scheme: dark; }
     html, body { margin: 0; height: 100%; background: #040508; overflow: hidden; }
-    body { display: flex; align-items: center; justify-content: center; font-family: ui-monospace, Menlo, monospace; color: #cfd6ea; }
+    body { display: flex; align-items: center; justify-content: center; font-family: "Atkinson Hyperlegible", "Helvetica Neue", Arial, sans-serif; color: #cfd6ea; }
     #wrap { position: relative; width: min(100vw, calc(100vh * 16 / 9)); aspect-ratio: 16 / 9; }
     #c { width: 100%; height: 100%; display: block; image-rendering: auto; touch-action: none; }
     #touch { display: none; position: absolute; inset: 0; pointer-events: none; }
@@ -19,7 +20,11 @@
     /* Web Shell UI, tuned to the game's diagram look */
     .slu-screen { background: radial-gradient(circle at 50% 30%, rgba(20,26,44,.35), rgba(4,5,8,.82)) !important; }
     .slu-panel { border-color: rgba(127,212,255,.18) !important; background: rgba(9,11,18,.88) !important; backdrop-filter: none !important; }
-    .slu-header h1 { font-size: clamp(26px, 5vw, 44px) !important; letter-spacing: .02em !important; color: #e8f4ff; }
+    .slu-header h1 { font-family: "Tektur", "Arial Narrow", sans-serif !important; font-weight: 600 !important; text-transform: uppercase; font-size: clamp(26px, 5vw, 44px) !important; letter-spacing: .03em !important; color: #efe7d8; }
+    .slu-header h1 .rd-wordmark { display: block; width: 100%; height: auto; margin: 6px 0 14px; overflow: visible; }
+    .slu-panel, .slu-choice, .slu-back { border-radius: 0 !important; }
+    .slu-panel { clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
+    .slu-choice, .slu-back { clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
     .slu-choice[data-focused="true"], .slu-choice:focus-visible { border-color: rgba(127,212,255,.6) !important; background: rgba(127,212,255,.10) !important; }
     .slu-choice-label { font-size: 16px !important; font-weight: 600 !important; white-space: pre; }
     .slu-choice-desc { font-size: 13px; }

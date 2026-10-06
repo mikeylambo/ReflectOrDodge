@@ -6,8 +6,9 @@ export const THEME = {
   grid: 'rgba(120,140,200,0.04)',
   tile: '#161b28',
   tileEdge: '#2c3550',
-  player: '#e8f4ff',
-  playerGlow: '#7fd4ff',
+  player: '#f3ece0',
+  playerGlow: '#ffe6c8', // warm: the hero is off the ice blue (docs/ART.md: Character)
+  hero: { skin: '#f3ece0', cloth: '#ddd4c3', limb: '#c9c0ae', beanie: '#5b5fae', cuff: '#8387cf', frame: '#1c2030', lens: 'rgba(191,240,255,0.28)' },
   zone: 'rgba(127,212,255,0.10)',
   arc: '#bff0ff',
   orb: '#ffb347',

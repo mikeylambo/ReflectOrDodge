@@ -23,6 +23,7 @@ import { createSession } from '../game/session.js';
 import { createRun, addSegment, runFrames, formatTime } from '../game/speedrun.js';
 import { render } from '../present/render.js';
 import { chapterTheme } from '../present/theme.js';
+import { FONT, f, wordmarkSVG } from '../present/brand.js';
 import { ROOMS, ROOM_BY_ID, CHAPTERS } from '../sim/levels.js';
 import { compileRoom } from '../sim/room.js';
 import { runLog } from '../sim/world.js';
@@ -83,7 +84,7 @@ export async function startApp(canvas, ctx) {
   const ui = new DOMGameUI({
     root: uiRoot,
     input: uiInput,
-    theme: { fontFamily: 'ui-monospace, "SF Mono", Menlo, Consolas, monospace', radius: 6, panelOpacity: 0.82, maxWidth: 560 },
+    theme: { fontFamily: FONT.ui, radius: 0, panelOpacity: 0.82, maxWidth: 560 },
     onActivate: (screen, choice) => { if (!fresh()) onActivate(screen, choice); },
     onBack: (screen) => { if (!fresh()) onBack(screen); },
   });
@@ -361,6 +362,9 @@ export async function startApp(canvas, ctx) {
     state = 'title';
     menuBehind = 'title';
     showScreen('title', { title: 'REFLECT / DODGE', choices: [{ id: 'play', label: 'Play' }, { id: 'settings', label: 'Settings' }, { id: 'credits', label: 'Credits' }] }, { guard: false });
+    // the wordmark replaces the plain title text (the label stays for screen readers)
+    const h = uiRoot.querySelector('[data-screen-id="title"] .slu-header h1, .slu-header h1');
+    if (h && !h.querySelector('.rd-wordmark')) h.innerHTML = wordmarkSVG();
   }
 
   function showChapters() {
@@ -735,10 +739,10 @@ function drawIntro(ctx, data, scored, t) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#f5f7ff';
-  ctx.font = '700 26px ui-monospace, Menlo, monospace';
+  ctx.font = f('display', 600, 28);
   ctx.fillText((data.name || data.id).toUpperCase(), ROOM.W / 2, ROOM.H / 2 - (scored ? 10 : 0));
   if (scored) {
-    ctx.font = '500 15px ui-monospace, Menlo, monospace';
+    ctx.font = f('mono', 800, 18);
     ctx.fillStyle = 'rgba(230,236,255,0.75)';
     ctx.fillText(`◇ ${data.par}`, ROOM.W / 2, ROOM.H / 2 + 20);
   }
