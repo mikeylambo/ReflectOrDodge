@@ -1107,6 +1107,17 @@
    "reflects": 1,
    "seconds": 9.53,
    "explored": 2604
+  },
+  "578960872bd9908b:any:5:1": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 131447
+  },
+  "578960872bd9908b:any:4:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 8.55,
+   "explored": 14533
   }
  }
 }
