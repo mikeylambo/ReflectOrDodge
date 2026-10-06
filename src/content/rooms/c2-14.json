@@ -31,6 +31,6 @@
     {"kind":"switch","at":[27,13],"links":["v"],"mode":"toggle"}
   ],
   "par": 0,
-  "solution": null,
+  "solution": "1:2*ao,0*1c,1*o,0*o,1*o,0*o,1*o,0*o,1*o,0*o,1*o,0*o,1*o,0*o,g*o,0*1c,2*1c,0*o,1*o,0*o,1*o,0*o,g*1c,2*20,1*o,0*o,1*o,0*o,1*o,0*o,i*o,0*1c,2*1c,1*o,0*o,1*o,0*o,g*o,0*o,2*53",
   "mirrorOf": null
 }
