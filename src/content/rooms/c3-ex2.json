@@ -31,7 +31,7 @@
     {"kind":"core","at":[20,8]}
   ],
   "par": 2,
-  "solution": null,
+  "solution": "1:2*5u,1*50,2*46,i*u,h*m,1d,h*7,1*u,0*u,l*2,1h,l*r,1*3c,0*t",
   "mirrorOf": null,
   "goal": "cores"
 }
