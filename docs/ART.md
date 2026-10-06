@@ -25,6 +25,18 @@ Status: a **draft**. The GDD locks this after the first art pass, and it needs M
 3. **Gameplay colours are constant across chapters.** Orb amber, reflected projectiles cyan, emitters red, switches green, doors violet, hazards rose, cores gold.
 4. **Links are always visible.** Faint dashed lines join each switch to its doors from room start. A one-shot switch's lines fade once it has fired.
 
+## Light and material (first art pass)
+
+The diagram now has depth. All of it is presentation only (`render.js`, `theme.js`), and none of it can change a read:
+
+- **Light pools.** Additive radial light under every luminous actor: the player, every projectile (in its own colour), emitters as they charge, lit switches, closed doors, the exit. Spikes cast a low rose light, baked with the tiles.
+- **Material.** Solid blocks get a faint diagonal hatch in the chapter accent and an inner shade on their exposed faces. Walkable tops are lit: a bright accent rim and a short glow above it, so floors read before walls.
+- **Atmosphere.** A soft chapter-tinted haze in the upper middle of the room, slow rising dust motes in the accent, and a vignette.
+- **Exit.** A doorway of light: a bright floor, a column fading upward, rising sparks.
+- **Trails.** Projectile trails are longer and additive.
+
+High contrast turns all of this off: no lights, motes, haze, hatch or vignette. Reduced flashing halves the light pools.
+
 ## Chapter palettes and motifs
 
 Each chapter gets **one accent hue** and **one background motif**. The accent tints only the architecture (tile edges, grid, motif), never an actor (`src/present/theme.js`, `CHAPTER_ART`).

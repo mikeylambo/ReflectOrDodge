@@ -51,6 +51,12 @@ function drawTiles(ctx, room, theme) {
     const grad = g.createLinearGradient(0, 0, 0, ROOM.H);
     grad.addColorStop(0, theme.bg1); grad.addColorStop(1, theme.bg0);
     g.fillStyle = grad; g.fillRect(0, 0, ROOM.W, ROOM.H);
+    // depth: a soft chapter-tinted haze in the upper middle of the room
+    if (theme.haze) {
+      const hz = g.createRadialGradient(ROOM.W * 0.5, ROOM.H * 0.35, 0, ROOM.W * 0.5, ROOM.H * 0.35, ROOM.W * 0.65);
+      hz.addColorStop(0, theme.haze); hz.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = hz; g.fillRect(0, 0, ROOM.W, ROOM.H);
+    }
     drawMotif(g, theme);
     g.strokeStyle = theme.grid; g.lineWidth = 1;
     for (let x = 0; x <= ROOM.COLS; x++) { g.beginPath(); g.moveTo(x * T + 0.5, 0); g.lineTo(x * T + 0.5, ROOM.H); g.stroke(); }
@@ -69,12 +75,46 @@ function drawTiles(ctx, room, theme) {
       }
       if (!isSolid(room, tx, ty)) continue;
       g.fillStyle = theme.tile; g.fillRect(x, y, T, T);
+      const open = (dx, dy) => { const nx = tx + dx, ny = ty + dy; return nx >= 0 && ny >= 0 && nx < ROOM.COLS && ny < ROOM.ROWS && !isSolid(room, nx, ny) && !isSpike(room, nx, ny); };
+      // material: a faint diagonal hatch, so mass reads as mass, not as a hole
+      if (theme.hatch) {
+        g.save(); g.beginPath(); g.rect(x, y, T, T); g.clip();
+        g.strokeStyle = theme.hatch; g.lineWidth = 1;
+        for (let k = -T; k < T; k += 8) { g.beginPath(); g.moveTo(x + k, y + T); g.lineTo(x + k + T, y); g.stroke(); }
+        g.restore();
+      }
+      // inner shade on exposed faces gives each block a bevel
+      if (theme.tileShade) {
+        g.fillStyle = theme.tileShade;
+        if (open(0, 1)) g.fillRect(x, y + T - 6, T, 6);
+        if (open(-1, 0)) g.fillRect(x, y, 4, T);
+        if (open(1, 0)) g.fillRect(x + T - 4, y, 4, T);
+      }
       g.fillStyle = theme.tileEdge;
-      const open = (dx, dy) => { const nx = tx + dx, ny = ty + dy; return nx >= 0 && ny >= 0 && nx < ROOM.COLS && ny < ROOM.ROWS && !isSolid(room, nx, ny); };
-      if (open(0, -1)) g.fillRect(x, y, T, 2);
       if (open(0, 1)) g.fillRect(x, y + T - 2, T, 2);
       if (open(-1, 0)) g.fillRect(x, y, 2, T);
       if (open(1, 0)) g.fillRect(x + T - 2, y, 2, T);
+      // walkable tops are lit: a bright rim and a short glow above it
+      if (open(0, -1)) {
+        if (theme.floorGlow) {
+          const fg = g.createLinearGradient(0, y - 10, 0, y);
+          fg.addColorStop(0, 'rgba(0,0,0,0)'); fg.addColorStop(1, theme.floorGlow);
+          g.fillStyle = fg; g.fillRect(x, y - 10, T, 10);
+        }
+        g.fillStyle = theme.tileTop || theme.tileEdge; g.fillRect(x, y, T, 2);
+      }
+    }
+    // hazards cast a low rose light
+    if (theme.lights) {
+      g.save(); g.globalCompositeOperation = 'lighter';
+      for (let ty = 0; ty < ROOM.ROWS; ty++) for (let tx = 0; tx < ROOM.COLS; tx++) {
+        if (!isSpike(room, tx, ty)) continue;
+        const cx = (tx + 0.5) * T, cy = (ty + 0.8) * T;
+        const rg = g.createRadialGradient(cx, cy, 0, cx, cy, 34);
+        rg.addColorStop(0, theme.spikeLight); rg.addColorStop(1, 'rgba(0,0,0,0)');
+        g.fillStyle = rg; g.fillRect(cx - 34, cy - 34, 68, 68);
+      }
+      g.restore();
     }
     tileCache = { room, solid: room.solid, theme, canvas: c };
   }
@@ -82,19 +122,91 @@ function drawTiles(ctx, room, theme) {
 }
 export const invalidateTiles = () => { tileCache = null; };
 
+// ── light (presentation only) ──
+// Additive light pools under every luminous actor: the player, projectiles,
+// charging emitters, the exit. Pure decoration over the diagram; off in high
+// contrast, halved under reduced flashing.
+function pool(ctx, x, y, r, color, a) {
+  if (a <= 0) return;
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, color); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.globalAlpha = a;
+  ctx.fillStyle = g;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+}
+function drawLights(ctx, state, room, alpha, time, theme, k) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const p = state.player;
+  if (state.status !== 'dead') pool(ctx, lerp(p.px, p.x, alpha) + PLAYER.W / 2, lerp(p.py, p.y, alpha) + PLAYER.H / 2, 110, theme.playerGlow, 0.13 * k);
+  for (const s of state.projectiles) {
+    const col = s.reflected ? theme.orbReflected : theme[s.type] || theme.orb;
+    pool(ctx, s.x, s.y, s.stuck ? 30 : 56, col, (s.stuck ? 0.1 : 0.22) * k);
+  }
+  for (const o of state.objects) {
+    if (o.kind === 'switch' && o.hits > 0 && (o.mode === 'once' || o.hits % 2 === 1)) pool(ctx, (o.tx + 0.5) * T, (o.ty + 0.5) * T, 60, theme.switch, 0.16 * k);
+    if (o.kind === 'door' && o.slide < 1) pool(ctx, (o.tx + 0.5) * T, (o.ty + (o.h * (1 - o.slide)) / 2) * T, 24 + 14 * o.h, theme.door, 0.08 * k);
+    if (o.kind === 'emitter' && o.on && o.charge > 0) pool(ctx, (o.tx + 0.5) * T, (o.ty + 0.5) * T, 40 + 40 * o.charge, theme.emitter, 0.25 * o.charge * k);
+  }
+  if (room.exit) pool(ctx, (room.exit[0] + 0.5) * T, (room.exit[1] + 0.5) * T, 80, theme.exit, (0.08 + 0.03 * Math.sin(time * 3)) * k);
+  ctx.restore();
+}
+
+// Dust motes: slow, faint, rising — the room breathes. Deterministic in time.
+const MOTES = 46;
+function drawMotes(ctx, time, theme) {
+  ctx.save();
+  ctx.fillStyle = theme.mote;
+  for (let i = 0; i < MOTES; i++) {
+    const h1 = Math.sin(i * 127.1) * 43758.5453, h2 = Math.sin(i * 311.7) * 24634.6345;
+    const fx = h1 - Math.floor(h1), fy = h2 - Math.floor(h2);
+    const sp = 6 + fx * 10;
+    const x = (fx * ROOM.W + Math.sin(time * 0.3 + i) * 14 + ROOM.W) % ROOM.W;
+    const y = ROOM.H - ((fy * ROOM.H + time * sp) % ROOM.H);
+    ctx.globalAlpha = 0.25 + 0.35 * (0.5 + 0.5 * Math.sin(time * 0.8 + i * 1.7));
+    ctx.fillRect(x, y, fx > 0.8 ? 2 : 1.2, fx > 0.8 ? 2 : 1.2);
+  }
+  ctx.restore();
+}
+
+let vignette = null;
+function drawVignette(ctx) {
+  if (!vignette) {
+    const c = document.createElement('canvas');
+    c.width = ROOM.W; c.height = ROOM.H;
+    const g = c.getContext('2d');
+    const v = g.createRadialGradient(ROOM.W / 2, ROOM.H / 2, ROOM.H * 0.45, ROOM.W / 2, ROOM.H / 2, ROOM.W * 0.62);
+    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,0.42)');
+    g.fillStyle = v; g.fillRect(0, 0, ROOM.W, ROOM.H);
+    vignette = c;
+  }
+  ctx.drawImage(vignette, 0, 0);
+}
+
 function drawExit(ctx, room, t, theme) {
   if (!room.exit) return; // Examiner phases have no exit
   const [ex, ey] = room.exit;
   const x = ex * T, y = ey * T;
   ctx.save();
+  // a doorway of light: a bright floor, a column fading upward, rising sparks
+  const g = ctx.createLinearGradient(0, y + T, 0, y + 2);
+  g.addColorStop(0, theme.exit); g.addColorStop(1, 'rgba(245,247,255,0)');
+  ctx.globalAlpha = 0.28 + 0.08 * Math.sin(t * 3);
+  ctx.fillStyle = g;
+  ctx.fillRect(x + 5, y + 2, T - 10, T - 2);
+  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = theme.exit;
+  for (let k = 0; k < 4; k++) {
+    const ph = (t * 0.7 + k / 4) % 1;
+    ctx.globalAlpha = 0.8 * (1 - ph);
+    ctx.fillRect(x + 8 + ((k * 7) % (T - 18)), y + T - 4 - ph * (T - 6), 1.5, 1.5);
+  }
+  ctx.globalAlpha = 1;
   ctx.strokeStyle = theme.exit;
   ctx.shadowColor = theme.exit;
   ctx.shadowBlur = 10 + 6 * Math.sin(t * 3);
   ctx.lineWidth = 2;
   ctx.strokeRect(x + 5, y + 2, T - 10, T - 2);
-  ctx.globalAlpha = 0.18 + 0.08 * Math.sin(t * 3);
-  ctx.fillStyle = theme.exit;
-  ctx.fillRect(x + 5, y + 2, T - 10, T - 2);
   ctx.restore();
 }
 
@@ -205,6 +317,8 @@ export function render(ctx, {
   ctx.save();
   if (fx && shake && fx.shake > 0) ctx.translate(Math.sin(time * 90) * FEEL.SHAKE_PX, Math.cos(time * 70) * FEEL.SHAKE_PX);
   drawTiles(ctx, room, theme);
+  if (theme.mote) drawMotes(ctx, time, theme);
+  if (theme.lights) drawLights(ctx, state, room, alpha, time, theme, flashes ? 1 : 0.5);
   drawExit(ctx, room, time, theme);
 
   // switch → door links: faint, but always visible from room start (GDD:
@@ -272,13 +386,14 @@ export function render(ctx, {
     if (s.stuck) continue;
     const sp = Math.hypot(s.vx, s.vy);
     if (!sp) continue;
-    const len = Math.min(26, sp * 0.12);
+    const len = Math.min(44, sp * 0.2);
     const g = ctx.createLinearGradient(s.x, s.y, s.x - (s.vx / sp) * len, s.y - (s.vy / sp) * len);
     const col = s.reflected ? theme.orbReflected : theme[s.type] || theme.orb;
     g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.strokeStyle = g;
-    ctx.globalAlpha = 0.5;
-    ctx.lineWidth = s.r * 1.4;
+    ctx.globalAlpha = 0.6;
+    ctx.globalCompositeOperation = theme.lights ? 'lighter' : 'source-over';
+    ctx.lineWidth = s.r * 1.6;
     ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x - (s.vx / sp) * len, s.y - (s.vy / sp) * len); ctx.stroke();
   }
   ctx.restore();
@@ -377,6 +492,7 @@ export function render(ctx, {
     ctx.restore();
   }
   ctx.restore();
+  if (theme.lights) drawVignette(ctx);
 
   // reset wipe: a dark band sweeps across as the room restarts
   if (fx && fx.wipe > 0) {

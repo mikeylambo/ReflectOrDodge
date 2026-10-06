@@ -78,5 +78,11 @@ export function chapterTheme(ci, highContrast = false) {
   const base = highContrast ? HIGH_CONTRAST : THEME;
   const art = CHAPTER_ART[ci] || CHAPTER_ART[0];
   if (highContrast) return { ...base, motif: 'none', accent: '#ffffff' };
-  return { ...base, accent: art.accent, motif: art.motif, tileEdge: hexA(art.accent, 0.45), grid: hexA(art.accent, 0.035), motifInk: hexA(art.accent, 0.06) };
+  return {
+    ...base, accent: art.accent, motif: art.motif,
+    tileEdge: hexA(art.accent, 0.38), tileTop: hexA(art.accent, 0.9), floorGlow: hexA(art.accent, 0.16),
+    tileShade: 'rgba(0,0,0,0.3)', tile: '#121622', hatch: hexA(art.accent, 0.085),
+    grid: hexA(art.accent, 0.03), motifInk: hexA(art.accent, 0.09), haze: hexA(art.accent, 0.10),
+    mote: art.accent, lights: true, spikeLight: 'rgba(255,77,109,0.10)',
+  };
 }
