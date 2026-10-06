@@ -28,7 +28,7 @@
     {"type":"seed","at":[17,1],"dir":"down","period":2.4,"phase":1.2}
   ],
   "objects": [],
-  "par": 2,
-  "solution": "1:2*1c,0*8o,g*o,1*o,y,2*n,i*o,h*o,0*o,i*1c,2*o,g*o,2*1c,0*o,i*o,g*o,1*o,i*o,g*o,1*o,0*o,1*o,2*f,y,2*8,0*o,i*1c,2*o,i*o,2*1c,i*1c,2*3k",
+  "par": 1,
+  "solution": "1:1*1o,2*2i,0*u,i*u,1*u,0*u,i*u,1*u,0*u,i*u,1*u,0*2i,i*1o,2*u,g*u,2*1o,i*1o,2*1o,h*u,0*u,2*u,g*u,11,5*t,2*u,i*1o,2*37",
   "mirrorOf": null
 }
