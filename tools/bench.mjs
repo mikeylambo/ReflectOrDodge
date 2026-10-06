@@ -15,21 +15,34 @@ import { loadRooms } from '../test/levels-node.mjs';
 import { compileRoom } from '../src/sim/room.js';
 import { createState, step } from '../src/sim/world.js';
 import { decodeLog } from '../src/sim/input.js';
+import { readdirSync, readFileSync } from 'node:fs';
+import { emptyTiles } from '../src/sim/room.js';
 
 const args = process.argv.slice(2);
 const opt = (name, d) => { const i = args.indexOf(name); return i >= 0 ? Number(args[i + 1]) : d; };
 const REPS = opt('--reps', 20), TOP = opt('--top', 5);
 const pct = (xs, p) => xs[Math.min(xs.length - 1, Math.floor((xs.length * p) / 100))];
 
+// content rooms, the projectile fixtures, and a synthetic worst case: eight
+// fast emitters of every type for 10 s with the player invincible (so the
+// room never ends early) — far denser than any designed room.
+const FX = new URL('../test/fixtures/', import.meta.url);
+const fixtures = readdirSync(FX).filter((f) => f.startsWith('fx-') && f.endsWith('.json')).map((f) => JSON.parse(readFileSync(new URL(f, FX), 'utf8')));
+const types = ['orb', 'splitter', 'charge', 'twin', 'seed', 'anchor', 'splitter', 'charge'];
+const stress = {
+  id: 'stress-8', tiles: emptyTiles(), spawn: [14, 15], exit: [28, 1], par: 0, mirrorOf: null,
+  emitters: types.map((type, i) => ({ type, at: [i % 2 ? 28 : 1, 2 + i], dir: i % 2 ? 'left' : 'right', period: 0.6, phase: 0 })),
+  objects: [], solution: `1:0*${(1200).toString(36)}`, opts: { invincible: true },
+};
 const rows = [];
-for (const { room: data } of loadRooms()) {
+for (const data of [...loadRooms().map((r) => r.room), ...fixtures, stress]) {
   if (!data.solution) continue;
   const room = compileRoom(data);
   const masks = decodeLog(data.solution);
   const times = [];
   let maxProj = 0;
   for (let r = 0; r < REPS; r++) {
-    const s = createState(room);
+    const s = createState(room, data.opts);
     for (let i = 0; i < masks.length && s.status === 'play'; i++) {
       const t0 = performance.now();
       step(s, room, masks[i]);
@@ -64,7 +77,8 @@ if (args.includes('--browser')) {
     console.log('\n## Browser (headless Chromium, real loop + renderer, solution replay)\n');
     console.log('| Room | Frames | Mean ms | p95 ms | p99 ms | Worst ms |');
     console.log('|---|---|---|---|---|---|');
-    for (const r of rows.slice(0, TOP)) {
+    const inGame = await page.evaluate(() => window.__RD.rooms);
+    for (const r of rows.filter((x) => inGame.includes(x.id)).slice(0, TOP)) {
       const f = await page.evaluate(async (id) => {
         window.__RD.enterRoom(id, { replay: true });
         const ts = [];
