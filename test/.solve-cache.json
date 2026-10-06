@@ -417,6 +417,29 @@
    "solvable": false,
    "reason": "state cap 400000 hit",
    "explored": 400001
+  },
+  "8490be5139e6dc46:any:4:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "8490be5139e6dc46:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 9.81,
+   "explored": 94133
+  },
+  "40e818ab41e0435b:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 9.89,
+   "explored": 9380
+  },
+  "d68ea9997f13d615:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.48,
+   "explored": 7583
   }
  }
 }
