@@ -277,6 +277,130 @@
    "solvable": false,
    "reason": "state cap 400000 hit",
    "explored": 400001
+  },
+  "d16304bf87932da4:any:4:3": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "d16304bf87932da4:any:3:3": {
+   "solvable": true,
+   "reflects": 3,
+   "seconds": 10.91,
+   "explored": 250720
+  },
+  "4a9f8a180f65b74b:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 13.53,
+   "explored": 12674
+  },
+  "344561c6b9612f53:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 11.36,
+   "explored": 8748
+  },
+  "c352f55a35a6d86e:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 9.97,
+   "explored": 7012
+  },
+  "e4288156bc6c4e4d:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 11.2,
+   "explored": 5833
+  },
+  "a687977bbbc6d088:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.32,
+   "explored": 107993
+  },
+  "0db6aed59f20f77d:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 11.99,
+   "explored": 49579
+  },
+  "6df31888ed7d59c4:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 4.2,
+   "explored": 651
+  },
+  "08e5d08f2594cc77:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 5.69,
+   "explored": 1519
+  },
+  "994bc758fbdb8b22:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.92,
+   "explored": 5139
+  },
+  "e1f58ea4c3ce273c:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 13.39,
+   "explored": 7892
+  },
+  "365bf94381692e09:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10,
+   "explored": 6594
+  },
+  "0424307c8c59f7b0:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 6.82,
+   "explored": 481
+  },
+  "1a1de1fad269e759:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 10.38,
+   "explored": 5577
+  },
+  "80be93a7fe98dc80:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 13.93,
+   "explored": 7540
+  },
+  "457a78c472e8d5f7:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 11.22,
+   "explored": 24716
+  },
+  "32191d86ec70c6b7:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.64,
+   "explored": 151948
+  },
+  "7eaaa25e5cc99baf:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 11.57,
+   "explored": 4889
+  },
+  "69ea95eb00e24754:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.67,
+   "explored": 114507
+  },
+  "d41b0a766e7ee8b2:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
   }
  }
 }
