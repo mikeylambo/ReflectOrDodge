@@ -1452,6 +1452,163 @@
    "solvable": false,
    "reason": "state cap 400000 hit",
    "explored": 400001
+  },
+  "8490be5139e6dc46:any:5:1": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "40e818ab41e0435b:any:4:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 9.99,
+   "explored": 5608
+  },
+  "40e818ab41e0435b:any:3:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 10.16,
+   "explored": 2339
+  },
+  "d68ea9997f13d615:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 6492
+  },
+  "d68ea9997f13d615:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.55,
+   "explored": 4951
+  },
+  "d68ea9997f13d615:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.48,
+   "explored": 971
+  },
+  "3e83484c7fdd59ca:any:5:1": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 185671
+  },
+  "3e83484c7fdd59ca:any:4:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 7.58,
+   "explored": 90502
+  },
+  "3e83484c7fdd59ca:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 7.48,
+   "explored": 11790
+  },
+  "ae733326bdec4c64:any:4:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.72,
+   "explored": 2424
+  },
+  "ae733326bdec4c64:any:3:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.95,
+   "explored": 627
+  },
+  "196006639e971135:any:5:1": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 68346
+  },
+  "196006639e971135:any:4:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 6.81,
+   "explored": 66879
+  },
+  "196006639e971135:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 7.03,
+   "explored": 34505
+  },
+  "728169f323d66492:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 16603
+  },
+  "728169f323d66492:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.68,
+   "explored": 85917
+  },
+  "728169f323d66492:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 11.01,
+   "explored": 48282
+  },
+  "ac8833fcfdd9f4aa:any:4:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.39,
+   "explored": 1879
+  },
+  "ac8833fcfdd9f4aa:any:3:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 1690
+  },
+  "6f51b9e64bd34614:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "503272237e771bf8:any:5:1": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "503272237e771bf8:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 11.03,
+   "explored": 124924
+  },
+  "450db21d0ea8e766:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 15256
+  },
+  "450db21d0ea8e766:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.71,
+   "explored": 25322
+  },
+  "450db21d0ea8e766:any:3:1": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 70442
+  },
+  "490f1acb8036e316:any:5:1": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 253199
+  },
+  "490f1acb8036e316:any:4:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 6.99,
+   "explored": 76396
+  },
+  "490f1acb8036e316:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 7.63,
+   "explored": 71930
   }
  }
 }
