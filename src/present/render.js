@@ -6,7 +6,7 @@
 //   flashes     false = reduced flashing (no white flashes, softer glows)
 //   preview     { mask } while Reflect is held → outgoing path per direction
 //   ghost       a second sim state drawn translucent (hint ghost / solution)
-//   hud         { par: number|null, hint: bool } or false
+//   hud         { par: number|null, hint: bool, phase, timer: {room, run}|null } or false
 import { ROOM, PLAYER, REFLECT, PROJECTILE, FEEL } from '../../config/tunables.js';
 import { THEME } from './theme.js';
 import { PROJECTILES } from '../projectiles/index.js';
@@ -410,6 +410,13 @@ export function render(ctx, {
         ctx.fillStyle = theme.examinerCore; ctx.strokeStyle = theme.examinerCore; ctx.lineWidth = 1.5;
         if (k < hud.phase.i) ctx.fill(); else ctx.stroke();
       }
+    }
+    if (hud.timer) {
+      // speedrun timer (opt-in): room time, and the run's when one is going
+      ctx.textAlign = 'center';
+      ctx.fillStyle = theme.hud;
+      ctx.fillText(hud.timer.run ? `${hud.timer.room}  ·  ${hud.timer.run}` : hud.timer.room, ROOM.W / 2, 9);
+      ctx.textAlign = 'left';
     }
     if (hud.hint) {
       // hint glyph: a small eye-like lens, pulsing gently

@@ -24,6 +24,7 @@ export function defaultSave() {
     settings: {
       audioOffsetMs: 0, musicVol: 0.8, sfxVol: 1.0, highContrast: false, shake: true,
       reducedFlashing: false, telemetry: false,
+      speedrunTimer: false, // GDD: Speedrun support — off by default
     },
     stats: { totalDeaths: 0, totalReflects: 0, playTimeMs: 0 },
     seenPrompts: [], // onboarding glyphs already learned (additive field; defaults fill old saves)

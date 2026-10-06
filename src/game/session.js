@@ -44,6 +44,7 @@ export function createSession({ onClear = () => {}, onEvent = () => {}, opts = {
     data: null, room: null, state: null, fx: createFx(),
     log: [], deaths: 0, lastClear: null, clearHold: 0, opts,
     mode: 'play', solution: null, replayAt: 0,
+    attempts: [], // earlier attempts' input logs this visit (speedrun verification)
     ghost: null, hintStop: null, hintsUsed: 0,
   };
 
@@ -56,6 +57,8 @@ export function createSession({ onClear = () => {}, onEvent = () => {}, opts = {
     S.solution = data.solution ? decodeLog(data.solution) : null;
     S.hintStop = null;
     S.mode = mode;
+    S.attempts = [];
+    S.log = []; // the previous room's log never counts as an attempt here
     S.reset();
   };
 
@@ -64,6 +67,7 @@ export function createSession({ onClear = () => {}, onEvent = () => {}, opts = {
   S.attempt = 0;
   S.reset = () => {
     S.attempt++;
+    if (S.log && S.log.length && S.state && S.state.status !== 'clear') S.attempts.push(encodeLog(S.log));
     S.state = createState(S.room, S.mode === 'replay' ? {} : { invincible: S.opts.invincible, windowMult: S.opts.windowMult });
     S.log = [];
     S.clearHold = 0;
@@ -134,6 +138,7 @@ export function createSession({ onClear = () => {}, onEvent = () => {}, opts = {
         underPar: reflects < S.room.par, frames: S.log.length, log: encodeLog(S.log),
         timeMs: Math.round((S.log.length / TIMESTEP.HZ) * 1000),
         assisted: !!(S.opts.invincible || (S.opts.windowMult && S.opts.windowMult !== 1)),
+        attempts: [...S.attempts, encodeLog(S.log)], // every attempt this visit, clearing one last
       };
       S.clearHold = Math.round(CLEAR_HOLD * TIMESTEP.HZ); // room-clear glow before results
     }

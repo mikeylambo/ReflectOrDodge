@@ -20,6 +20,7 @@ import { untilNext } from '../objects/emitter.js';
 import { TIMESTEP } from '../../config/tunables.js';
 import { initHaptics, setHapticsEnabled } from '../engine/haptics.js';
 import { createSession } from '../game/session.js';
+import { createRun, addSegment, runFrames, formatTime } from '../game/speedrun.js';
 import { render } from '../present/render.js';
 import { chapterTheme } from '../present/theme.js';
 import { ROOMS, ROOM_BY_ID, CHAPTERS } from '../sim/levels.js';
@@ -120,7 +121,19 @@ export async function startApp(canvas, ctx) {
   });
   let mapChapter = 0;
   let mirrorView = false;
+  // Speedrun (off by default): a run spans the rooms played back to back and
+  // ends at the map or title; the finished run can be exported from results.
+  let run = null, runTotal = 0, lastRun = null;
+  function endRun() { if (run && run.segments.length) lastRun = run; run = null; runTotal = 0; }
+  function downloadRun(r) {
+    const blob = new Blob([JSON.stringify({ game: 'reflect-dodge', ...r }, null, 1)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `reflect-dodge-run-${formatTime(runFrames(r)).replace(/[:.]/g, '-')}.json`;
+    a.click();
+  }
   function showMap(ci, { guard = true, focusId = null } = {}) {
+    endRun();
     state = 'menu';
     menuBehind = 'title';
     mapChapter = chapterIdx = ci;
@@ -279,6 +292,7 @@ export async function startApp(canvas, ctx) {
     prompts = (ROOM_PROMPTS[id] || []).filter((k) => !seen.includes(k)).map((k) => ({ id: k, alpha: 1, used: false }));
     msInRoom = 0;
     if (replay) { state = 'replay'; return; }
+    if (save.data.settings.speedrunTimer && !run) run = createRun('chapter', id.endsWith('-m') ? 'mirror' : 'core');
     telemetry.attempt(id);
     const firstVisit = !save.room(id);
     state = firstVisit ? 'intro' : 'play';
@@ -295,6 +309,7 @@ export async function startApp(canvas, ctx) {
 
   function onRoomClear(r) {
     if (r.replay) { showResults(resultsFor); return; }
+    if (run) { addSegment(run, roomId, r.attempts, r.assisted); runTotal = runFrames(run); }
     if (encounter) {
       const ex = CHAPTERS[encounter.ci].examiner;
       telemetry.clear(roomId, msInRoom);
@@ -314,6 +329,7 @@ export async function startApp(canvas, ctx) {
 
   // ── screens ──
   function showTitle() {
+    endRun();
     state = 'title';
     menuBehind = 'title';
     showScreen('title', { title: 'REFLECT / DODGE', choices: [{ id: 'play', label: 'Play' }, { id: 'settings', label: 'Settings' }, { id: 'credits', label: 'Credits' }] }, { guard: false });
@@ -385,6 +401,7 @@ export async function startApp(canvas, ctx) {
         { id: 'flashing', label: `Reduced flashing: ${onOff(s.reducedFlashing)}` },
         { id: 'shake', label: `Screen shake: ${onOff(s.shake)}` },
         { id: 'fullscreen', label: 'Fullscreen' },
+        { id: 'speedrun', label: `Speedrun timer: ${onOff(s.speedrunTimer)}` },
         { id: 'telemetry', label: `Share playtest data: ${onOff(s.telemetry)}`, description: s.telemetry ? 'Stays on this device until you export it' : undefined },
         ...(s.telemetry ? [{ id: 'export', label: 'Export playtest data' }] : []),
       ],
@@ -419,6 +436,7 @@ export async function startApp(canvas, ctx) {
         { id: 'retry', label: 'Retry' },
         ...(ROOM_BY_ID[roomId].solution && r.scored ? [{ id: 'watch', label: 'Watch solution' }] : []),
         ...(next ? [{ id: 'map', label: 'Map' }] : []),
+        ...(run && run.segments.length ? [{ id: 'export-run', label: `Export run ${formatTime(runTotal)}` }] : []),
       ],
     }, { guard });
   }
@@ -481,6 +499,7 @@ export async function startApp(canvas, ctx) {
       else if (choice === 'flashing') s.reducedFlashing = !s.reducedFlashing;
       else if (choice === 'shake') s.shake = !s.shake;
       else if (choice === 'telemetry') s.telemetry = !s.telemetry;
+      else if (choice === 'speedrun') { s.speedrunTimer = !s.speedrunTimer; if (!s.speedrunTimer) endRun(); }
       else if (choice === 'export') telemetry.export();
       else if (choice === 'fullscreen') {
         try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); } catch { /* unsupported */ }
@@ -493,7 +512,8 @@ export async function startApp(canvas, ctx) {
       if (choice === 'next') { if (next) enterRoom(next); else showMap(chapterIdx); }
       else if (choice === 'next-chapter') showMap(chapterIdx + 1, { guard: false });
       else if (choice === 'retry') enterRoom(roomId);
-      else if (choice === 'watch') enterRoom(roomId, { replay: true });
+      else if (choice === 'watch') { endRun(); enterRoom(roomId, { replay: true }); }
+      else if (choice === 'export-run') downloadRun(run || lastRun);
       else if (choice === 'map') showMap(chapterIdx);
     }
   }
@@ -582,6 +602,7 @@ export async function startApp(canvas, ctx) {
           par: sc && !encounter ? session.room.par : null,
           hint: state === 'play' && session.hintAvailable(msInRoom),
           phase: encounter ? { i: encounter.phase, n: CHAPTERS[encounter.ci].examiner.length } : null,
+          timer: s.speedrunTimer && state !== 'replay' ? speedrunHud() : null,
         },
         preview: state === 'play' && save.data.assists.preview && (lastMask & BTN.REFLECT) ? { mask: lastMask } : null,
         ghost: session.ghost ? session.ghost.state : null,
@@ -595,6 +616,13 @@ export async function startApp(canvas, ctx) {
       if (state === 'replay') drawReplayBadge(ctx, time);
     },
   });
+
+  // room time this visit (every attempt) and the run so far, in sim frames
+  function speedrunHud() {
+    let roomF = session.log.length;
+    for (const a of session.attempts) roomF += decodeLog(a).length;
+    return { room: formatTime(roomF), run: run ? formatTime(runTotal + (session.state.status === 'clear' ? 0 : roomF)) : null };
+  }
 
   applyAssists();
   applySettings();
@@ -614,6 +642,7 @@ export async function startApp(canvas, ctx) {
     showTitle,
     get encounter() { return encounter; },
     solutionOf: (id) => decodeLog(ROOM_BY_ID[id].solution),
+    get run() { return run || lastRun; },
     get mapFocus() { return map.active ? map.focused && map.focused.id : null; },
     replay(id) {
       const data = ROOM_BY_ID[id];
