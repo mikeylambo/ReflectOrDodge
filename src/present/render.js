@@ -124,6 +124,16 @@ function drawTiles(ctx, room, theme) {
 }
 export const invalidateTiles = () => { tileCache = null; };
 
+// the reflect diamond: an outline with a filled core (the game's one symbol)
+export function drawDiamond(ctx, x, y, r, color) {
+  ctx.save();
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y); ctx.closePath(); ctx.stroke();
+  const c = r * 0.45;
+  ctx.beginPath(); ctx.moveTo(x, y - c); ctx.lineTo(x + c, y); ctx.lineTo(x, y + c); ctx.lineTo(x - c, y); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
 // ── light (presentation only) ──
 // Additive light pools under every luminous actor: the player, projectiles,
 // charging emitters, the exit. Pure decoration over the diagram; off in high
@@ -483,9 +493,12 @@ export function render(ctx, {
     ctx.fillText(room.name.toUpperCase(), 12, 9);
     ctx.font = f('mono', 800, 18);
     if (hud.par !== null && hud.par !== undefined) {
-      ctx.fillStyle = state.stats.reflects <= hud.par ? theme.hud : theme.emitter;
+      const col = state.stats.reflects <= hud.par ? theme.hud : theme.emitter;
+      ctx.fillStyle = col;
       ctx.textAlign = 'right';
-      ctx.fillText(`◇ ${state.stats.reflects} / ${hud.par}`, ROOM.W - 12, 9);
+      const txt = `${state.stats.reflects} / ${hud.par}`;
+      ctx.fillText(txt, ROOM.W - 12, 8);
+      drawDiamond(ctx, ROOM.W - 12 - ctx.measureText(txt).width - 12, 17, 6, col);
     }
     if (hud.phase) {
       // Examiner phase pips: filled = beaten

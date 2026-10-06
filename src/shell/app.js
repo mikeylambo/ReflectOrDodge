@@ -21,9 +21,10 @@ import { TIMESTEP } from '../../config/tunables.js';
 import { initHaptics, setHapticsEnabled } from '../engine/haptics.js';
 import { createSession } from '../game/session.js';
 import { createRun, addSegment, runFrames, formatTime } from '../game/speedrun.js';
-import { render } from '../present/render.js';
+import { render, drawDiamond } from '../present/render.js';
 import { chapterTheme } from '../present/theme.js';
 import { FONT, f, wordmarkSVG } from '../present/brand.js';
+import { decorate, SKIN_CSS, ICON, MEDAL_ICON } from './skin.js';
 import { ROOMS, ROOM_BY_ID, CHAPTERS } from '../sim/levels.js';
 import { compileRoom } from '../sim/room.js';
 import { runLog } from '../sim/world.js';
@@ -60,6 +61,7 @@ export async function startApp(canvas, ctx) {
 
   // ── shell UI ──
   const uiRoot = document.getElementById('ui');
+  if (!document.getElementById('rd-skin-css')) { const st = document.createElement('style'); st.id = 'rd-skin-css'; st.textContent = SKIN_CSS; document.head.appendChild(st); }
   const uiInput = new InputManager();
   const bindings = [
     { action: 'ui_up', keyboard: ['ArrowUp', 'KeyW'], gamepadButtons: [12], gamepadAxes: [{ axis: 1, direction: -1, threshold: 0.5 }] },
@@ -98,18 +100,24 @@ export async function startApp(canvas, ctx) {
   let uiPolling = false;
   const pollUI = () => {
     uiInput.update(uiSource.poll());
+    if (!map.active && (current === 'settings' || current === 'assists' || current === 'chapters')) {
+      const dx = uiInput.wasPressed('ui_right') ? 1 : uiInput.wasPressed('ui_left') ? -1 : 0;
+      if (dx) sideways(dx);
+    }
     family.sampleGamepads();
     if (uiPolling) requestAnimationFrame(pollUI);
   };
   // guard: the screen was opened by a keypress, which must not also act on it
   // (re-rendering the screen already showing — a toggle — never re-arms it)
   let current = null;
-  function showScreen(id, model, { guard = true } = {}) {
+  function showScreen(id, model, { guard = true, skin = {} } = {}) {
     if (map.active) { map.hide(); current = null; }
     const same = current === id && !uiRoot.hidden;
+    const dress = () => decorate(uiRoot, id, { family: document.body.dataset.input, ...skin });
     ui.updateScreen(id, model);
-    if (same) { current = id; return; } // updateScreen re-rendered it in place, keeping focus
+    if (same) { current = id; dress(); return; } // updateScreen re-rendered it in place, keeping focus
     ui.show(id);
+    dress();
     current = id;
     shownAt = guard ? performance.now() : -Infinity;
     uiRoot.hidden = false;
@@ -264,19 +272,19 @@ export async function startApp(canvas, ctx) {
       const r = ROOM_BY_ID[id];
       const locked = flipped ? !(r && mirrorOpen(baseId)) : false;
       const rec = save.room(id);
-      const glyph = locked ? '·' : id === nextUp ? '▸' : !sc ? (rec && rec.cleared ? '●' : '·') : MEDAL_GLYPH[rec ? rec.medal || 0 : 0];
+      const glyph = locked ? ICON.lock : id === nextUp ? ICON.play : !sc ? (rec && rec.cleared ? ICON.bronze : ICON.none) : MEDAL_ICON[rec ? rec.medal || 0 : 0];
       const best = r && sc ? `◇ ${rec && rec.bestReflects != null ? rec.bestReflects : '–'} / ${r.par}` : '';
       const medal = locked || !rec ? 0 : !sc ? (rec.cleared ? 1 : 0) : rec.medal || 0;
       return {
         id, locked, mirror: flipped, medal, next: id === nextUp,
-        html: `<span class="n">${String(k + 1).padStart(2, '0')}</span><span class="g">${locked ? '🔒' : glyph}</span>`,
-        foot: locked ? (r ? '★ → ⇋' : '') : `<span class="name">${(r && r.name) || id}</span>  ${best}`,
+        html: `<span class="n">${String(k + 1).padStart(2, '0')}</span><span class="g">${glyph}</span>`,
+        foot: locked ? (r ? `<span class="unlock">${ICON.gold} → ${ICON.mirror}</span>` : '') : `<span class="name">${(r && r.name) || id}</span>  ${best}`,
       };
     });
     const done = clearedIn(ci);
     const count = (m) => nodes.filter((n) => !n.locked && n.medal === m).length;
     const model = {
-      title: ci === 0 ? c.name : `${ci} · ${c.name}${flipped ? '  ⇋' : ''}`,
+      title: ci === 0 ? c.name : `${ci} · ${c.name}${flipped ? ' · mirror' : ''}`,
       // medal counts in their own shapes and colours: ★ gold ◆ silver ● bronze
       tally: sc
         ? `<span class="m3">★ ${count(MEDAL.GOLD)}</span><span class="m2">◆ ${count(MEDAL.SILVER)}</span><span class="m1">● ${count(MEDAL.BRONZE)}</span>`
@@ -290,13 +298,13 @@ export async function startApp(canvas, ctx) {
       const open = examinerOpen(ci), beaten = examinerDefeated(ci);
       model.examiner = {
         id: 'examiner', locked: !open,
-        html: `<span class="g">⬢</span><span>${beaten ? '✓' : open ? '' : `● ${done}/${examinerNeed(ci)}`}</span>`,
-        foot: open ? '<span class="name">⬢</span>' : `● ${done}/${examinerNeed(ci)}`,
+        html: `<span class="g">${ICON.examiner}</span><span class="n">${beaten ? '✓' : open ? '' : `${done}/${examinerNeed(ci)}`}</span>`,
+        foot: open ? '<span class="name">Examiner</span>' : `<span class="unlock">${ICON.bronze} ${done}/${examinerNeed(ci)} → ${ICON.examiner}</span>`,
       };
     }
     if (hasMirrors) {
       const any = UNLOCK_ALL || c.rooms.some((id) => mirrorOf(id) && mirrorOpen(id));
-      model.flip = { id: 'flip', locked: !any, html: `<span class="g">⇋</span>`, foot: any ? '⇋' : '★ → ⇋' };
+      model.flip = { id: 'flip', locked: !any, html: `<span class="g">${ICON.mirror}</span>`, foot: any ? '<span class="name">Mirror rooms</span>' : `<span class="unlock">${ICON.gold} → ${ICON.mirror}</span>` };
     }
     return model;
   }
@@ -382,7 +390,15 @@ export async function startApp(canvas, ctx) {
         disabled: !open,
       };
     });
-    showScreen('chapters', { title: 'REFLECT / DODGE', choices, backTarget: 'title' });
+    const cards = CHAPTERS.map((c, i) => {
+      const th = chapterTheme(i, save.data.settings.highContrast);
+      return {
+        accent: th.accent, motif: th.motif, locked: !chapterOpen(i), scored: c.scored !== false,
+        done: clearedIn(i), total: c.rooms.length, gold: c.rooms.filter((id) => save.medal(id) === MEDAL.GOLD).length,
+        examiner: !!(c.examiner && c.examiner.length), beaten: examinerDefeated(i),
+      };
+    });
+    showScreen('chapters', { title: 'Chapters', choices, backTarget: 'title' }, { skin: { chapters: cards } });
   }
 
   function showPause() {
@@ -476,17 +492,18 @@ export async function startApp(canvas, ctx) {
     const subtitle = r.scored
       ? `◇ ${r.reflects} / ${r.par}   ✕ ${r.deaths}${r.underPar ? '   ★ under par' : ''}${r.change.medalUp && !r.change.firstClear ? '   ▲' : ''}`
       : undefined;
+    const skin = { results: { ...r, medalUp: r.change && r.change.medalUp && !r.change.firstClear } };
     showScreen('results', {
       title: r.scored ? `${MEDAL_GLYPH[r.medal]} ${MEDAL_NAME[r.medal]}` : '✓',
       subtitle,
       choices: [
-        { id: 'next', label: !next ? 'Map' : next.examiner !== undefined ? 'Next  ⬢' : 'Next' },
+        { id: 'next', label: !next ? 'Map' : next.examiner !== undefined ? 'Examiner' : 'Next' },
         { id: 'retry', label: 'Retry' },
         ...(ROOM_BY_ID[roomId].solution && r.scored ? [{ id: 'watch', label: 'Watch solution' }] : []),
         ...(next ? [{ id: 'map', label: 'Map' }] : []),
         ...(run && run.segments.length ? [{ id: 'export-run', label: `Export run ${formatTime(runTotal)}` }] : []),
       ],
-    }, { guard });
+    }, { guard, skin });
   }
 
   function showExaminerResults(ci) {
@@ -494,13 +511,13 @@ export async function startApp(canvas, ctx) {
     menuBehind = 'room';
     const next = CHAPTERS[ci + 1] && chapterOpen(ci + 1) ? CHAPTERS[ci + 1] : null;
     showScreen('results', {
-      title: '⬢',
+      title: 'Examiner',
       subtitle: undefined,
       choices: [
         ...(next ? [{ id: 'next-chapter', label: next.name }] : []),
         { id: 'map', label: 'Map' },
       ],
-    }, { guard: false });
+    }, { guard: false, skin: { results: { examiner: true } } });
   }
 
   // ── UI handlers ──
@@ -573,6 +590,21 @@ export async function startApp(canvas, ctx) {
     else if (screen === 'settings') { if (settingsBack === 'pause') showPause2(); else showTitle(); }
     else if (screen === 'results') showMap(chapterIdx);
   }
+  // left/right: step a slider (Sound, Music, Game speed), or move between chapter cards
+  function sideways(dx) {
+    if (current === 'chapters') { ui.move(dx); return; }
+    const f = uiRoot.querySelector('.slu-choice[data-focused="true"]');
+    const id = f && f.dataset.choiceId;
+    const s = save.data.settings, a = save.data.assists;
+    const step = (arr, v) => arr[Math.max(0, Math.min(arr.length - 1, arr.indexOf(v) - dx))]; // arrays run loud → quiet, fast → slow
+    if (id === 'sfx') s.sfxVol = step(VOLUMES, s.sfxVol);
+    else if (id === 'music') s.musicVol = step(VOLUMES, s.musicVol);
+    else if (id === 'speed') a.speed = step(ASSIST_STEPS.SPEEDS, a.speed);
+    else return;
+    save.save();
+    if (current === 'settings') { applySettings(); showSettings(); } else { applyAssists(); showAssists(); }
+  }
+
   // back to the pause menu without re-recording where we paused from
   function showPause2() { const from = pauseFrom; showPause(); pauseFrom = from; }
 
@@ -744,7 +776,8 @@ function drawIntro(ctx, data, scored, t) {
   if (scored) {
     ctx.font = f('mono', 800, 18);
     ctx.fillStyle = 'rgba(230,236,255,0.75)';
-    ctx.fillText(`◇ ${data.par}`, ROOM.W / 2, ROOM.H / 2 + 20);
+    ctx.fillText(`${data.par}`, ROOM.W / 2 + 8, ROOM.H / 2 + 20);
+    drawDiamond(ctx, ROOM.W / 2 - 10, ROOM.H / 2 + 20, 6, 'rgba(230,236,255,0.75)');
   }
   ctx.restore();
 }

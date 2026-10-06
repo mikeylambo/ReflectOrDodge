@@ -26,6 +26,10 @@ const STYLE = `
   color: #e8f4ff; font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 44px; padding: 0; }
 .rd-node .n { font-family: "Doto", ui-monospace, monospace; font-weight: 800; font-size: 15px; opacity: .85; }
 .rd-node .g { font-size: 24px; line-height: 1; opacity: .35; }
+.rd-node .g svg, .rd-foot svg { width: 1em; height: 1em; display: block; }
+.rd-foot .unlock { display: inline-flex; align-items: center; gap: 6px; font-size: 18px; }
+.rd-foot .unlock svg { display: inline-block; }
+.rd-foot .unlock svg:first-child { color: #ffd166; }
 .rd-node.medal-1 .g, .rd-node.medal-2 .g, .rd-node.medal-3 .g { opacity: 1; }
 .rd-node.medal-1 .g { color: #d9905f; } .rd-node.medal-2 .g { color: #d6e2f0; } .rd-node.medal-3 .g { color: #ffd166; text-shadow: 0 0 10px rgba(255,209,102,.45); }
 .rd-node.medal-1, .rd-node.medal-2, .rd-node.medal-3 { background: rgba(255,255,255,.06); }
