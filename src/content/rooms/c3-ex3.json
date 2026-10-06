@@ -22,17 +22,17 @@
   ],
   "spawn": [14,15],
   "emitters": [
-    {"type":"seed","at":[7,1],"dir":"down","period":2,"phase":0},
+    {"type":"seed","at":[6,14],"dir":"right","period":3,"phase":0},
+    {"type":"seed","at":[23,14],"dir":"left","period":3,"phase":1.5},
     {"type":"orb","at":[6,1],"dir":"down","period":2,"phase":1},
-    {"type":"seed","at":[22,1],"dir":"down","period":2,"phase":0.5},
-    {"type":"orb","at":[23,1],"dir":"down","period":2,"phase":1.5}
+    {"type":"orb","at":[23,1],"dir":"down","period":2,"phase":0}
   ],
   "objects": [
     {"kind":"body","at":[10,5],"w":10,"h":4},
     {"kind":"core","at":[9,8]},
     {"kind":"core","at":[20,8]}
   ],
-  "par": 4,
+  "par": 2,
   "solution": null,
   "mirrorOf": null,
   "goal": "cores"
