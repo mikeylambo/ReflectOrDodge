@@ -24,8 +24,8 @@
   "exit": [26,15],
   "emitters": [
     {"type":"seed","at":[1,14],"dir":"right","period":3,"phase":0},
-    {"type":"seed","at":[13,1],"dir":"down","period":2.4,"phase":0},
-    {"type":"seed","at":[19,1],"dir":"down","period":2.4,"phase":1.2}
+    {"type":"seed","at":[11,1],"dir":"down","period":2.4,"phase":0},
+    {"type":"seed","at":[17,1],"dir":"down","period":2.4,"phase":1.2}
   ],
   "objects": [],
   "par": 2,
