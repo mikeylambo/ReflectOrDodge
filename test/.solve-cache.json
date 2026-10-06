@@ -917,6 +917,29 @@
    "reflects": 1,
    "seconds": 12.32,
    "explored": 81957
+  },
+  "5f05f03c0eca36b1:any:4:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 12.16,
+   "explored": 60109
+  },
+  "5f05f03c0eca36b1:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 12.17,
+   "explored": 29428
+  },
+  "0ac6d1be73271b46:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 3540
+  },
+  "0ac6d1be73271b46:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.18,
+   "explored": 17443
   }
  }
 }
