@@ -93,7 +93,7 @@ export function createInput({ target = window, touchRoot = null, onMeta = () => 
       if (b(2) || b(5)) m |= BTN.REFLECT; // X / Square, or RB
       if (m) lastDevice = 'gamepad';
       padMask |= m;
-      const reset = b(8); // Back / Select
+      const reset = b(8) || b(3); // Back / Select, or Y / Triangle (thumb-reachable)
       const pause = b(9); // Start / Options
       if (reset && !padPrev.reset) onMeta('r');
       if (pause && !padPrev.pause) onMeta('escape');

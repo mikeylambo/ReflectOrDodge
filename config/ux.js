@@ -8,6 +8,8 @@ export const HINT = {
   TAIL: 0.6, // s the hint ghost keeps going after its first reflect
 };
 
+export const RESET_PROMPT_DEATHS = 2; // deaths in a room before the reset glyph first shows
+
 export const INTRO_TIME = 0.8; // s (GDD: Room intro)
 export const CLEAR_HOLD = 0.6; // s of room-clear glow before results (GDD: Game feel)
 

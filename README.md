@@ -23,7 +23,7 @@ npm run test:fast      # headless gates only
 | Aim reflect | hold W/A/S/D or arrows (nothing held = return to sender) | stick / D-pad | ▲▼◀▶ |
 | Jump | Space | A / Cross | ⤒ |
 | Reflect | J / K / Shift | X / Square or RB | ◇ |
-| Reset room | R | Back / Select | ↺ |
+| Reset room (also from Pause; Retry on Results) | R | Back / Select or Y / Triangle | ↺ |
 | Pause (assists, hint, settings) | Esc / P | Start | Ⅱ |
 | Hint (when the eye glyph shows) | H | via Pause | via Pause |
 | Menus | arrows / W S, Enter / Space / J, Esc back | D-pad / stick, A, B | tap |

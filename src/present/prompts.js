@@ -5,13 +5,13 @@ import { PLAYER } from '../../config/tunables.js';
 
 // glyph sets per device family, per prompt
 const GLYPHS = {
-  'keyboard-mouse': { move: ['A', 'D'], jump: ['␣'], reflect: ['W', '+', 'J'] },
-  xbox: { move: ['◀', '▶'], jump: ['Ⓐ'], reflect: ['▲', '+', 'Ⓧ'] },
-  playstation: { move: ['◀', '▶'], jump: ['✕'], reflect: ['▲', '+', '□'] },
-  nintendo: { move: ['◀', '▶'], jump: ['Ⓑ'], reflect: ['▲', '+', 'Ⓨ'] },
-  steamdeck: { move: ['◀', '▶'], jump: ['A'], reflect: ['▲', '+', 'X'] }, // Steam Deck / Steam Controller (Steam builds)
-  'generic-gamepad': { move: ['◀', '▶'], jump: ['Ⓐ'], reflect: ['▲', '+', 'Ⓧ'] },
-  touch: { move: ['◀', '▶'], jump: ['⤒'], reflect: ['▲', '+', '◇'] },
+  'keyboard-mouse': { move: ['A', 'D'], jump: ['␣'], reflect: ['W', '+', 'J'], reset: ['R'] },
+  xbox: { move: ['◀', '▶'], jump: ['Ⓐ'], reflect: ['▲', '+', 'Ⓧ'], reset: ['Ⓨ'] },
+  playstation: { move: ['◀', '▶'], jump: ['✕'], reflect: ['▲', '+', '□'], reset: ['△'] },
+  nintendo: { move: ['◀', '▶'], jump: ['Ⓑ'], reflect: ['▲', '+', 'Ⓨ'], reset: ['Ⓧ'] },
+  steamdeck: { move: ['◀', '▶'], jump: ['A'], reflect: ['▲', '+', 'X'], reset: ['Y'] }, // Steam Deck / Steam Controller (Steam builds)
+  'generic-gamepad': { move: ['◀', '▶'], jump: ['Ⓐ'], reflect: ['▲', '+', 'Ⓧ'], reset: ['Ⓨ'] },
+  touch: { move: ['◀', '▶'], jump: ['⤒'], reflect: ['▲', '+', '◇'], reset: ['↺'] },
 };
 
 // which prompts each room teaches (wordless prologue)

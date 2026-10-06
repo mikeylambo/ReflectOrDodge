@@ -38,7 +38,7 @@ import { glyphFamily } from '../platform/steam/glyphs.js';
 import { BrowserStorage } from '@slu/web-shell/platform/browser/BrowserStorage.js';
 import { createMap } from './map.js';
 import { drawPrompts, ROOM_PROMPTS } from '../present/prompts.js';
-import { INTRO_TIME, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
+import { INTRO_TIME, RESET_PROMPT_DEATHS, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
 
 const { SPEEDS, WINDOWS } = ASSIST_STEPS;
 const WINDOW_LABEL = { 1: 'Normal', 1.5: 'Wide', 2: 'Very wide' };
@@ -235,15 +235,17 @@ export async function startApp(canvas, ctx) {
   const scored = (ci) => CHAPTERS[ci] && CHAPTERS[ci].scored !== false;
   const clearedIn = (ci) => CHAPTERS[ci].rooms.filter((id) => save.room(id) && save.room(id).cleared).length;
   // Unlocks (GDD: World map): the Prologue opens Chapter 1 when it's done; a
-  // chapter's Examiner opens on 15 of its rooms; beating it opens the next
-  // chapter. ?all=1 unlocks everything for playtests.
-  const examinerOpen = (ci) => UNLOCK_ALL || clearedIn(ci) >= 15;
+  // chapter's Examiner opens on 15 of its rooms (75%, so a chapter shorter
+  // than 20 can't strand the player); beating it opens the next chapter.
+  // ?all=1 unlocks everything for playtests.
+  const examinerNeed = (ci) => Math.min(15, Math.ceil(CHAPTERS[ci].rooms.length * 0.75));
+  const examinerOpen = (ci) => UNLOCK_ALL || clearedIn(ci) >= examinerNeed(ci);
   const examinerDefeated = (ci) => !!(save.data.chapters[CHAPTERS[ci].id] && save.data.chapters[CHAPTERS[ci].id].examinerDefeated);
   const chapterOpen = (ci) => {
     if (UNLOCK_ALL || ci === 0) return true;
     const prev = CHAPTERS[ci - 1];
     if (!scored(ci - 1)) return clearedIn(ci - 1) >= prev.rooms.length;
-    return prev.examiner ? examinerDefeated(ci - 1) : clearedIn(ci - 1) >= 15;
+    return prev.examiner ? examinerDefeated(ci - 1) : clearedIn(ci - 1) >= examinerNeed(ci - 1);
   };
   const mirrorOf = (id) => ROOM_BY_ID[`${id}-m`] ? `${id}-m` : null;
   const mirrorOpen = (id) => UNLOCK_ALL || save.data.mirrorsUnlocked.includes(id);
@@ -253,32 +255,42 @@ export async function startApp(canvas, ctx) {
     const sc = c.scored !== false;
     const hasMirrors = sc && c.rooms.some(mirrorOf);
     const flipped = mirrorView && hasMirrors;
+    // "next up": the first open room not yet cleared, marked on the grid
+    const nextUp = c.rooms.map((b) => (flipped ? mirrorOf(b) && mirrorOpen(b) && mirrorOf(b) : b))
+      .find((id) => id && !(save.room(id) && save.room(id).cleared));
     const nodes = c.rooms.map((baseId, k) => {
       const id = flipped ? mirrorOf(baseId) || `${baseId}-m` : baseId;
       const r = ROOM_BY_ID[id];
       const locked = flipped ? !(r && mirrorOpen(baseId)) : false;
       const rec = save.room(id);
-      const glyph = locked ? '·' : !sc ? (rec && rec.cleared ? '●' : '·') : MEDAL_GLYPH[rec ? rec.medal || 0 : 0];
+      const glyph = locked ? '·' : id === nextUp ? '▸' : !sc ? (rec && rec.cleared ? '●' : '·') : MEDAL_GLYPH[rec ? rec.medal || 0 : 0];
       const best = r && sc ? `◇ ${rec && rec.bestReflects != null ? rec.bestReflects : '–'} / ${r.par}` : '';
+      const medal = locked || !rec ? 0 : !sc ? (rec.cleared ? 1 : 0) : rec.medal || 0;
       return {
-        id, locked, mirror: flipped,
+        id, locked, mirror: flipped, medal, next: id === nextUp,
         html: `<span class="n">${String(k + 1).padStart(2, '0')}</span><span class="g">${locked ? '🔒' : glyph}</span>`,
         foot: locked ? (r ? '★ → ⇋' : '') : `<span class="name">${(r && r.name) || id}</span>  ${best}`,
       };
     });
     const done = clearedIn(ci);
-    const gold = c.rooms.filter((id) => save.medal(id) === MEDAL.GOLD).length;
+    const count = (m) => nodes.filter((n) => !n.locked && n.medal === m).length;
     const model = {
       title: ci === 0 ? c.name : `${ci} · ${c.name}${flipped ? '  ⇋' : ''}`,
-      tally: sc ? `${done}/${c.rooms.length}   ★ ${gold}` : `${done}/${c.rooms.length}`,
+      // medal counts in their own shapes and colours: ★ gold ◆ silver ● bronze
+      tally: sc
+        ? `<span class="m3">★ ${count(MEDAL.GOLD)}</span><span class="m2">◆ ${count(MEDAL.SILVER)}</span><span class="m1">● ${count(MEDAL.BRONZE)}</span>`
+        : '',
+      accent: chapterTheme(ci, save.data.settings.highContrast).accent,
+      // the bar fills with cleared rooms; a notch marks where the Examiner opens
+      progress: { done, total: c.rooms.length, need: c.examiner && c.examiner.length ? examinerNeed(ci) : null, beaten: examinerDefeated(ci) },
       nodes,
     };
     if (c.examiner && c.examiner.length) {
       const open = examinerOpen(ci), beaten = examinerDefeated(ci);
       model.examiner = {
         id: 'examiner', locked: !open,
-        html: `<span class="g">⬢</span><span>${beaten ? '✓' : open ? '' : `● ${done}/15`}</span>`,
-        foot: open ? '<span class="name">⬢</span>' : `● ${done}/15`,
+        html: `<span class="g">⬢</span><span>${beaten ? '✓' : open ? '' : `● ${done}/${examinerNeed(ci)}`}</span>`,
+        foot: open ? '<span class="name">⬢</span>' : `● ${done}/${examinerNeed(ci)}`,
       };
     }
     if (hasMirrors) {
@@ -427,20 +439,36 @@ export async function startApp(canvas, ctx) {
 
   // guard: true when a keypress (leaving a replay) opened it, so that same
   // press doesn't also act as Back on the results screen
-  // the next room in map order (mirror rooms follow the mirror of the next room)
-  function nextRoomAfter(id) {
+  // where Next goes after a clear: the next room in map order; mirror rooms
+  // follow the next open mirror. At a chapter's end: its Examiner if open and
+  // unbeaten, else the first room still uncleared, else the next chapter.
+  // Returns { room } | { examiner } | null (null = the map).
+  function nextAfter(id) {
     const c = CHAPTERS[chapterIdx];
-    const base = id.endsWith('-m') ? id.slice(0, -2) : id;
-    const n = c.rooms[c.rooms.indexOf(base) + 1];
-    if (!n) return null;
-    if (id.endsWith('-m')) return mirrorOf(n) && mirrorOpen(n) ? mirrorOf(n) : null;
-    return n;
+    const mirror = id.endsWith('-m');
+    const i = c.rooms.indexOf(mirror ? id.slice(0, -2) : id);
+    if (i < 0) return null;
+    if (mirror) {
+      const n = c.rooms.slice(i + 1).find((r) => mirrorOf(r) && mirrorOpen(r));
+      return n ? { room: mirrorOf(n) } : null;
+    }
+    if (c.rooms[i + 1]) return { room: c.rooms[i + 1] };
+    if (c.examiner && c.examiner.length && examinerOpen(chapterIdx) && !examinerDefeated(chapterIdx)) return { examiner: chapterIdx };
+    const gap = c.rooms.find((r) => r !== id && !(save.room(r) && save.room(r).cleared));
+    if (gap) return { room: gap };
+    const nc = CHAPTERS[chapterIdx + 1];
+    return nc && chapterOpen(chapterIdx + 1) ? { room: nc.rooms[0] } : null;
+  }
+  function goNext(next) {
+    if (!next) showMap(chapterIdx);
+    else if (next.examiner !== undefined) enterEncounter(next.examiner);
+    else enterRoom(next.room);
   }
 
   function showResults(r, { guard = false } = {}) {
     state = 'menu';
     menuBehind = 'room';
-    const next = nextRoomAfter(roomId);
+    const next = nextAfter(roomId);
     const subtitle = r.scored
       ? `◇ ${r.reflects} / ${r.par}   ✕ ${r.deaths}${r.underPar ? '   ★ under par' : ''}${r.change.medalUp && !r.change.firstClear ? '   ▲' : ''}`
       : undefined;
@@ -448,7 +476,7 @@ export async function startApp(canvas, ctx) {
       title: r.scored ? `${MEDAL_GLYPH[r.medal]} ${MEDAL_NAME[r.medal]}` : '✓',
       subtitle,
       choices: [
-        { id: 'next', label: next ? 'Next' : 'Map' },
+        { id: 'next', label: !next ? 'Map' : next.examiner !== undefined ? 'Next  ⬢' : 'Next' },
         { id: 'retry', label: 'Retry' },
         ...(ROOM_BY_ID[roomId].solution && r.scored ? [{ id: 'watch', label: 'Watch solution' }] : []),
         ...(next ? [{ id: 'map', label: 'Map' }] : []),
@@ -490,7 +518,7 @@ export async function startApp(canvas, ctx) {
       showMap(CHAPTERS.findIndex((c) => c.id === choice));
     } else if (screen === 'pause') {
       if (choice === 'resume') resume();
-      else if (choice === 'reset') { session.reset(); telemetry.attempt(roomId); resume(); }
+      else if (choice === 'reset') { resetRoom(); resume(); }
       else if (choice === 'hint') { if (session.useHint()) { save.recordHint(roomId); telemetry.hint(roomId); } resume(); }
       else if (choice === 'assists') showAssists();
       else if (choice === 'settings') showSettings('pause');
@@ -524,8 +552,7 @@ export async function startApp(canvas, ctx) {
       applySettings();
       showSettings();
     } else if (screen === 'results') {
-      const next = nextRoomAfter(roomId);
-      if (choice === 'next') { if (next) enterRoom(next); else showMap(chapterIdx); }
+      if (choice === 'next') goNext(nextAfter(roomId));
       else if (choice === 'next-chapter') showMap(chapterIdx + 1, { guard: false });
       else if (choice === 'retry') enterRoom(roomId);
       else if (choice === 'watch') { endRun(); enterRoom(roomId, { replay: true }); }
@@ -560,13 +587,34 @@ export async function startApp(canvas, ctx) {
         if (k === 'escape' || k === 'enter' || k === 'r') showResults(resultsFor, { guard: true });
         return;
       }
+      // quick reset from the menus over a room: R on pause resets and resumes,
+      // R on results retries
+      if (state === 'menu' && k === 'r') {
+        if (current === 'pause' && pauseFrom === 'play') { resetRoom(); resume(); }
+        else if (current === 'results' && !encounter) enterRoom(roomId);
+        return;
+      }
       if (state !== 'play') return;
+      // a clear is final: during the clear glow, reset / pause can't undo it
+      if (session.state.status === 'clear') return;
       if (k === 'escape' || k === 'p') showPause();
-      else if (k === 'r') { session.reset(); telemetry.attempt(roomId); }
+      else if (k === 'r') resetRoom();
       else if (k === 'h' && session.hintAvailable(msInRoom)) { if (session.useHint()) { save.recordHint(roomId); telemetry.hint(roomId); } }
     },
   });
   addEventListener('pointerdown', () => startAudio(), { once: true });
+
+  function resetRoom() {
+    session.reset();
+    telemetry.attempt(roomId);
+    const pr = prompts.find((q) => q.id === 'reset');
+    if (pr) pr.used = true;
+    markPromptSeen('reset');
+  }
+  function markPromptSeen(id) {
+    const seen = save.data.seenPrompts || (save.data.seenPrompts = []);
+    if (!seen.includes(id)) { seen.push(id); save.save(); }
+  }
 
   // ── loop ──
   const loop = createLoop({
@@ -588,11 +636,14 @@ export async function startApp(canvas, ctx) {
       lastMask = mask;
       for (const pr of prompts) {
         const hit = pr.id === 'move' ? mask & (BTN.L | BTN.R) : pr.id === 'jump' ? mask & BTN.JUMP : pr.id === 'reflect' ? session.state.stats.reflects > 0 : 0;
-        if (hit && !pr.used) { pr.used = true; if (!save.data.seenPrompts.includes(pr.id)) { save.data.seenPrompts.push(pr.id); save.save(); } }
+        if (hit && !pr.used) { pr.used = true; markPromptSeen(pr.id); }
         if (pr.used) pr.alpha = Math.max(0, pr.alpha - real * 1.5);
       }
       if (state === 'play') { msInRoom += real * 1000; save.addPlayTime(real * 1000); }
       session.tick(mask);
+      // the reset prompt: shown once a room has cost a few deaths, until reset is first used
+      if (state === 'play' && session.deaths >= RESET_PROMPT_DEATHS && !prompts.some((q) => q.id === 'reset')
+        && !(save.data.seenPrompts || []).includes('reset')) prompts.push({ id: 'reset', alpha: 1, used: false });
       setMusicLayers(session.state.objects.filter((o) => o.kind === 'emitter' && o.on && !(o.count && o.fired >= o.count)).length);
       schedulePredictedShots();
     },
