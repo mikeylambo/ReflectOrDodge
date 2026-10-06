@@ -138,6 +138,7 @@ for (const { room } of rooms) {
 // human: 5 Hz = an input change every 0.2 s.
 const SOLVE_HZ = 5;
 const COMFORT_HZ = [4, 3];
+const FAST_PROJQ = 32; // px: coarse projectile buckets for the first solvability search
 const DEEP_CAP = 2500000; // last-resort search for rooms the default cap can't prove
 // input changes per second, worst 1 s window (a human-rate check for recorded runs)
 function changesPerSecond(masks) {
@@ -174,8 +175,11 @@ console.log(`── solvability: solver finds a clear within par (${SOLVE_HZ} Hz
 for (const { room } of rooms) {
   // any successful solve proves the room; coarser rates search a smaller space,
   // so a room the 5 Hz search caps on can still be proven at 4 or 3 Hz
-  let r, hz;
-  for (hz of [SOLVE_HZ, ...COMFORT_HZ]) {
+  // first a fast search with coarse projectile buckets (it only has to FIND
+  // a clear); if it doesn't, the exact searches below decide
+  let hz = SOLVE_HZ;
+  let r = cachedSolve(room, { mode: 'any', decisionHz: hz, maxReflects: room.par, projQ: FAST_PROJQ });
+  if (!r.solvable) for (hz of [SOLVE_HZ, ...COMFORT_HZ]) {
     r = cachedSolve(room, { mode: 'any', decisionHz: hz, maxReflects: room.par });
     if (r.solvable) break;
   }

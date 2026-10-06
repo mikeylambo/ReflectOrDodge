@@ -51,7 +51,7 @@ function clone(s) {
 
 const q = (v, n) => Math.round(v / n);
 
-function key(s, posQ, velQ, K) {
+function key(s, posQ, velQ, K, projQ = posQ) {
   const p = s.player;
   // Time enters the key only as each emitter's phase (+ shots left when the
   // emitter has a count), so a state revisited a cycle later dedupes — the
@@ -65,7 +65,7 @@ function key(s, posQ, velQ, K) {
   // reflects used is NOT in the key: it's a dominance dimension (see `seen`)
   k += `|${q(s.reflect.window, 6)},${q(s.reflect.cooldown, 6)},${s.hitstop > 0 ? 1 : 0}`;
   for (const pr of s.projectiles) {
-    k += `|${pr.type}${q(pr.x, posQ)},${q(pr.y, posQ)},${Math.sign(pr.vx)}${Math.sign(pr.vy)}${pr.reflected ? 'r' : ''}${pr.grace ? 'g' : ''}`;
+    k += `|${pr.type}${q(pr.x, projQ)},${q(pr.y, projQ)},${Math.sign(pr.vx)}${Math.sign(pr.vy)}${pr.reflected ? 'r' : ''}${pr.grace ? 'g' : ''}`;
     if (pr.stuck) k += `s${q(pr.life, K)}`;
     const keyOf = PROJECTILES[pr.type].keyOf;
     if (keyOf) k += keyOf(pr); // type-specific state that changes outcomes (Charge: bounces)
@@ -126,13 +126,18 @@ function progress(st) {
  * @param opts.maxTime     simulated seconds before giving up
  * @param opts.maxReflects reflect budget (prunes states above it)
  * @param opts.stateCap    visited-state cap
+ * @param opts.projQ       projectile position bucket (px; default posQ). A
+ *                         coarser bucket merges states whose projectiles differ
+ *                         only by sub-window drift: much faster at FINDING a
+ *                         clear, but an exhausted search is then no proof, so
+ *                         under-par and comfort searches keep the default
  * @param opts.prefix      input masks replayed before the search starts (staged
  *                         solving by tools: the result's masks include them)
  * @param opts.until       (state) => bool — stop at this intermediate goal
  *                         instead of a clear (staged solving by tools)
  */
 export function solve(data, {
-  decisionHz = 10, maxTime = 30, maxReflects = 3, stateCap = 400000, posQ = 8, velQ = 120,
+  decisionHz = 10, maxTime = 30, maxReflects = 3, stateCap = 400000, posQ = 8, velQ = 120, projQ = posQ,
   mode = 'min', reflectPenalty = 240, _probe: opts_probe = null, prefix = null, until = null,
 } = {}) {
   const room = compileRoom(data);
@@ -198,7 +203,7 @@ export function solve(data, {
           return { solvable: true, reflects: s.stats.reflects, masks: out, frames: out.length, seconds: +(out.length / TIMESTEP.HZ).toFixed(2), explored };
         }
         if (s.status === 'dead' || s.tick > maxTick || s.stats.reflects > maxReflects) continue;
-        const k = key(s, posQ, velQ, K);
+        const k = key(s, posQ, velQ, K, projQ);
         const prev = seen.get(k);
         if (prev !== undefined && prev <= s.stats.reflects) continue;
         seen.set(k, s.stats.reflects);
