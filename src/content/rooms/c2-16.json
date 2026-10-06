@@ -20,16 +20,16 @@
     "#............................#",
     "##############################"
   ],
-  "spawn": [15,15],
-  "exit": [2,15],
+  "spawn": [14,15],
+  "exit": [6,15],
   "emitters": [
-    {"type":"anchor","at":[28,15],"dir":"left","period":6,"phase":0,"count":1},
-    {"type":"orb","at":[28,13],"dir":"left","period":2,"phase":0}
+    {"type":"anchor","at":[22,15],"dir":"left","period":5,"phase":0,"count":1},
+    {"type":"orb","at":[28,13],"dir":"left","period":1.6,"phase":0}
   ],
   "objects": [
-    {"kind":"door","id":"g","at":[20,15],"h":1},
+    {"kind":"door","id":"g","at":[19,15],"h":1},
     {"kind":"switch","at":[16,8],"links":["g"]},
-    {"kind":"wall","at":[6,13],"h":3,"heavy":true}
+    {"kind":"wall","at":[10,13],"h":3,"heavy":true}
   ],
   "par": 1,
   "solution": null,
