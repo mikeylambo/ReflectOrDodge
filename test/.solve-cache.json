@@ -1118,6 +1118,24 @@
    "reflects": 2,
    "seconds": 8.55,
    "explored": 14533
+  },
+  "578960872bd9908b:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 8.75,
+   "explored": 4702
+  },
+  "fa039c276490e247:any:4:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.24,
+   "explored": 1069
+  },
+  "fa039c276490e247:any:3:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.24,
+   "explored": 281
   }
  }
 }
