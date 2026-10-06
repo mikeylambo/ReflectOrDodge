@@ -29,6 +29,6 @@
     {"kind":"wall","at":[14,9],"h":1,"heavy":true}
   ],
   "par": 0,
-  "solution": null,
+  "solution": "1:2*9c,0*8o,1*40,h*o,1*o,2*1c,0*o,2*4e",
   "mirrorOf": null
 }
