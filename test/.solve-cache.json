@@ -940,6 +940,34 @@
    "reflects": 1,
    "seconds": 10.18,
    "explored": 17443
+  },
+  "0ac6d1be73271b46:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.18,
+   "explored": 11070
+  },
+  "c85bd279ceec7069:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8692
+  },
+  "c85bd279ceec7069:any:4:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.23,
+   "explored": 7441
+  },
+  "c85bd279ceec7069:any:3:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.38,
+   "explored": 3274
+  },
+  "47caec9ed0dbea4a:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8692
   }
  }
 }
