@@ -274,7 +274,7 @@ export function render(ctx, {
     if (!sp) continue;
     const len = Math.min(26, sp * 0.12);
     const g = ctx.createLinearGradient(s.x, s.y, s.x - (s.vx / sp) * len, s.y - (s.vy / sp) * len);
-    const col = s.reflected ? theme.orbReflected : s.type === 'seed' ? theme.seed : s.type === 'anchor' ? theme.anchor : theme.orb;
+    const col = s.reflected ? theme.orbReflected : theme[s.type] || theme.orb;
     g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.strokeStyle = g;
     ctx.globalAlpha = 0.5;

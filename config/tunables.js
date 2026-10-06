@@ -67,6 +67,32 @@ export const SEED = {
   BLINK: 1.0, // s of warning blink before it expires (presentation)
 };
 
+// Splitter (Chapter 5): triangle. Reflectable; a reflect sends it on as two,
+// at ±45° of the outgoing direction (the angle is fixed by the GDD and done
+// with an exact constant, so it isn't a knob here).
+export const SPLITTER = {
+  SPEED: 140, // px/s
+  RADIUS: 7,
+};
+
+// Charge (Chapter 6): ring. Reflectable; bounces off solid tiles, GAIN faster
+// per bounce for MAX_BOUNCES bounces, and is lethal only at full speed.
+export const CHARGE = {
+  SPEED: 140, // px/s at launch
+  RADIUS: 7,
+  GAIN: 1.25, // speed multiplier per bounce (GDD: +25%)
+  MAX_BOUNCES: 3, // gains before it is at full (lethal) speed: 140 → 273 px/s
+  LIFE: 8.0, // s before it fizzles, so ricochets can't pile up forever
+};
+
+// Twin (Chapter 7): a linked pair fired side by side; reflecting one mirrors
+// the reflection onto the other.
+export const TWIN = {
+  SPEED: 140, // px/s
+  RADIUS: 6,
+  GAP: 48, // px between the pair, across their line of travel
+};
+
 export const EMITTER = {
   TELEGRAPH: 0.5, // s charge-up glow before each shot
 };

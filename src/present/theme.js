@@ -27,6 +27,10 @@ export const THEME = {
   anchorBody: '#2a3045',
   seed: '#7dffb6',
   seedPlatform: '#1f4d3a',
+  splitter: '#ffd166', // placeholders until the art pass for chapters 5–7
+  charge: '#b8a6ff',
+  chargeHot: '#ff5ca8',
+  twin: '#6ee7ff',
   examiner: '#ff8fd8',
   examinerBody: '#1b1222',
   examinerCore: '#ffe36e',

@@ -3,7 +3,7 @@ import { compileRoom, emptyTiles } from '../src/sim/room.js';
 import { createState, step } from '../src/sim/world.js';
 import { BTN, encodeLog, decodeLog, heldDir } from '../src/sim/input.js';
 import { PROJECTILES } from '../src/projectiles/index.js';
-import { PLAYER, REFLECT, frames } from '../config/tunables.js';
+import { PLAYER, REFLECT, CHARGE, TWIN, TIMESTEP, frames } from '../config/tunables.js';
 
 const { L, R, U, D, JUMP, REFLECT: RF } = BTN;
 
@@ -314,6 +314,114 @@ export function runUnit() {
     const st = s2.projectiles.find((p) => p.id === id2);
     for (let i = 0; i < 90; i++) step(s2, r, R | (i === 20 ? RF : 0)); // walk over it, press reflect on it
     return { ok: reflected && !!st && st.stuck && s2.status === 'play' && s2.stats.reflects === 0, detail: `reflected ${reflected} stuck ${st && st.stuck} status ${s2.status} reflects ${s2.stats.reflects}` };
+  });
+
+  // ── Splitter (Chapter 5) ──
+  const center = (s) => [s.player.x + PLAYER.W / 2, s.player.y + PLAYER.H / 2];
+  check('splitter: a reflect sends it on as two, at ±45° of the outgoing direction, for one reflect', () => {
+    const r = room(); const s = createState(r); settle(s, r);
+    const [cx, cy] = center(s);
+    shot(s, 'splitter', cx + 27, cy, 'left');
+    step(s, r, U | RF);
+    const ps = s.projectiles.filter((p) => p.type === 'splitter');
+    const ang = ps.map((p) => Math.round((Math.atan2(p.vy, p.vx) * 180) / Math.PI)).sort((a, b) => a - b);
+    const speeds = ps.map((p) => Math.hypot(p.vx, p.vy).toFixed(3));
+    return { ok: ps.length === 2 && ang[0] === -135 && ang[1] === -45 && speeds[0] === speeds[1] && ps.every((p) => p.reflected) && new Set(ps.map((p) => p.id)).size === 2 && s.stats.reflects === 1, detail: `${ps.length} halves at ${ang.join('°,')}°, reflects ${s.stats.reflects}` };
+  });
+
+  check('splitter: neutral splits around the way it came; a wall ends it', () => {
+    const r = room(); const s = createState(r); settle(s, r);
+    const [cx, cy] = center(s);
+    shot(s, 'splitter', cx + 27, cy, 'left');
+    step(s, r, RF);
+    const ang = s.projectiles.map((p) => Math.round((Math.atan2(p.vy, p.vx) * 180) / Math.PI)).sort((a, b) => a - b);
+    for (let i = 0; i < 600; i++) step(s, r, 0);
+    return { ok: ang.join() === '-45,45' && s.projectiles.length === 0, detail: `${ang.join('°,')}° then ${s.projectiles.length} left` };
+  });
+
+  // ── Charge (Chapter 6) ──
+  check(`charge: bounces off a wall ${CHARGE.GAIN}× faster per bounce, capped at ${CHARGE.MAX_BOUNCES}`, () => {
+    // bounce it repeatedly off the face of one tile, straight from the module
+    const C = PROJECTILES.charge, wall = { kind: 'tile', rect: { x: 0, y: 160, w: 32, h: 32 } };
+    let st = { ...C.spawn({ x: 40, y: 176, dir: 'left' }), px: 40 }; // just right of the tile, moving left
+    const speeds = [];
+    for (let i = 0; i < 5; i++) {
+      st = C.onHit({ ...st, x: 30, px: 40 }, wall).state;
+      speeds.push(Math.round(Math.abs(st.vx)));
+      st = { ...st, vx: -Math.abs(st.vx) }; // send it back at the wall
+    }
+    const corner = C.onHit({ ...C.spawn({ x: 36, y: 156, dir: 'left' }), vx: -100, vy: 100, x: 31, y: 161, px: 36, py: 156 }, wall).state;
+    const want = [175, 219, 273, 273, 273];
+    return { ok: want.every((v, i) => speeds[i] === v) && corner.vx > 0 && corner.vy < 0, detail: `${speeds.join(' → ')}; corner flips both (${Math.round(corner.vx)},${Math.round(corner.vy)})` };
+  });
+
+  check('charge: harmless until full speed, lethal at full speed', () => {
+    const r = room();
+    const run = (bounces) => {
+      const s = createState(r); settle(s, r);
+      const [cx, cy] = center(s);
+      const id = shot(s, 'charge', cx + 80, cy, 'left');
+      s.projectiles.find((p) => p.id === id).bounces = bounces;
+      for (let i = 0; i < 120 && s.status === 'play'; i++) step(s, r, 0);
+      return s.status;
+    };
+    const slow = run(0), hot = run(CHARGE.MAX_BOUNCES);
+    return { ok: slow === 'play' && hot === 'dead', detail: `0 bounces → ${slow}, ${CHARGE.MAX_BOUNCES} → ${hot}` };
+  });
+
+  check(`charge: a reflect keeps its speed; it fizzles after ${CHARGE.LIFE} s`, () => {
+    const r = room(); const s = createState(r); settle(s, r);
+    const [cx, cy] = center(s);
+    const id = shot(s, 'charge', cx + 27, cy, 'left');
+    s.projectiles.find((p) => p.id === id).vx = -219; // as after one bounce
+    step(s, r, U | RF);
+    const p = s.projectiles.find((q) => q.id === id);
+    const kept = p && Math.round(Math.hypot(p.vx, p.vy)) === 219 && p.vy < 0;
+    const s2 = createState(r); settle(s2, r);
+    shot(s2, 'charge', 480, 200, 'left');
+    s2.projectiles[0].vx = 0; s2.projectiles[0].vy = 0; // hold still: only its clock runs
+    let gone = null;
+    for (let i = 0; i < CHARGE.LIFE * TIMESTEP.HZ + 10; i++) { step(s2, r, 0); if (!s2.projectiles.length) { gone = i + 1; break; } }
+    return { ok: kept && gone === Math.round(CHARGE.LIFE * TIMESTEP.HZ), detail: `kept ${kept}, fizzled at frame ${gone}` };
+  });
+
+  // ── Twin (Chapter 7) ──
+  check(`twin: an emitter fires a linked pair, ${TWIN.GAP} px apart across its line`, () => {
+    const r = room({ emitters: [{ type: 'twin', at: [28, 8], dir: 'left', period: 1, phase: 0 }] });
+    const s = createState(r);
+    for (let i = 0; i < 150; i++) step(s, r, 0);
+    const t = s.projectiles.filter((p) => p.type === 'twin');
+    return { ok: t.length === 2 && t[0].group === t[1].group && t[0].group !== undefined && Math.abs(Math.abs(t[0].y - t[1].y) - TWIN.GAP) < 1e-9 && t[0].x === t[1].x, detail: `${t.length} twins, Δy ${t.length === 2 ? Math.abs(t[0].y - t[1].y) : '-'}` };
+  });
+
+  const twinPair = (s, x, y) => {
+    const pair = PROJECTILES.twin.spawn({ x, y, dir: 'left' });
+    const group = s.nextId;
+    for (const p of pair) { p.id = s.nextId++; p.group = group; s.projectiles.push(p); }
+    return pair.map((p) => p.id);
+  };
+  check('twin: reflecting one mirrors the reflection onto its twin, for one reflect', () => {
+    const r = room(); const s = createState(r); settle(s, r);
+    const [cx, cy] = center(s);
+    const [b, a] = twinPair(s, cx + 27, cy - TWIN.GAP / 2); // a at the zone, its twin b 48 px above
+    const ev = step(s, r, U | RF);
+    const A = s.projectiles.find((p) => p.id === a), B = s.projectiles.find((p) => p.id === b);
+    return { ok: A.vy < 0 && A.vx === 0 && B.vy > 0 && B.vx === 0 && B.reflected && !B.grace && s.stats.reflects === 1 && ev.some((e) => e.type === 'projectile.mirror'), detail: `A (${A.vx},${A.vy}) B (${B.vx},${B.vy}) reflects ${s.stats.reflects}` };
+  });
+
+  check('twin: send one back and both come back; a lone twin is an ordinary reflect', () => {
+    const r = room(); const s = createState(r); settle(s, r);
+    const [cx, cy] = center(s);
+    const [b, a] = twinPair(s, cx + 27, cy - TWIN.GAP / 2);
+    step(s, r, RF);
+    const A = s.projectiles.find((p) => p.id === a), B = s.projectiles.find((p) => p.id === b);
+    const both = A.vx > 0 && B.vx > 0 && A.vy === 0 && B.vy === 0;
+    const s2 = createState(r); settle(s2, r);
+    const [b2, a2] = twinPair(s2, center(s2)[0] + 27, center(s2)[1] - TWIN.GAP / 2);
+    s2.projectiles = s2.projectiles.filter((p) => p.id !== b2); // its partner is gone
+    step(s2, r, D | RF);
+    const lone = s2.projectiles.find((p) => p.id === a2);
+    return { ok: both && lone && lone.vy > 0 && s2.status === 'play', detail: `both back ${both}, lone ${lone && lone.vy}` };
   });
 
   return out;

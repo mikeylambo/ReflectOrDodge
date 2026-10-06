@@ -189,14 +189,21 @@ export function step(state, room, input) {
     state.objects[i] = r.state;
     events.push(...r.events);
     for (const sp of r.spawns) {
-      const s = PROJECTILES[sp.type].spawn(sp);
-      if (sp.muzzle) {
-        // place the shot just outside the emitter, by its own radius
-        const sp2 = Math.hypot(s.vx, s.vy) || 1, d = sp.muzzle + s.r;
-        s.x = sp.x + (s.vx / sp2) * d; s.y = sp.y + (s.vy / sp2) * d; s.px = s.x; s.py = s.y;
+      // spawn() returns one state, or several fired together (a Twin pair),
+      // which share a `group` so the engine can link them
+      const out = PROJECTILES[sp.type].spawn(sp);
+      const shots = Array.isArray(out) ? out : [out];
+      const group = shots.length > 1 ? state.nextId : undefined;
+      for (const s of shots) {
+        if (sp.muzzle) {
+          // place the shot just outside the emitter, by its own radius
+          const sp2 = Math.hypot(s.vx, s.vy) || 1, d = sp.muzzle + s.r;
+          s.x += (s.vx / sp2) * d; s.y += (s.vy / sp2) * d; s.px = s.x; s.py = s.y;
+        }
+        s.id = state.nextId++;
+        if (group !== undefined) s.group = group;
+        state.projectiles.push(s);
       }
-      s.id = state.nextId++;
-      state.projectiles.push(s);
     }
   }
 
@@ -215,6 +222,7 @@ export function step(state, room, input) {
     s.id = pr.id;
     if (pr.grace) s.grace = true;
     if (pr.passed) s.passed = pr.passed;
+    if (pr.group !== undefined) s.group = pr.group;
     if (s.stuck) { survivors.push(s); continue; }
 
     let hit = null, hitIndex = -1;
@@ -242,6 +250,7 @@ export function step(state, room, input) {
       if (!h.state) continue;
       s = { ...h.state, id: pr.id };
       if (pr.grace) s.grace = true;
+      if (pr.group !== undefined) s.group = pr.group;
       if (hitIndex >= 0 && !s.stuck) s.passed = [...(s.passed || []), hitIndex];
     }
     survivors.push(s);
@@ -270,6 +279,18 @@ export function step(state, room, input) {
       });
       events.push({ type: 'projectile.reflect', dir, id: pr.id, ptype: pr.type, x: pr.x, y: pr.y });
     }
+    // linked projectiles (Twin): a partner of one reflected just now takes the
+    // linked reflection, unless it was itself in the zone this window
+    for (let i = 0; i < next.length; i++) {
+      const o = next[i];
+      const mod = PROJECTILES[o.type];
+      if (o.group === undefined || !mod.onLinkedReflect || rf.hitIds.includes(o.id)) continue;
+      const src = next.find((q) => q.group === o.group && q.id !== o.id && q.grace && rf.hitIds.includes(q.id));
+      if (!src) continue;
+      next[i] = { ...mod.onLinkedReflect(o, src), id: o.id, group: o.group };
+      rf.hitIds.push(o.id);
+      events.push({ type: 'projectile.mirror', id: o.id, ptype: o.type, x: o.x, y: o.y });
+    }
     state.projectiles = next;
     if (any) {
       state.hitstop = frames(REFLECT.HITSTOP);
@@ -290,7 +311,9 @@ export function step(state, room, input) {
     const box = playerBox(p);
     for (const pr of state.projectiles) {
       const mod = PROJECTILES[pr.type];
-      if (mod.lethal === false || pr.grace || pr.stuck) continue;
+      // lethal is a bool, or a function of the state (a Charge kills only at full speed)
+      const lethal = typeof mod.lethal === 'function' ? mod.lethal(pr) : mod.lethal !== false;
+      if (!lethal || pr.grace || pr.stuck) continue;
       if (circleRect(pr.x, pr.y, pr.r, box)) {
         state.status = 'dead';
         events.push({ type: 'player.death', ptype: pr.type, x: pcx, y: pcy });

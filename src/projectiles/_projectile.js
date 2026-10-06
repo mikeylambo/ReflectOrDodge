@@ -4,13 +4,21 @@
 //   type                                  string id used in room data
 //   reflectable                           bool
 //   tunables                              {name: value} — every knob exposed
-//   spawn({x, y, dir, speed}) -> state    plain data; must include x, y, r, vx, vy
+//   spawn({x, y, dir, speed}) -> state | state[]
+//                                         plain data; must include x, y, r, vx, vy.
+//                                         An array fires several together (Twin);
+//                                         the engine gives them a shared `group`
 //   step(state, dt, world) -> { state, events[] }
 //   onReflect(state, dir) -> state[]      array so Splitter can return two
 //   onHit(state, object) -> { state | null, events[] }
 //                                         object = { kind: 'tile' | object kind, rect, ... };
 //                                         returning a state = it keeps going (or sticks)
 //   platforms(state) -> Rect[]            optional: one-way platforms for the player
+//   lethal                                bool, or (state) -> bool (Charge: only at full speed)
+//   onLinkedReflect(state, partner) -> state
+//                                         optional: a projectile in the same spawn group
+//                                         as one just reflected takes this (Twin)
+//   keyOf(state) -> string                optional: extra solver-key state (Charge: bounces)
 //   (step may return { state: null } to remove the projectile, e.g. a platform expiring)
 //   render(ctx, state, alpha, theme)
 //
@@ -32,7 +40,10 @@ export function validateProjectileType(mod) {
   }
 
   const world = { dt: 1 / 120 };
-  const s0 = mod.spawn({ x: 100, y: 100, dir: 'left', speed: 140 });
+  const spawned = mod.spawn({ x: 100, y: 100, dir: 'left', speed: 140 });
+  if (Array.isArray(spawned) && !spawned.length) fail('spawn() returned an empty array');
+  const s0 = Array.isArray(spawned) ? spawned[0] : spawned;
+  if (!(typeof mod.lethal === 'boolean' || typeof mod.lethal === 'function')) fail('lethal must be a boolean or a function of state');
   for (const k of ['x', 'y', 'r', 'vx', 'vy']) if (!Number.isFinite(s0[k])) fail(`spawn() state.${k} not finite`);
   const frozen = JSON.stringify(s0);
 
