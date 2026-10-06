@@ -32,6 +32,6 @@
     {"kind":"wall","at":[8,13],"h":3,"heavy":true}
   ],
   "par": 1,
-  "solution": null,
+  "solution": "1:2*1c,i*o,1*3c,0*5c,2*20,i*o,2*1c,m*k,1i,m*3,1*5c,0*ao,g*o,1*2f",
   "mirrorOf": null
 }
