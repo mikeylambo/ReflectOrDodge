@@ -19,6 +19,7 @@ import { validateProjectileType } from '../src/projectiles/_projectile.js';
 import { validateObjectType } from '../src/objects/_object.js';
 import { runUnit } from './unit.mjs';
 import { runSpeedrunTests } from './speedrun.mjs';
+import { runSteamTests } from './steam.mjs';
 import { cachedSolve, saveSolveCache, cacheStats } from './solve-cache.mjs';
 
 let failures = 0;
@@ -51,6 +52,7 @@ console.log('── determinism guard ──');
 console.log('── unit ──');
 for (const [ok, label, detail] of runUnit()) report(ok, label, detail);
 for (const [ok, label, detail] of runSpeedrunTests()) report(ok, label, detail);
+for (const [ok, label, detail] of await runSteamTests()) report(ok, label, detail);
 
 const rooms = loadRooms();
 console.log('── room schema ──');

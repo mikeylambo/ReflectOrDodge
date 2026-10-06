@@ -9,6 +9,7 @@ const GLYPHS = {
   xbox: { move: ['◀', '▶'], jump: ['Ⓐ'], reflect: ['▲', '+', 'Ⓧ'] },
   playstation: { move: ['◀', '▶'], jump: ['✕'], reflect: ['▲', '+', '□'] },
   nintendo: { move: ['◀', '▶'], jump: ['Ⓑ'], reflect: ['▲', '+', 'Ⓨ'] },
+  steamdeck: { move: ['◀', '▶'], jump: ['A'], reflect: ['▲', '+', 'X'] }, // Steam Deck / Steam Controller (Steam builds)
   'generic-gamepad': { move: ['◀', '▶'], jump: ['Ⓐ'], reflect: ['▲', '+', 'Ⓧ'] },
   touch: { move: ['◀', '▶'], jump: ['⤒'], reflect: ['▲', '+', '◇'] },
 };

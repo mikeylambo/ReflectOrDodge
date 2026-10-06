@@ -56,11 +56,11 @@ function withDefaults(data) {
   };
 }
 
-export async function openSave({ memory = false } = {}) {
+export async function openSave({ memory = false, storage: given = null } = {}) {
   let storage;
   try {
-    storage = memory ? new MemoryStorage() : new BrowserStorage('reflect-dodge');
-    if (!memory) localStorage.getItem('__probe'); // private mode can throw on access
+    storage = given || (memory ? new MemoryStorage() : new BrowserStorage('reflect-dodge'));
+    if (!memory && !given) localStorage.getItem('__probe'); // private mode can throw on access
   } catch {
     storage = new MemoryStorage();
   }

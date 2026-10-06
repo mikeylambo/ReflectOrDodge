@@ -30,6 +30,12 @@ import { decodeLog, BTN } from '../sim/input.js';
 import { ROOM } from '../../config/tunables.js';
 import { openSave, MEDAL, MEDAL_GLYPH, MEDAL_NAME } from './save.js';
 import { createTelemetry } from './telemetry.js';
+import { FLAGS } from '../../config/flags.js';
+import { createSteamBridge, nullBridge } from '../platform/steam/bridge.js';
+import { SteamCloudStorage } from '../platform/steam/cloud-storage.js';
+import { evaluateAchievements } from '../platform/steam/achievements.js';
+import { glyphFamily } from '../platform/steam/glyphs.js';
+import { BrowserStorage } from '@slu/web-shell/platform/browser/BrowserStorage.js';
 import { createMap } from './map.js';
 import { drawPrompts, ROOM_PROMPTS } from '../present/prompts.js';
 import { INTRO_TIME, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
@@ -41,7 +47,13 @@ const pct = (v) => `${Math.round(v * 100)}%`;
 const onOff = (v) => (v ? 'On' : 'Off');
 
 export async function startApp(canvas, ctx) {
-  const save = await openSave();
+  // Steam (behind FLAGS.STEAM, off for web builds): cloud saves, achievements, glyphs
+  const steam = FLAGS.STEAM ? await createSteamBridge() : nullBridge;
+  const save = await openSave(steam.available ? { storage: new SteamCloudStorage(new BrowserStorage('reflect-dodge'), steam) } : {});
+  const syncAchievements = () => {
+    if (!steam.available) return;
+    for (const id of evaluateAchievements(save.data, CHAPTERS, ROOM_BY_ID)) steam.unlock(id);
+  };
   const telemetry = createTelemetry(() => save.data.settings.telemetry);
   initHaptics();
 
@@ -60,9 +72,11 @@ export async function startApp(canvas, ctx) {
   uiInput.setBindings(bindings);
   const uiSource = new LatchedInputSource(bindings);
   uiSource.attach();
-  const family = new BrowserInputFamilyDetector({ onChange: (f) => document.body.dataset.input = f });
+  const activePadId = () => { const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(Boolean) : []; return pads.length ? pads[0].id : null; };
+  const setFamily = (f) => { document.body.dataset.input = FLAGS.STEAM ? glyphFamily(f, activePadId(), steam.controllerType()) : f; };
+  const family = new BrowserInputFamilyDetector({ onChange: setFamily });
   family.attach();
-  document.body.dataset.input = family.activeFamily;
+  setFamily(family.activeFamily);
 
   let shownAt = -Infinity; // a keypress that opens a screen must not also act on it
   const fresh = () => performance.now() - shownAt < 180;
@@ -317,11 +331,13 @@ export async function startApp(canvas, ctx) {
       const cid = CHAPTERS[encounter.ci].id;
       save.data.chapters[cid] = { ...(save.data.chapters[cid] || {}), examinerDefeated: true };
       save.save();
+      syncAchievements();
       showExaminerResults(encounter.ci);
       return;
     }
     const sc = scored(chapterIdx);
     const change = save.recordClear(roomId, { ...r, medal: sc ? r.medal : MEDAL.BRONZE });
+    syncAchievements();
     telemetry.clear(roomId, msInRoom);
     resultsFor = { ...r, change, scored: sc };
     showResults(resultsFor);
