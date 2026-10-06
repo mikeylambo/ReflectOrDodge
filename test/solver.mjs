@@ -119,10 +119,14 @@ function progress(st) {
  * @param opts.maxTime     simulated seconds before giving up
  * @param opts.maxReflects reflect budget (prunes states above it)
  * @param opts.stateCap    visited-state cap
+ * @param opts.prefix      input masks replayed before the search starts (staged
+ *                         solving by tools: the result's masks include them)
+ * @param opts.until       (state) => bool — stop at this intermediate goal
+ *                         instead of a clear (staged solving by tools)
  */
 export function solve(data, {
   decisionHz = 10, maxTime = 30, maxReflects = 3, stateCap = 400000, posQ = 8, velQ = 120,
-  mode = 'min', reflectPenalty = 240, _probe: opts_probe = null,
+  mode = 'min', reflectPenalty = 240, _probe: opts_probe = null, prefix = null, until = null,
 } = {}) {
   const room = compileRoom(data);
   const K = Math.max(1, Math.round(TIMESTEP.HZ / decisionHz));
@@ -142,7 +146,9 @@ export function solve(data, {
   const buckets = new Map();
   const push = (n) => { const t = PRI(n.s); if (!buckets.has(t)) buckets.set(t, []); buckets.get(t).push(n); };
   const seen = new Set();
-  push({ s: createState(room), parent: null, masks: null });
+  const s0 = createState(room);
+  if (prefix) for (const m of prefix) step(s0, room, m);
+  push({ s: s0, parent: null, masks: null });
   let explored = 0;
 
   while (buckets.size) {
@@ -174,9 +180,10 @@ export function solve(data, {
           if (s.status !== 'play') break;
         }
         if (a.reflect && s.stats.reflects === r0) continue;
-        if (s.status === 'clear') {
+        if (s.status === 'clear' || (until && s.status === 'play' && until(s))) {
           const out = [...masks];
           for (let p = node; p && p.masks; p = p.parent) out.unshift(...p.masks);
+          if (prefix) out.unshift(...prefix);
           return { solvable: true, reflects: s.stats.reflects, masks: out, frames: out.length, seconds: +(out.length / TIMESTEP.HZ).toFixed(2), explored };
         }
         if (s.status === 'dead' || s.tick > maxTick || s.stats.reflects > maxReflects) continue;
