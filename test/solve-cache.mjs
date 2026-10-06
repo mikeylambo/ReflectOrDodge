@@ -45,6 +45,7 @@ export function cachedSolve(room, opts) {
     : { solvable: false, reason: r.reason, explored: r.explored };
   cache.entries[k] = out;
   dirty = true;
+  saveSolveCache(); // after every solve: a long run that is cut short keeps its progress
   return out;
 }
 
