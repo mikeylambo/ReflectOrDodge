@@ -56,7 +56,7 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c3-03 Wilt | 3 Ground | (twist) Steps don't last: plant the second while you stand on the first. | |
 | c3-04 Ladder | 3 Ground | A shaft whose rungs grow on their own clocks; climb them as they come. | ✓ |
 | c3-05 Grow Your Own | 3 Ground | Seeds fall down the shaft; send each into a wall to build your own rungs. | |
-| c3-06 Key or Step | 3 Ground | The first seed is a key for the switch, the next a step to the door it opened. | |
+| c3-06 Key or Step | 3 Ground | Seeds plant the step on their own; one of them must be the key for the door above it instead. | |
 | c3-07 Bridge | 3 Ground | A pillar in a spike pit; the seed lane gives it a foothold on its near face. | ✓ |
 | c3-08 Tower | 3 Ground | Every seed that falls is another stair, if you send it to the tower. | |
 | c3-09 Two Jobs | 3 Ground | The orb opens the door on the shelf; the seed gets you up to it. | |
