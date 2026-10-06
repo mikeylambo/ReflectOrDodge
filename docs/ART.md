@@ -35,6 +35,18 @@ Status: a **draft**. The GDD locks this after the first art pass, and it needs M
   - He never fires: open hands, parry stance. This keeps him clear of Mega Man and Neon Striker.
 - **Panels:** square, chamfered corners instead of rounded cards.
 
+## Post FX
+
+A WebGL pass over the finished 2D frame (`src/present/postfx.js`), drawn on a canvas layered over the game canvas. The 2D canvas stays the source, and the tests read it.
+
+- **Bloom:** bright-pass at ½ resolution, blurred at ¼, added back.
+- **Reflect ripple:** a ring of refraction spreads from each reflect, up to 4 at once.
+- **Death split:** a short chromatic split.
+- **Grade:** a per-chapter tint and saturation (`CHAPTER_ART[n].grade`).
+- **Grain:** light film grain.
+
+Settings → Post effects turns it off. High contrast turns it off; reduced flashing halves bloom and drops the split. It also stays off on software-rendered WebGL, which can't hold 60 fps. `?postfx=force` overrides that for headless screenshots.
+
 ## Light and material (first art pass)
 
 The diagram now has depth. All of it is presentation only (`render.js`, `theme.js`), and none of it can change a read:

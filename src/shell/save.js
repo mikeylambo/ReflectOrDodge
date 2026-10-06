@@ -25,6 +25,7 @@ export function defaultSave() {
       audioOffsetMs: 0, musicVol: 0.8, sfxVol: 1.0, highContrast: false, shake: true,
       reducedFlashing: false, telemetry: false,
       speedrunTimer: false, // GDD: Speedrun support — off by default
+      postfx: true, // bloom, ripples, grade, grain (docs/ART.md: Post FX)
     },
     stats: { totalDeaths: 0, totalReflects: 0, playTimeMs: 0 },
     seenPrompts: [], // onboarding glyphs already learned (additive field; defaults fill old saves)

@@ -63,11 +63,11 @@ export const HIGH_CONTRAST = {
 // grid, motif — never a gameplay colour, so every projectile and target reads
 // the same in every chapter. See docs/ART.md.
 export const CHAPTER_ART = {
-  0: { accent: '#7fd4ff', motif: 'none' }, //            Prologue: bare diagram
-  1: { accent: '#6fd3c1', motif: 'rings' }, //           Answer: concentric answers
-  2: { accent: '#9aa6c8', motif: 'strata' }, //          Weight: heavy horizontal bands
-  3: { accent: '#9be37a', motif: 'tendrils' }, //        Ground: growth lines
-  4: { accent: '#d7a6ff', motif: 'none' },
+  0: { accent: '#7fd4ff', motif: 'none', grade: { tint: [1, 1, 1.02], sat: 1 } }, //            Prologue: bare diagram
+  1: { accent: '#6fd3c1', motif: 'rings', grade: { tint: [0.97, 1.02, 1.03], sat: 1.05 } }, //           Answer: concentric answers
+  2: { accent: '#9aa6c8', motif: 'strata', grade: { tint: [0.98, 0.99, 1.04], sat: 0.88 } }, //          Weight: heavy horizontal bands
+  3: { accent: '#9be37a', motif: 'tendrils', grade: { tint: [1.02, 1.03, 0.96], sat: 1.04 } }, //        Ground: growth lines
+  4: { accent: '#d7a6ff', motif: 'none', grade: { tint: [1.02, 0.98, 1.04], sat: 1 } },
 };
 
 const hexA = (hex, a) => {
@@ -84,6 +84,6 @@ export function chapterTheme(ci, highContrast = false) {
     tileEdge: hexA(art.accent, 0.38), tileTop: hexA(art.accent, 0.9), floorGlow: hexA(art.accent, 0.16),
     tileShade: 'rgba(0,0,0,0.3)', tile: '#121622', hatch: hexA(art.accent, 0.085),
     grid: hexA(art.accent, 0.03), motifInk: hexA(art.accent, 0.09), haze: hexA(art.accent, 0.10),
-    mote: art.accent, lights: true, spikeLight: 'rgba(255,77,109,0.10)',
+    mote: art.accent, lights: true, grade: art.grade, spikeLight: 'rgba(255,77,109,0.10)',
   };
 }

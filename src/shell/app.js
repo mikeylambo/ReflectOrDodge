@@ -22,6 +22,7 @@ import { initHaptics, setHapticsEnabled } from '../engine/haptics.js';
 import { createSession } from '../game/session.js';
 import { createRun, addSegment, runFrames, formatTime } from '../game/speedrun.js';
 import { render, drawDiamond } from '../present/render.js';
+import { createPostFX } from '../present/postfx.js';
 import { chapterTheme } from '../present/theme.js';
 import { FONT, f, wordmarkSVG } from '../present/brand.js';
 import { decorate, SKIN_CSS, ICON, MEDAL_ICON } from './skin.js';
@@ -193,6 +194,7 @@ export async function startApp(canvas, ctx) {
         loop.setSpeed(SLOWMO.SPEED);
         collapseUntil = performance.now() + SLOWMO.TIME * 1000;
       }
+      if (post) post.event(e, ROOM.W, ROOM.H);
       if (e.type === 'player.death') { save.recordDeath(roomId); telemetry.death(roomId); telemetry.attempt(roomId); }
     },
   });
@@ -210,7 +212,10 @@ export async function startApp(canvas, ctx) {
     loop.setSpeed(a.speed);
     session.setOpts({ invincible: a.invincible, windowMult: a.window });
   };
+  const post = createPostFX(canvas);
+  if (post) post.setEnabled(save.data.settings.postfx !== false && !save.data.settings.highContrast);
   const applySettings = () => {
+    if (post) post.setEnabled(save.data.settings.postfx !== false && !save.data.settings.highContrast);
     setVolume(save.data.settings.sfxVol);
     setMusicVolume(save.data.settings.musicVol);
     setCalibrationOffset(save.data.settings.audioOffsetMs);
@@ -449,6 +454,7 @@ export async function startApp(canvas, ctx) {
         { id: 'flashing', label: `Reduced flashing: ${onOff(s.reducedFlashing)}` },
         { id: 'shake', label: `Screen shake: ${onOff(s.shake)}` },
         { id: 'fullscreen', label: 'Fullscreen' },
+        { id: 'postfx', label: `Post effects: ${onOff(s.postfx !== false)}`, description: 'Bloom, reflect ripples, colour grade, grain' },
         { id: 'speedrun', label: `Speedrun timer: ${onOff(s.speedrunTimer)}` },
         { id: 'telemetry', label: `Share playtest data: ${onOff(s.telemetry)}`, description: s.telemetry ? 'Stays on this device until you export it' : undefined },
         ...(s.telemetry ? [{ id: 'export', label: 'Export playtest data' }] : []),
@@ -563,6 +569,7 @@ export async function startApp(canvas, ctx) {
       else if (choice === 'contrast') s.highContrast = !s.highContrast;
       else if (choice === 'flashing') s.reducedFlashing = !s.reducedFlashing;
       else if (choice === 'shake') s.shake = !s.shake;
+      else if (choice === 'postfx') s.postfx = s.postfx === false;
       else if (choice === 'telemetry') s.telemetry = !s.telemetry;
       else if (choice === 'speedrun') { s.speedrunTimer = !s.speedrunTimer; if (!s.speedrunTimer) endRun(); }
       else if (choice === 'export') telemetry.export();
@@ -695,6 +702,7 @@ export async function startApp(canvas, ctx) {
       };
       if (state === 'title' || (state === 'menu' && menuBehind === 'title')) {
         if (demo.state) render(ctx, { state: demo.state, room: demo.room, alpha, fx: demo.fx, time, hud: false, ...view });
+        if (post) post.render(performance.now(), { grade: view.theme.grade, flashes: view.flashes });
         return;
       }
       if (!session.state) return;
@@ -717,6 +725,7 @@ export async function startApp(canvas, ctx) {
       }
       if (state === 'intro') drawIntro(ctx, ROOM_BY_ID[roomId], sc, introT);
       if (state === 'replay') drawReplayBadge(ctx, time);
+      if (post) post.render(performance.now(), { grade: view.theme.grade, flashes: view.flashes });
     },
   });
 
@@ -735,6 +744,7 @@ export async function startApp(canvas, ctx) {
   // test / dev hook
   window.__RD = {
     get state() { return state; },
+    get post() { return post; },
     get session() { return session; },
     get save() { return save.data; },
     get fps() { return loop.fps; },
