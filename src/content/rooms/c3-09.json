@@ -31,6 +31,6 @@
     {"kind":"door","id":"d1","at":[24,10],"h":3}
   ],
   "par": 2,
-  "solution": null,
+  "solution": "1:2*8o,0*5c,1*2o,h*o,5*d,11,5*a,2*4o,0*6o,h*o,1*o,y,2*n,h*o,2*o,i*o,2*2u",
   "mirrorOf": null
 }
