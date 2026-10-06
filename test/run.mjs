@@ -9,7 +9,7 @@
 // Any room added to src/content/rooms/ is covered automatically.
 import { createHash } from 'node:crypto';
 import { loadRooms, loadIndex } from './levels-node.mjs';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { validateRoom, compileRoom } from '../src/sim/room.js';
 import { runLog } from '../src/sim/world.js';
 import { decodeLog, encodeLog } from '../src/sim/input.js';
@@ -148,6 +148,27 @@ function changesPerSecond(masks) {
   return worst;
 }
 const diag = (label, detail) => console.log(`⚑ ${label}${detail ? ` — ${detail}` : ''}`);
+
+// Projectile fixtures (test/fixtures): minimal rooms for the Chapter 5–7
+// types, outside the campaign. Each recorded solution replays to a clear within
+// par, and the solver proves the room both solvable at par and not under it.
+{
+  console.log('── projectile fixtures (Splitter, Charge, Twin) ──');
+  const FX = new URL('./fixtures/', import.meta.url);
+  for (const f of readdirSync(FX).filter((n) => n.startsWith('fx-') && n.endsWith('.json')).sort()) {
+    const fx = JSON.parse(readFileSync(new URL(f, FX), 'utf8'));
+    const errs = validateRoom(fx);
+    if (errs.length) { report(false, `${fx.id}: valid`, errs.join('; ')); continue; }
+    const { state } = runLog(compileRoom(fx), decodeLog(fx.solution));
+    report(state.status === 'clear' && state.stats.reflects <= fx.par, `${fx.id}: recorded solution clears within par`, `${state.status} ◇${state.stats.reflects}/${fx.par}`);
+    const r = cachedSolve(fx, { mode: 'any', decisionHz: SOLVE_HZ, maxReflects: fx.par });
+    report(r.solvable, `${fx.id}: solver clears within par`, r.solvable ? `◇${r.reflects} in ${r.explored} states` : r.reason);
+    if (fx.par > 0) {
+      const u = cachedSolve(fx, { mode: 'any', decisionHz: SOLVE_HZ, maxReflects: fx.par - 1 });
+      report(!u.solvable && !u.reason.startsWith('state cap'), `${fx.id}: needs its rule (no clear under par)`, u.solvable ? `◇${u.reflects}` : u.reason);
+    }
+  }
+}
 
 console.log(`── solvability: solver finds a clear within par (${SOLVE_HZ} Hz) ──`);
 for (const { room } of rooms) {

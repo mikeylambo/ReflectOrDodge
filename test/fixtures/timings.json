@@ -1,0 +1,38 @@
+{
+ "fx-charge-early": {
+  "par": 1,
+  "found": 1,
+  "ms": 41756,
+  "explored": 208973
+ },
+ "fx-charge-pass": {
+  "par": 0,
+  "found": 0,
+  "ms": 2623,
+  "explored": 17816
+ },
+ "fx-splitter-angle": {
+  "par": 1,
+  "found": 1,
+  "ms": 37579,
+  "explored": 108337
+ },
+ "fx-splitter-fork": {
+  "par": 1,
+  "found": 1,
+  "ms": 5352,
+  "explored": 15682
+ },
+ "fx-twin-home": {
+  "par": 1,
+  "found": 1,
+  "ms": 7913,
+  "explored": 9770
+ },
+ "fx-twin-mirror": {
+  "par": 1,
+  "found": 1,
+  "ms": 16127,
+  "explored": 44795
+ }
+}
