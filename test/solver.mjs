@@ -8,7 +8,8 @@
 //   reflect press whose aim is HELD for the whole reflect window, so "the held
 //   direction at the moment of contact" is the one chosen.
 // Pruning: visited set keyed on world clock + bucketed player + reflect state
-//   + full projectile and object state + reflects used.
+//   + full projectile and object state, with reflects used as a dominance
+//   dimension (a key already reached with fewer or equal reflects is skipped).
 // Par: solve with a reflect budget of 0, 1, 2… — the first budget that clears is
 //   the solver-minimal reflect count at this decision granularity.
 import { BTN } from '../src/sim/input.js';
@@ -61,7 +62,8 @@ function key(s, posQ, velQ, K) {
   for (const o of s.objects) if (o.kind === 'emitter') k += `${o.on ? q((s.frame - o.phaseF + o.periodF * 64) % o.periodF, K) : 'x'}${o.count ? `/${o.count - o.fired}` : ''},`;
   if (!k) k = 'static,';
   k += `|${q(p.x, posQ)},${q(p.y, posQ)},${q(p.vy, velQ)},${p.grounded ? 1 : 0}${p.coyote > 0 ? 1 : 0}${p.rising ? 1 : 0}${p.jumpBuf > 0 ? 1 : 0}${s.prevInput & JUMP ? 1 : 0}`;
-  k += `|${q(s.reflect.window, 6)},${q(s.reflect.cooldown, 6)},${s.hitstop > 0 ? 1 : 0},${s.stats.reflects}`;
+  // reflects used is NOT in the key: it's a dominance dimension (see `seen`)
+  k += `|${q(s.reflect.window, 6)},${q(s.reflect.cooldown, 6)},${s.hitstop > 0 ? 1 : 0}`;
   for (const pr of s.projectiles) {
     k += `|${pr.type}${q(pr.x, posQ)},${q(pr.y, posQ)},${Math.sign(pr.vx)}${Math.sign(pr.vy)}${pr.reflected ? 'r' : ''}${pr.grace ? 'g' : ''}`;
     if (pr.stuck) k += `s${q(pr.life, K)}`;
@@ -150,7 +152,11 @@ export function solve(data, {
     : (st) => st.tick + Math.round(Math.abs(st.player.x + PLAYER.W / 2 - ex) * FPX) + st.stats.reflects * reflectPenalty - progress(st) * PROGRESS_BONUS;
   const buckets = new Map();
   const push = (n) => { const t = PRI(n.s); if (!buckets.has(t)) buckets.set(t, []); buckets.get(t).push(n); };
-  const seen = new Set();
+  // Reflect dominance: key → fewest reflects that reached it. A state is
+  // pruned when the same key was already reached with no more reflects — the
+  // cheaper state can do anything the costlier one can, with budget to spare,
+  // so this never loses a solution (an exhausted search is still a proof).
+  const seen = new Map();
   const s0 = createState(room);
   if (prefix) for (const m of prefix) step(s0, room, m);
   push({ s: s0, parent: null, masks: null });
@@ -193,8 +199,9 @@ export function solve(data, {
         }
         if (s.status === 'dead' || s.tick > maxTick || s.stats.reflects > maxReflects) continue;
         const k = key(s, posQ, velQ, K);
-        if (seen.has(k)) continue;
-        seen.add(k);
+        const prev = seen.get(k);
+        if (prev !== undefined && prev <= s.stats.reflects) continue;
+        seen.set(k, s.stats.reflects);
         if (opts_probe) opts_probe(s);
         if (++explored > stateCap) return { solvable: false, reason: `state cap ${stateCap} hit`, explored };
         push({ s, parent: node, masks });
