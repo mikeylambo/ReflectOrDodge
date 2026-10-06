@@ -55,6 +55,27 @@ function* candidates(room) {
     const e = room.emitters[i];
     yield { what: `emitter ${i} phase shifted half a period`, apply: (r) => { r.emitters[i].phase = +(((e.phase || 0) + e.period / 2) % e.period).toFixed(3); } };
   }
+  // 5. a vertical emitter moved to the mirrored column
+  for (let i = 0; i < room.emitters.length; i++) {
+    const e = room.emitters[i];
+    if (e.dir !== 'up' && e.dir !== 'down') continue;
+    const mx = ROOM.COLS - 1 - e.at[0];
+    if (mx !== e.at[0]) yield { what: `emitter ${i} moved to column ${mx}`, apply: (r) => { r.emitters[i].at = [mx, e.at[1]]; } };
+  }
+  // 6. an emitter's period a quarter shorter, then a quarter longer
+  for (let i = 0; i < room.emitters.length; i++) {
+    const e = room.emitters[i];
+    for (const f of [0.75, 1.25]) {
+      const p = +(e.period * f).toFixed(2);
+      if (p > 0.6) yield { what: `emitter ${i} period ${e.period} → ${p} s`, apply: (r) => { r.emitters[i].period = p; } };
+    }
+  }
+  // 7. the spawn moved to the mirrored column (standing on something)
+  {
+    const [sx, sy] = room.spawn, mx = ROOM.COLS - 1 - sx;
+    const solid = (x, y) => rows[y] && rows[y][x] === '#';
+    if (mx !== sx && free(mx, sy) && solid(mx, sy + 1)) yield { what: `spawn moved to column ${mx}`, apply: (r) => { r.spawn = [mx, sy]; } };
+  }
 }
 
 // how many times a run changes the room (switches fired, walls broken)
