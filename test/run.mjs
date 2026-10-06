@@ -135,6 +135,14 @@ for (const { room } of rooms) {
 const SOLVE_HZ = 5;
 const COMFORT_HZ = [4, 3];
 const DEEP_CAP = 2500000; // last-resort search for rooms the default cap can't prove
+// input changes per second, worst 1 s window (a human-rate check for recorded runs)
+function changesPerSecond(masks) {
+  const ch = [];
+  for (let i = 1; i < masks.length; i++) if ((masks[i] & ~32) !== (masks[i - 1] & ~32)) ch.push(i);
+  let worst = 0;
+  for (let a = 0, b = 0; b < ch.length; b++) { while (ch[b] - ch[a] >= 120) a++; worst = Math.max(worst, b - a + 1); }
+  return worst;
+}
 const diag = (label, detail) => console.log(`⚑ ${label}${detail ? ` — ${detail}` : ''}`);
 
 console.log(`── solvability: solver finds a clear within par (${SOLVE_HZ} Hz) ──`);
@@ -151,6 +159,15 @@ for (const { room } of rooms) {
     if (r.solvable || !r.reason.startsWith('state cap')) break;
     hz = deepHz;
     r = cachedSolve(room, { mode: 'any', decisionHz: hz, maxReflects: room.par, stateCap: DEEP_CAP });
+  }
+  if (!r.solvable && r.reason.startsWith('state cap') && room.solution) {
+    // GDD fallback for rooms too deep to search: the recorded solution, at a
+    // human decision rate, clears within par (comfort still reports below)
+    const { state } = runLog(compileRoom(room), decodeLog(room.solution));
+    const ok = state.status === 'clear' && state.stats.reflects <= room.par && changesPerSecond(decodeLog(room.solution)) <= SOLVE_HZ;
+    report(ok, `${room.id}: recorded solution clears within par (search capped)`, `◇${state.stats.reflects}/${room.par}, ${state.status}`);
+    if (ok) diag(`${room.id}: proven by its recorded solution, not by search`, 'deep room — review by hand');
+    continue;
   }
   report(r.solvable, `${room.id}: solver clears within par`, r.solvable ? `◇${r.reflects}/${room.par} in ${r.seconds}s at ${hz} Hz, ${r.explored} states` : `${r.reason} (${r.explored} states)`);
 }
