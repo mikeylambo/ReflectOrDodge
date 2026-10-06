@@ -65,6 +65,8 @@ function key(s, posQ, velQ, K) {
   for (const pr of s.projectiles) {
     k += `|${pr.type}${q(pr.x, posQ)},${q(pr.y, posQ)},${Math.sign(pr.vx)}${Math.sign(pr.vy)}${pr.reflected ? 'r' : ''}${pr.grace ? 'g' : ''}`;
     if (pr.stuck) k += `s${q(pr.life, K)}`;
+    const keyOf = PROJECTILES[pr.type].keyOf;
+    if (keyOf) k += keyOf(pr); // type-specific state that changes outcomes (Charge: bounces)
   }
   for (const o of s.objects) {
     if (o.kind === 'emitter') continue;
@@ -91,9 +93,12 @@ function inZone(s) {
 // could any reflectable projectile reach the zone during this decision window?
 function reflectUseful(s, K) {
   const cx = s.player.x + PLAYER.W / 2, cy = s.player.y + PLAYER.H / 2;
-  const reach = REFLECT.RADIUS + 3 + ((PLAYER.RUN + 160) * K) / TIMESTEP.HZ;
   for (const pr of s.projectiles) {
     if (!PROJECTILES[pr.type].reflectable || pr.stuck) continue;
+    // closing speed: the player's run plus the projectile's own speed (a
+    // Charge at full speed outruns the old fixed 160 px/s allowance)
+    const speed = Math.max(160, Math.sqrt(pr.vx * pr.vx + pr.vy * pr.vy));
+    const reach = REFLECT.RADIUS + 3 + ((PLAYER.RUN + speed) * K) / TIMESTEP.HZ;
     const dx = pr.x - cx, dy = pr.y - cy;
     if (dx * dx + dy * dy <= reach * reach) return true;
   }
