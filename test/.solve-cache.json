@@ -458,6 +458,18 @@
    "reflects": 2,
    "seconds": 6.72,
    "explored": 167531
+  },
+  "728169f323d66492:any:5:1": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.68,
+   "explored": 180407
+  },
+  "ac8833fcfdd9f4aa:any:5:0": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.28,
+   "explored": 2972
   }
  }
 }
