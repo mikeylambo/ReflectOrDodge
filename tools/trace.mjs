@@ -3,6 +3,8 @@
 // solved: the stored solution by default, or the solver's own run (--solve N
 // = reflect budget N), e.g. to understand a bypass the under-par search found.
 //   node tools/trace.mjs c1-08 [--solve 0] [--hz 5]
+//   node tools/trace.mjs draft.json --solve 1     (a room file not yet in the game)
+import { readFileSync } from 'node:fs';
 import { loadRooms } from '../test/levels-node.mjs';
 import { compileRoom } from '../src/sim/room.js';
 import { createState, step } from '../src/sim/world.js';
@@ -11,7 +13,7 @@ import { solve } from '../test/solver.mjs';
 
 const [id, ...rest] = process.argv.slice(2);
 const opt = (k, d) => { const i = rest.indexOf(k); return i >= 0 ? Number(rest[i + 1]) : d; };
-const { room: data } = loadRooms().find((r) => r.room.id === id);
+const data = id.endsWith('.json') ? JSON.parse(readFileSync(id, 'utf8')) : loadRooms().find((r) => r.room.id === id).room;
 let masks;
 if (rest.includes('--solve')) {
   const r = solve(data, { mode: 'any', decisionHz: opt('--hz', 5), maxReflects: opt('--solve', 0) });
