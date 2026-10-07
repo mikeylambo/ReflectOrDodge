@@ -183,9 +183,13 @@ for (const { room } of rooms) {
     r = cachedSolve(room, { mode: 'any', decisionHz: hz, maxReflects: room.par });
     if (r.solvable) break;
   }
-  // multi-answer rooms (Examiner phases) can need a deeper search to prove
+  // multi-answer rooms (Examiner phases) can need a deeper search to prove.
+  // Only they get it: a 2.5M-state search costs ~4 GB and half an hour, and an
+  // ordinary room that caps there (c3-08) falls back to its recorded solution
+  // below anyway — running it anyway ran CI out of memory.
+  const multiAnswer = (room.objects || []).some((o) => o.kind === 'core');
   for (const deepHz of [COMFORT_HZ[0], SOLVE_HZ]) {
-    if (r.solvable || !r.reason.startsWith('state cap')) break;
+    if (!multiAnswer || r.solvable || !r.reason.startsWith('state cap')) break;
     hz = deepHz;
     r = cachedSolve(room, { mode: 'any', decisionHz: hz, maxReflects: room.par, stateCap: DEEP_CAP });
   }

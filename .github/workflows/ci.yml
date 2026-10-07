@@ -10,6 +10,8 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm test
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192 # deep Examiner searches hold millions of states
 
   # Tauri desktop build (Linux). Proves the desktop wrapper compiles and
   # bundles; launching the built app is not tested here.
