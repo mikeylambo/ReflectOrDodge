@@ -60,7 +60,7 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c3-07 Bridge | 3 Ground | A pillar in a spike pit; the seed lane gives it a foothold on its near face. | ✓ |
 | c3-08 Tower | 3 Ground | Every seed that falls is another stair, if you send it to the tower: three of them. | |
 | c3-09 Two Jobs | 3 Ground | The orb opens the door on the shelf; the seed gets you up to it. | |
-| c3-10 Stepping Stones | 3 Ground | Pillars too far apart over spikes: one planted stone, timed well, is enough. | |
+| c3-10 Two Tiers | 3 Ground | (breather) Two lanes grow your stairs on their own: read where each step will land, wait for it, climb. | ✓ |
 | c3-11 Scaffold | 3 Ground | Plant a step on a breakable wall, then break the wall: the step stays in the air, and the way is open. | |
 | c3-12 Doorstep | 3 Ground | Plant a step on a closed door before you open it; open it first and the seed flies on to nowhere. | |
 | c3-13 Undermine | 3 Ground | An anchor will break the heavy wall on its own clock: plant your step first and stand on it while the anchor rolls beneath. | ✓ |
