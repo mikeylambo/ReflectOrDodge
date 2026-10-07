@@ -61,6 +61,9 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c3-08 Tower | 3 Ground | Every seed that falls is another stair, if you send it to the tower: three of them. | |
 | c3-09 Two Jobs | 3 Ground | The orb opens the door on the shelf; the seed gets you up to it. | |
 | c3-10 Stepping Stones | 3 Ground | Pillars too far apart over spikes: one planted stone, timed well, is enough. | |
+| c3-11 Scaffold | 3 Ground | Plant a step on a breakable wall, then break the wall: the step stays in the air, and the way is open. | |
+| c3-12 Doorstep | 3 Ground | Plant a step on a closed door before you open it; open it first and the seed flies on to nowhere. | |
+| c3-13 Undermine | 3 Ground | An anchor will break the heavy wall on its own clock: plant your step first and stand on it while the anchor rolls beneath. | ✓ |
 | c3-ex1 Examiner I | 3 Ground (Examiner) | The core hangs on the Examiner's flank above your reach: grow a step to the shelf, then answer. | |
 | c3-ex2 Examiner II | 3 Ground (Examiner) | The same on the other flank, with a weight rolling the floor. | |
 | c3-ex3 Examiner III | 3 Ground (Examiner) | Both flanks at once; the lanes plant your steps on their own clocks, so the answers are all timing. | |
