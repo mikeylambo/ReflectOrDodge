@@ -51,6 +51,7 @@ export function createSession({ onClear = () => {}, onEvent = () => {}, opts = {
   S.load = (data, { mode = 'play' } = {}) => {
     S.data = data;
     S.room = compileRoom(data);
+    S.fx = createFx(); // fresh per room: a previous room's effects (an Examiner's collapse) must not carry over
     S.deaths = 0;
     S.hintsUsed = 0;
     S.lastClear = null;

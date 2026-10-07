@@ -10,6 +10,9 @@ export const HINT = {
 
 export const RESET_PROMPT_DEATHS = 2; // deaths in a room before the reset glyph first shows
 
+// close camera zoom (presentation only; Settings → Close camera turns it off)
+export const CAMERA_ZOOM = 1.35;
+
 export const INTRO_TIME = 0.8; // s (GDD: Room intro)
 export const CLEAR_HOLD = 0.6; // s of room-clear glow before results (GDD: Game feel)
 

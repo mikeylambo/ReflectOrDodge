@@ -21,7 +21,7 @@ import { TIMESTEP } from '../../config/tunables.js';
 import { initHaptics, setHapticsEnabled } from '../engine/haptics.js';
 import { createSession } from '../game/session.js';
 import { createRun, addSegment, runFrames, formatTime } from '../game/speedrun.js';
-import { render, drawDiamond } from '../present/render.js';
+import { render, drawDiamond, applyCamera, toScreen } from '../present/render.js';
 import { createPostFX } from '../present/postfx.js';
 import { chapterTheme } from '../present/theme.js';
 import { FONT, f, wordmarkSVG } from '../present/brand.js';
@@ -41,7 +41,7 @@ import { glyphFamily } from '../platform/steam/glyphs.js';
 import { BrowserStorage } from '@slu/web-shell/platform/browser/BrowserStorage.js';
 import { createMap } from './map.js';
 import { drawPrompts, ROOM_PROMPTS } from '../present/prompts.js';
-import { INTRO_TIME, RESET_PROMPT_DEATHS, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
+import { CAMERA_ZOOM, INTRO_TIME, RESET_PROMPT_DEATHS, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
 
 const { SPEEDS, WINDOWS } = ASSIST_STEPS;
 const WINDOW_LABEL = { 1: 'Normal', 1.5: 'Wide', 2: 'Very wide' };
@@ -184,6 +184,29 @@ export async function startApp(canvas, ctx) {
   let prompts = []; // [{ id, alpha, used }]
   let encounter = null; // { ci, phase } while fighting an Examiner
   let collapseUntil = 0; // real-time ms: slow-motion + collapse after the final core
+  // Camera (playtest 2: "too far out"): close and following the hero, clamped
+  // to the room. Each room opens on the whole room, then eases in, so the
+  // machine is read first. Examiner phases stay wide. Settings → Close camera.
+  const cam = { x: ROOM.W / 2, y: ROOM.H / 2, z: 1 };
+  let camT = 0;
+  function updateCamera(dt) {
+    const s = save.data.settings;
+    const p = session.state && session.state.player;
+    const close = s.cameraClose !== false && !encounter && p;
+    camT += dt;
+    const ease = Math.min(1, Math.max(0, (camT - 0.6) / 0.9)); // whole room for 0.6 s, then in over 0.9 s
+    const zt = close ? 1 + (CAMERA_ZOOM - 1) * (ease * ease * (3 - 2 * ease)) : 1;
+    cam.z += (zt - cam.z) * Math.min(1, dt * 8);
+    const hw = ROOM.W / (2 * cam.z), hh = ROOM.H / (2 * cam.z);
+    const tx = p ? p.x + 7 + p.facing * 40 : ROOM.W / 2, ty = p ? p.y + 11 - 30 : ROOM.H / 2;
+    const k = Math.min(1, dt * 5);
+    cam.x += (Math.max(hw, Math.min(ROOM.W - hw, tx)) - cam.x) * k;
+    cam.y += (Math.max(hh, Math.min(ROOM.H - hh, ty)) - cam.y) * k;
+    cam.x = Math.max(hw, Math.min(ROOM.W - hw, cam.x));
+    cam.y = Math.max(hh, Math.min(ROOM.H - hh, cam.y));
+  }
+  let lastCamMs = 0;
+  const resetCamera = () => { camT = 0; cam.z = 1; cam.x = ROOM.W / 2; cam.y = ROOM.H / 2; };
 
   const session = createSession({
     onClear: (r) => onRoomClear(r),
@@ -194,7 +217,7 @@ export async function startApp(canvas, ctx) {
         loop.setSpeed(SLOWMO.SPEED);
         collapseUntil = performance.now() + SLOWMO.TIME * 1000;
       }
-      if (post) post.event(e, ROOM.W, ROOM.H);
+      if (post) { const [sx, sy] = toScreen(cam, e.x, e.y); post.event({ ...e, x: sx, y: sy }, ROOM.W, ROOM.H); }
       if (e.type === 'player.death') { save.recordDeath(roomId); telemetry.death(roomId); telemetry.attempt(roomId); }
     },
   });
@@ -327,6 +350,7 @@ export async function startApp(canvas, ctx) {
     hideUI();
     applyAssists();
     session.load(data, { mode: replay ? 'replay' : 'play' });
+    resetCamera();
     setChapterAudio(chapterIdx);
     const seen = save.data.seenPrompts || (save.data.seenPrompts = []);
     prompts = (ROOM_PROMPTS[id] || []).filter((k) => !seen.includes(k)).map((k) => ({ id: k, alpha: 1, used: false }));
@@ -454,6 +478,7 @@ export async function startApp(canvas, ctx) {
         { id: 'flashing', label: `Reduced flashing: ${onOff(s.reducedFlashing)}` },
         { id: 'shake', label: `Screen shake: ${onOff(s.shake)}` },
         { id: 'fullscreen', label: 'Fullscreen' },
+        { id: 'camera', label: `Close camera: ${onOff(s.cameraClose !== false)}`, description: 'Follows you up close; off shows the whole room' },
         { id: 'postfx', label: `Post effects: ${onOff(s.postfx !== false)}`, description: 'Bloom, reflect ripples, colour grade, grain' },
         { id: 'speedrun', label: `Speedrun timer: ${onOff(s.speedrunTimer)}` },
         { id: 'telemetry', label: `Share playtest data: ${onOff(s.telemetry)}`, description: s.telemetry ? 'Stays on this device until you export it' : undefined },
@@ -476,11 +501,10 @@ export async function startApp(canvas, ctx) {
     if (i < 0) return null;
     if (mirror) {
       const n = c.rooms.slice(i + 1).find((r) => mirrorOf(r) && mirrorOpen(r));
-      return n ? { room: mirrorOf(n) } : null;
-    }
-    if (c.rooms[i + 1]) return { room: c.rooms[i + 1] };
+      if (n) return { room: mirrorOf(n) };
+    } else if (c.rooms[i + 1]) return { room: c.rooms[i + 1] };
     if (c.examiner && c.examiner.length && examinerOpen(chapterIdx) && !examinerDefeated(chapterIdx)) return { examiner: chapterIdx };
-    const gap = c.rooms.find((r) => r !== id && !(save.room(r) && save.room(r).cleared));
+    const gap = c.rooms.find((r) => r !== id && !(save.room(r) && save.room(r).cleared)); // after the last open mirror too
     if (gap) return { room: gap };
     const nc = CHAPTERS[chapterIdx + 1];
     return nc && chapterOpen(chapterIdx + 1) ? { room: nc.rooms[0] } : null;
@@ -570,6 +594,7 @@ export async function startApp(canvas, ctx) {
       else if (choice === 'flashing') s.reducedFlashing = !s.reducedFlashing;
       else if (choice === 'shake') s.shake = !s.shake;
       else if (choice === 'postfx') s.postfx = s.postfx === false;
+      else if (choice === 'camera') s.cameraClose = s.cameraClose === false;
       else if (choice === 'telemetry') s.telemetry = !s.telemetry;
       else if (choice === 'speedrun') { s.speedrunTimer = !s.speedrunTimer; if (!s.speedrunTimer) endRun(); }
       else if (choice === 'export') telemetry.export();
@@ -581,7 +606,12 @@ export async function startApp(canvas, ctx) {
       showSettings();
     } else if (screen === 'results') {
       if (choice === 'next') goNext(nextAfter(roomId));
-      else if (choice === 'next-chapter') showMap(chapterIdx + 1, { guard: false });
+      else if (choice === 'next-chapter') {
+        // straight into the next chapter: its first room not yet cleared
+        const nc = CHAPTERS[chapterIdx + 1];
+        const first = nc.rooms.find((r) => !(save.room(r) && save.room(r).cleared)) || nc.rooms[0];
+        enterRoom(first);
+      }
       else if (choice === 'retry') enterRoom(roomId);
       else if (choice === 'watch') { endRun(); enterRoom(roomId, { replay: true }); }
       else if (choice === 'export-run') downloadRun(run || lastRun);
@@ -691,6 +721,8 @@ export async function startApp(canvas, ctx) {
       schedulePredictedShots();
     },
     render: (alpha) => {
+      const nowMs = performance.now(); const dtCam = lastCamMs ? Math.min(0.1, (nowMs - lastCamMs) / 1000) : 0; lastCamMs = nowMs;
+      if (state === 'play' || state === 'intro' || state === 'replay') updateCamera(dtCam);
       // a menu over a room shows a frozen frame: draw it once, not every frame
       if (state === 'menu' && menuBehind === 'room') { if (frozenDrawn) return; frozenDrawn = true; } else frozenDrawn = false;
       const s = save.data.settings;
@@ -717,11 +749,14 @@ export async function startApp(canvas, ctx) {
         },
         preview: state === 'play' && save.data.assists.preview && (lastMask & BTN.REFLECT) ? { mask: lastMask } : null,
         ghost: session.ghost ? session.ghost.state : null,
+        camera: cam,
         ...view,
       });
       if (prompts.length && (state === 'play' || state === 'intro')) {
         const p = session.state.player;
+        ctx.save(); applyCamera(ctx, cam);
         drawPrompts(ctx, prompts, document.body.dataset.input, { x: p.x, y: p.y }, 1, view.theme);
+        ctx.restore();
       }
       if (state === 'intro') drawIntro(ctx, ROOM_BY_ID[roomId], sc, introT);
       if (state === 'replay') drawReplayBadge(ctx, time);

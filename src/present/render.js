@@ -124,6 +124,16 @@ function drawTiles(ctx, room, theme) {
 }
 export const invalidateTiles = () => { tileCache = null; };
 
+// Camera (presentation only): { x, y, z } = room-space centre and zoom. The
+// world draws through it; the HUD and screen effects don't.
+export function applyCamera(ctx, cam) {
+  ctx.translate(ROOM.W / 2, ROOM.H / 2);
+  ctx.scale(cam.z, cam.z);
+  ctx.translate(-cam.x, -cam.y);
+}
+// room point → screen point under a camera
+export const toScreen = (cam, x, y) => (cam ? [(x - cam.x) * cam.z + ROOM.W / 2, (y - cam.y) * cam.z + ROOM.H / 2] : [x, y]);
+
 // the reflect diamond: an outline with a filled core (the game's one symbol)
 export function drawDiamond(ctx, x, y, r, color) {
   ctx.save();
@@ -292,10 +302,11 @@ function drawPreview(ctx, state, room, cx, cy, theme) {
 
 export function render(ctx, {
   state, room, alpha, fx, time, hud = { par: null, hint: false }, editorOverlay = null,
-  theme = THEME, shake = true, flashes = true, preview = null, ghost = null,
+  theme = THEME, shake = true, flashes = true, preview = null, ghost = null, camera = null,
 }) {
   ctx.save();
   if (fx && shake && fx.shake > 0) ctx.translate(Math.sin(time * 90) * FEEL.SHAKE_PX, Math.cos(time * 70) * FEEL.SHAKE_PX);
+  if (camera) applyCamera(ctx, camera);
   drawTiles(ctx, room, theme);
   if (theme.mote) drawMotes(ctx, time, theme);
   if (theme.lights) drawLights(ctx, state, room, alpha, time, theme, flashes ? 1 : 0.5);
@@ -397,11 +408,12 @@ export function render(ctx, {
 
   // player
   const p = state.player;
+  // jump afterimage: a fading ghost of the hero where the jump began
   if (fx) for (const a of fx.afterimages) {
-    ctx.globalAlpha = (a.t / FEEL.AFTERIMAGE) * 0.35;
-    ctx.fillStyle = theme.playerGlow;
-    ctx.fillRect(a.x, a.y, PLAYER.W, PLAYER.H);
-    ctx.globalAlpha = 1;
+    ctx.save();
+    ctx.globalAlpha = (a.t / FEEL.AFTERIMAGE) * 0.3;
+    drawHero(ctx, a.x, a.y, a.f || 1, heroPose({ grounded: true, vy: 0 }, false, 0, null), theme, { ghost: true });
+    ctx.restore();
   }
   const cx = lerp(p.px, p.x, alpha) + PLAYER.W / 2, cy = lerp(p.py, p.y, alpha) + PLAYER.H / 2;
   if (state.reflect.window > 0) {

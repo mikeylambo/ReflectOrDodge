@@ -50,7 +50,7 @@ export function fxEvents(fx, events, state) {
         break;
       case 'projectile.destroy': fx.rings.push({ x: e.x, y: e.y, t: 0.15, max: 0.15, color: 'orb' }); break;
       case 'player.jump':
-        fx.afterimages.push({ x: state.player.x, y: state.player.y, t: FEEL.AFTERIMAGE });
+        fx.afterimages.push({ x: state.player.x, y: state.player.y, f: state.player.facing, t: FEEL.AFTERIMAGE });
         fx.squash = -0.25;
         break;
       case 'player.land': fx.squash = 0.2; break;
