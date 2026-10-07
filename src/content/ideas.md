@@ -65,6 +65,7 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c3-12 Doorstep | 3 Ground | Plant a step on a closed door before you open it; open it first and the seed flies on to nowhere. | |
 | c3-13 Undermine | 3 Ground | An anchor will break the heavy wall on its own clock: plant your step first and stand on it while the anchor rolls beneath. | ✓ |
 | c3-14 Relay | 3 Ground | Break the first wall and the next seed flies on to plant a step on the second; on the first step, that seed is coming at you, so send it on. | |
+| c3-15 Last Seed | 3 Ground | Two seeds, two jobs, one order: let the first plant your step on the door, then send the second up into the switch that opens it. | |
 | c3-ex1 Examiner I | 3 Ground (Examiner) | The core hangs on the Examiner's flank above your reach: grow a step to the shelf, then answer. | |
 | c3-ex2 Examiner II | 3 Ground (Examiner) | The same on the other flank, with a weight rolling the floor. | |
 | c3-ex3 Examiner III | 3 Ground (Examiner) | Both flanks at once; the lanes plant your steps on their own clocks, so the answers are all timing. | |
