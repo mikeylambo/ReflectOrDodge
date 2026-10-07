@@ -14,7 +14,7 @@ import { BrowserInputFamilyDetector } from '@slu/web-shell/platform/browser/Inpu
 
 import { createLoop } from '../engine/loop.js';
 import { createInput } from '../engine/input.js';
-import { initAudio, setVolume, setKeyRatio, setCalibrationOffset, getCalibrationOffset, playPredicted } from '../engine/audio.js';
+import { initAudio, setVolume, setKeyRatio, setCalibrationOffset, getCalibrationOffset, playPredicted, playEvent } from '../engine/audio.js';
 import { initMusic, setMusicLayers, setMusicChapter, setMusicVolume, CHAPTER_KEYS } from '../engine/music.js';
 import { untilNext } from '../objects/emitter.js';
 import { TIMESTEP } from '../../config/tunables.js';
@@ -99,8 +99,13 @@ export async function startApp(canvas, ctx) {
   ui.register(SCREENS.map((id) => ({ id, title: '', choices: [] })));
 
   let uiPolling = false;
+  let lastFocus = null;
+  const uiSound = (type) => playEvent({ type });
   const pollUI = () => {
     uiInput.update(uiSource.poll());
+    const fid = map.active ? (map.focused && map.focused.id) : (uiRoot.querySelector('[data-focused="true"]') || {}).dataset?.choiceId;
+    if (fid && lastFocus && fid !== lastFocus) uiSound('ui.move');
+    lastFocus = fid || lastFocus;
     if (!map.active && (current === 'settings' || current === 'assists' || current === 'chapters')) {
       const dx = uiInput.wasPressed('ui_right') ? 1 : uiInput.wasPressed('ui_left') ? -1 : 0;
       if (dx) sideways(dx);
@@ -114,11 +119,14 @@ export async function startApp(canvas, ctx) {
   function showScreen(id, model, { guard = true, skin = {} } = {}) {
     if (map.active) { map.hide(); current = null; }
     const same = current === id && !uiRoot.hidden;
+    uiRoot.style.setProperty('--rd-accent', chapterTheme(chapterIdx, save.data.settings.highContrast).accent);
     const dress = () => decorate(uiRoot, id, { family: document.body.dataset.input, ...skin });
     ui.updateScreen(id, model);
     if (same) { current = id; dress(); return; } // updateScreen re-rendered it in place, keeping focus
     ui.show(id);
     dress();
+    const sec = uiRoot.querySelector('.slu-screen');
+    if (sec) sec.classList.add('rd-enter'); // entry wipe only on a new screen, not a re-render
     current = id;
     shownAt = guard ? performance.now() : -Infinity;
     uiRoot.hidden = false;
@@ -139,8 +147,8 @@ export async function startApp(canvas, ctx) {
   const map = createMap({
     root: uiRoot,
     input: uiInput,
-    onPick: (it) => { startAudio(); if (it.kind === 'examiner') enterEncounter(mapChapter); else enterRoom(it.id); },
-    onBack: () => showChapters(),
+    onPick: (it) => { startAudio(); playEvent({ type: 'ui.accept' }); if (it.kind === 'examiner') enterEncounter(mapChapter); else enterRoom(it.id); },
+    onBack: () => { playEvent({ type: 'ui.back' }); showChapters(); },
     onFlip: () => { mirrorView = !mirrorView; showMap(mapChapter, { guard: false }); },
   });
   let mapChapter = 0;
@@ -553,6 +561,7 @@ export async function startApp(canvas, ctx) {
   // ── UI handlers ──
   async function onActivate(screen, choice) {
     startAudio();
+    uiSound('ui.accept');
     const s = save.data.settings, a = save.data.assists;
     if (screen === 'title') {
       if (choice === 'play') {
@@ -620,6 +629,7 @@ export async function startApp(canvas, ctx) {
   }
 
   function onBack(screen) {
+    uiSound('ui.back');
     if (screen === 'chapters') showTitle();
         else if (screen === 'pause') resume();
     else if (screen === 'credits') showTitle();

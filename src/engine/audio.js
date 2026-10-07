@@ -97,6 +97,10 @@ const BANK = {
   'player.jump': (_, w) => voice(N.D4, 0.06, 'sine', 0.05, N.F4, w),
   'player.land': (_, w) => voice(N.D3, 0.05, 'sine', 0.05, null, w),
   'player.death': (_, w) => voice(N.F3, 0.18, 'sawtooth', 0.12, N.D3 / 2, w),
+  // menus: a soft tick to move, a two-note rise to accept, a fall to go back
+  'ui.move': (_, w) => voice(N.A4 * 2, 0.035, 'sine', 0.035, null, w),
+  'ui.accept': (_, w) => { voice(N.D5, 0.07, 'triangle', 0.06, null, w); voice(N.A5, 0.1, 'triangle', 0.05, null, w + 0.05); },
+  'ui.back': (_, w) => voice(N.A4, 0.09, 'triangle', 0.05, N.D4, w),
   'room.clear': (_, w) => [N.D4, N.F4, N.A4, N.D5].forEach((f, i) => voice(f, 0.5, 'triangle', 0.1, null, w + i * 0.08)),
 };
 

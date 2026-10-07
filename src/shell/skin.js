@@ -210,4 +210,55 @@ export const SKIN_CSS = `
   @keyframes rd-strike { from { transform: scale(2.4) rotate(-25deg); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes rd-in { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
 }
+
+/* ── full-screen layouts (playtest 2: "looked simple") ── */
+.rd-skin.slu-screen { --rd-acc: var(--rd-accent, #7fd4ff); }
+.rd-skin .slu-panel { transition: none; }
+/* title + credits: wordmark large on the left over the live demo room */
+.slu-screen.rd-skin[data-screen-id="title"], .slu-screen.rd-skin[data-screen-id="credits"] {
+  background: linear-gradient(90deg, rgba(4,5,8,.9) 0%, rgba(4,5,8,.6) 42%, rgba(4,5,8,0) 72%) !important; place-items: center start !important; }
+[data-screen-id="title"] .slu-panel, [data-screen-id="credits"] .slu-panel {
+  background: none !important; border: 0 !important; clip-path: none !important; box-shadow: none !important;
+  width: min(620px, 52vw) !important; max-width: none !important; margin-left: 6vw; padding: 0 !important; }
+[data-screen-id="title"] .slu-choices, [data-screen-id="credits"] .slu-choices { gap: 2px !important; margin-top: 18px; }
+[data-screen-id="title"] .slu-choice, [data-screen-id="credits"] .slu-choice, [data-screen-id="pause"] .slu-choice,
+[data-screen-id="settings"] .slu-choice, [data-screen-id="assists"] .slu-choice {
+  background: none !important; border: 0 !important; clip-path: none !important; box-shadow: none !important; padding: 10px 4px !important; min-height: 40px; }
+[data-screen-id="title"] .slu-choice-label { font: 600 24px/1.1 ${FONT.display} !important; text-transform: uppercase; letter-spacing: .05em; opacity: .55; transition: opacity .12s, transform .12s; }
+[data-screen-id="title"] .slu-choice .rd-ic { width: 22px; height: 22px; opacity: 0; transition: opacity .12s; }
+[data-screen-id="title"] .slu-choice[data-focused="true"] .slu-choice-label { opacity: 1; transform: translateX(6px); }
+[data-screen-id="title"] .slu-choice[data-focused="true"] .rd-ic { opacity: 1; }
+[data-screen-id="title"] .slu-back, [data-screen-id="credits"] .slu-back, [data-screen-id="pause"] .slu-back, [data-screen-id="settings"] .slu-back, [data-screen-id="assists"] .slu-back, [data-screen-id="chapters"] .slu-back { background: none !important; border: 0 !important; clip-path: none !important; padding-left: 4px !important; }
+/* pause, settings, assists: a slim panel at the right; the room stays visible */
+.slu-screen.rd-skin[data-screen-id="pause"], .slu-screen.rd-skin[data-screen-id="settings"], .slu-screen.rd-skin[data-screen-id="assists"] {
+  background: linear-gradient(270deg, rgba(4,5,8,.94) 0, rgba(4,5,8,.82) 360px, rgba(4,5,8,.15) 70%) !important; place-items: stretch end !important; padding: 0 !important; }
+[data-screen-id="pause"] .slu-panel, [data-screen-id="settings"] .slu-panel, [data-screen-id="assists"] .slu-panel {
+  background: none !important; clip-path: none !important; border: 0 !important; border-left: 1px solid color-mix(in srgb, var(--rd-acc) 45%, transparent) !important;
+  width: min(440px, 92vw) !important; max-width: none !important; height: 100vh; box-sizing: border-box; padding: 40px 34px !important;
+  display: flex; flex-direction: column; justify-content: center; overflow-y: auto; }
+[data-screen-id="settings"] .slu-panel { width: min(560px, 92vw) !important; justify-content: flex-start; }
+[data-screen-id="pause"] .slu-choice-label, [data-screen-id="settings"] .slu-choice-label, [data-screen-id="assists"] .slu-choice-label { opacity: .65; font-size: 17px !important; }
+[data-screen-id="pause"] .slu-choice[data-focused="true"], [data-screen-id="settings"] .slu-choice[data-focused="true"], [data-screen-id="assists"] .slu-choice[data-focused="true"] {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--rd-acc) 16%, transparent), transparent) !important; }
+[data-screen-id="pause"] .slu-choice[data-focused="true"] .slu-choice-label, [data-screen-id="settings"] .slu-choice[data-focused="true"] .slu-choice-label, [data-screen-id="assists"] .slu-choice[data-focused="true"] .slu-choice-label { opacity: 1; }
+[data-screen-id="pause"] .slu-header h1, [data-screen-id="settings"] .slu-header h1, [data-screen-id="assists"] .slu-header h1 { font-size: 30px !important; margin-bottom: 18px !important; }
+/* results: no box, centred over the frozen room */
+.slu-screen.rd-skin[data-screen-id="results"] { background: radial-gradient(circle at 50% 45%, rgba(4,5,8,.7), rgba(4,5,8,.9)) !important; }
+[data-screen-id="results"] .slu-panel { background: none !important; border: 0 !important; clip-path: none !important; width: min(520px, 92vw) !important; }
+[data-screen-id="results"] .slu-choices { display: flex !important; flex-wrap: wrap; justify-content: center; gap: 10px !important; }
+[data-screen-id="results"] .slu-choice { width: auto !important; flex: 0 0 auto; padding: 10px 18px !important; }
+/* chapters: full width */
+.slu-screen.rd-skin[data-screen-id="chapters"] { background: rgba(4,5,8,.84) !important; }
+[data-screen-id="chapters"] .slu-panel { background: none !important; border: 0 !important; clip-path: none !important; width: min(94vw, 1240px) !important; max-width: none !important; }
+[data-screen-id="chapters"] .rd-cards { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important; gap: 14px !important; }
+[data-screen-id="chapters"] .rd-cards .slu-choice { min-height: 300px; }
+[data-screen-id="chapters"] .rd-name { font-size: 24px; }
+/* screen entry: a wipe in the chapter colour */
+@media (prefers-reduced-motion: no-preference) {
+  .rd-enter .slu-panel { animation: rd-reveal .28s cubic-bezier(.2,.8,.2,1) both; }
+  .rd-enter::after { content: ""; position: fixed; top: 0; bottom: 0; width: 3px; left: 0; background: var(--rd-acc); box-shadow: 0 0 18px var(--rd-acc); animation: rd-sweep .32s cubic-bezier(.4,0,.2,1) both; pointer-events: none; }
+  @keyframes rd-reveal { from { clip-path: inset(0 100% 0 0); opacity: .3; } to { clip-path: inset(0 0 0 0); opacity: 1; } }
+  @keyframes rd-sweep { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100vw); opacity: 0; } }
+}
 `;
+
