@@ -4,6 +4,13 @@
 // chapter cards, and the animated results reveal. Nothing here changes what a
 // choice does — ids, order and focus all stay the shell's.
 import { FONT } from '../present/brand.js';
+import ch1 from '../assets/title-cards/ch1.webp';
+import ch2 from '../assets/title-cards/ch2.webp';
+import ch3 from '../assets/title-cards/ch3.webp';
+import ch4 from '../assets/title-cards/ch4.webp';
+
+// painted chapter cards (docs/art-ref/title-card-ch*.jpg); menu only, never behind play
+const CARD_ART = { 1: ch1, 2: ch2, 3: ch3, 4: ch4 };
 
 const svg = (body, cls = 'rd-ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
 const S = 'fill="none" stroke="currentColor" stroke-width="1.7"';
@@ -103,6 +110,7 @@ function chapterCards(screen, chapters) {
     const name = label.textContent.replace(/^🔒 /, '').replace(/^\d+ · /, '');
     b.style.setProperty('--acc', c.accent);
     b.classList.add(`rd-motif-${c.motif || 'none'}`);
+    if (CARD_ART[i]) { b.classList.add('rd-art'); b.style.setProperty('--art', `url("${CARD_ART[i]}")`); }
     const desc = b.querySelector('.slu-choice-desc');
     if (desc) desc.remove();
     const stats = c.locked ? ICON.lock
@@ -176,6 +184,9 @@ export const SKIN_CSS = `
 .rd-motif-rings::before { background: repeating-radial-gradient(circle at 80% 20%, transparent 0 18px, color-mix(in srgb, var(--acc) 30%, transparent) 18px 19px); }
 .rd-motif-strata::before { background: repeating-linear-gradient(-8deg, transparent 0 16px, color-mix(in srgb, var(--acc) 28%, transparent) 16px 19px); }
 .rd-motif-tendrils::before { background: repeating-linear-gradient(80deg, transparent 0 20px, color-mix(in srgb, var(--acc) 26%, transparent) 20px 21px); }
+.rd-cards .rd-art::before { opacity: 1; background: linear-gradient(180deg, rgba(7,8,13,.15) 0%, rgba(7,8,13,.35) 45%, rgba(7,8,13,.92) 100%), var(--art) center 38% / cover no-repeat !important; transition: transform .35s ease, filter .35s ease; filter: saturate(.85) brightness(.85); }
+.rd-cards .rd-art[data-focused="true"]::before, .rd-cards .rd-art:hover::before { transform: scale(1.04); filter: saturate(1) brightness(1); }
+.rd-cards .rd-art:disabled::before { filter: grayscale(.9) brightness(.5); }
 .rd-motif-none::before { background: linear-gradient(160deg, color-mix(in srgb, var(--acc) 18%, transparent), transparent 60%); }
 .rd-cards .slu-choice-label { display: grid !important; grid-template-rows: auto 1fr auto auto; gap: 8px; position: relative; width: 100%; }
 .rd-num { font: 800 15px/1 ${FONT.mono}; opacity: .6; }

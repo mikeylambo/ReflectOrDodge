@@ -487,6 +487,7 @@ export async function startApp(canvas, ctx) {
         { id: 'shake', label: `Screen shake: ${onOff(s.shake)}` },
         { id: 'fullscreen', label: 'Fullscreen' },
         { id: 'camera', label: `Close camera: ${onOff(s.cameraClose !== false)}`, description: 'Follows you up close; off shows the whole room' },
+        { id: 'scenery', label: `Stage backgrounds: ${onOff(s.scenery !== false)}`, description: 'Architecture and diagrams behind the room' },
         { id: 'postfx', label: `Post effects: ${onOff(s.postfx !== false)}`, description: 'Bloom, reflect ripples, colour grade, grain' },
         { id: 'speedrun', label: `Speedrun timer: ${onOff(s.speedrunTimer)}` },
         { id: 'telemetry', label: `Share playtest data: ${onOff(s.telemetry)}`, description: s.telemetry ? 'Stays on this device until you export it' : undefined },
@@ -603,6 +604,7 @@ export async function startApp(canvas, ctx) {
       else if (choice === 'flashing') s.reducedFlashing = !s.reducedFlashing;
       else if (choice === 'shake') s.shake = !s.shake;
       else if (choice === 'postfx') s.postfx = s.postfx === false;
+      else if (choice === 'scenery') s.scenery = s.scenery === false;
       else if (choice === 'camera') s.cameraClose = s.cameraClose === false;
       else if (choice === 'telemetry') s.telemetry = !s.telemetry;
       else if (choice === 'speedrun') { s.speedrunTimer = !s.speedrunTimer; if (!s.speedrunTimer) endRun(); }
@@ -738,7 +740,7 @@ export async function startApp(canvas, ctx) {
       const s = save.data.settings;
       const ci = state === 'title' || (state === 'menu' && menuBehind === 'title') ? (demo.room ? chapterOfAny(demo.room.id) : 0) : chapterIdx;
       const view = {
-        theme: chapterTheme(ci, s.highContrast),
+        theme: chapterTheme(ci, s.highContrast, s.scenery !== false),
         shake: s.shake,
         flashes: !s.reducedFlashing,
       };

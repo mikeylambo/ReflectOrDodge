@@ -15,6 +15,8 @@ import { isSolid, isSpike } from '../sim/room.js';
 import { circleRect } from '../sim/geom.js';
 import { heroPose, drawHero } from './hero.js';
 import { f } from './brand.js';
+import { scenery, drawLayer, DEPTH, vine, rgba } from './scenery.js';
+import { OBJECT_LOOKS, PROJECTILE_LOOKS } from './looks.js';
 
 const T = ROOM.TILE;
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -45,11 +47,15 @@ function drawMotif(g, theme) {
   g.restore();
 }
 
-function drawTiles(ctx, room, theme) {
+// per-tile deterministic noise for stage dressing (0..1)
+const tn = (tx, ty, k) => { const h = Math.sin(tx * 127.1 + ty * 311.7 + k * 74.7) * 43758.5453; return h - Math.floor(h); };
+const tileRng = (tx, ty) => { let i = 0; return () => tn(tx, ty, i++); };
+
+function drawTiles(ctx, room, theme, camera) {
   if (!tileCache || tileCache.room !== room || tileCache.solid !== room.solid || tileCache.theme !== theme) {
-    const c = document.createElement('canvas');
-    c.width = ROOM.W; c.height = ROOM.H;
-    const g = c.getContext('2d');
+    const back = document.createElement('canvas');
+    back.width = ROOM.W; back.height = ROOM.H;
+    let g = back.getContext('2d');
     const grad = g.createLinearGradient(0, 0, 0, ROOM.H);
     grad.addColorStop(0, theme.bg1); grad.addColorStop(1, theme.bg0);
     g.fillStyle = grad; g.fillRect(0, 0, ROOM.W, ROOM.H);
@@ -63,6 +69,10 @@ function drawTiles(ctx, room, theme) {
     g.strokeStyle = theme.grid; g.lineWidth = 1;
     for (let x = 0; x <= ROOM.COLS; x++) { g.beginPath(); g.moveTo(x * T + 0.5, 0); g.lineTo(x * T + 0.5, ROOM.H); g.stroke(); }
     for (let y = 0; y <= ROOM.ROWS; y++) { g.beginPath(); g.moveTo(0, y * T + 0.5); g.lineTo(ROOM.W, y * T + 0.5); g.stroke(); }
+    // the tiles go on their own layer, so stage scenery can sit between
+    const c = document.createElement('canvas');
+    c.width = ROOM.W; c.height = ROOM.H;
+    g = c.getContext('2d');
     for (let ty = 0; ty < ROOM.ROWS; ty++) for (let tx = 0; tx < ROOM.COLS; tx++) {
       const x = tx * T, y = ty * T;
       if (isSpike(room, tx, ty)) {
@@ -79,7 +89,20 @@ function drawTiles(ctx, room, theme) {
       g.fillStyle = theme.tile; g.fillRect(x, y, T, T);
       const open = (dx, dy) => { const nx = tx + dx, ny = ty + dy; return nx >= 0 && ny >= 0 && nx < ROOM.COLS && ny < ROOM.ROWS && !isSolid(room, nx, ny) && !isSpike(room, nx, ny); };
       // material: a faint diagonal hatch, so mass reads as mass, not as a hole
-      if (theme.hatch) {
+      if (theme.stage) {
+        // stage blocks (title-card look): a soft top-lit body and panel seams
+        const sh = g.createLinearGradient(0, y, 0, y + T);
+        sh.addColorStop(0, open(0, -1) ? rgba(theme.accent, 0.07) : 'rgba(0,0,0,0)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+        g.fillStyle = sh; g.fillRect(x, y, T, T);
+        g.fillStyle = rgba(theme.accent, 0.1);
+        if (tx % 3 === 0 && !open(-1, 0)) g.fillRect(x, y, 1, T);
+        if (ty % 2 === 0 && !open(0, -1)) g.fillRect(x, y, T, 1);
+        // an inset line parallel to each exposed face: the block's top/side face, as on the cards
+        g.fillStyle = rgba(theme.accent, 0.16);
+        if (open(0, -1)) g.fillRect(x, y + 7, T, 1);
+        if (open(-1, 0)) g.fillRect(x + 7, y, 1, T);
+        if (open(1, 0)) g.fillRect(x + T - 8, y, 1, T);
+      } else if (theme.hatch) {
         g.save(); g.beginPath(); g.rect(x, y, T, T); g.clip();
         g.strokeStyle = theme.hatch; g.lineWidth = 1;
         for (let k = -T; k < T; k += 8) { g.beginPath(); g.moveTo(x + k, y + T); g.lineTo(x + k + T, y); g.stroke(); }
@@ -106,6 +129,59 @@ function drawTiles(ctx, room, theme) {
         g.fillStyle = theme.tileTop || theme.tileEdge; g.fillRect(x, y, T, 2);
       }
     }
+    // Ground (Chapter 3): moss on lit tops, vines draping down faces and
+    // hanging from ceilings, climbing walls from the floor. Moss rises at most
+    // 2 px above a top, so the walkable line never looks moved.
+    if (theme.stage === 'ground') {
+      const sol = (tx, ty) => tx >= 0 && ty >= 0 && tx < ROOM.COLS && ty < ROOM.ROWS && isSolid(room, tx, ty);
+      const air = (tx, ty) => tx >= 0 && ty >= 0 && tx < ROOM.COLS && ty < ROOM.ROWS && !isSolid(room, tx, ty) && !isSpike(room, tx, ty);
+      for (let ty = 0; ty < ROOM.ROWS; ty++) for (let tx = 0; tx < ROOM.COLS; tx++) {
+        if (!sol(tx, ty)) continue;
+        const x = tx * T, y = ty * T, r = tileRng(tx, ty);
+        if (air(tx, ty - 1)) {
+          g.save(); g.shadowColor = theme.accent; g.shadowBlur = 5;
+          g.fillStyle = rgba(theme.accent, 0.7);
+          for (let k = 0; k < 5; k++) if (r() < 0.7) { g.beginPath(); g.ellipse(x + 3 + r() * (T - 6), y + 1, 2 + r() * 3.5, 1 + r() * 1.2, 0, Math.PI, 0); g.fill(); }
+          // moss creeping over the front edge
+          g.fillStyle = rgba(theme.accent, 0.3);
+          for (let k = 0; k < 3; k++) if (r() < 0.6) { g.beginPath(); g.ellipse(x + 3 + r() * (T - 6), y + 3, 2 + r() * 4, 1.5 + r() * 2.5, 0, 0, Math.PI); g.fill(); }
+          g.restore();
+          if (r() < 0.45) vine(g, x + 4 + r() * (T - 8), y + 2, 8 + r() * 22, 1, theme.accent, 0.55, r);
+        }
+        if (air(tx, ty + 1) && ty > 0 && r() < 0.15) vine(g, x + 4 + r() * (T - 8), y + T, 10 + r() * 24, 1, theme.accent, 0.4, r);
+        for (const s of [-1, 1]) {
+          if (air(tx + s, ty) && sol(tx + s, ty + 1) && r() < 0.35) vine(g, s < 0 ? x + 2 : x + T - 2, y + T, 12 + r() * 30, -1, theme.accent, 0.45, r);
+        }
+      }
+    }
+    // Echo (Chapter 4): every walkable surface is a dark mirror. The room
+    // above (back, scenery, tiles) is flipped into the solid below each top,
+    // faint and fading with depth. The hero's own reflection is drawn live.
+    if (theme.stage === 'echo') {
+      const sc = scenery(room, theme);
+      const comp = document.createElement('canvas');
+      comp.width = ROOM.W; comp.height = ROOM.H;
+      const k = comp.getContext('2d');
+      k.drawImage(back, 0, 0);
+      if (sc) { drawLayer(k, sc.far, DEPTH.far, null); drawLayer(k, sc.mid, DEPTH.mid, null); }
+      k.drawImage(c, 0, 0);
+      const top = (tx, ty) => isSolid(room, tx, ty) && ty > 0 && !isSolid(room, tx, ty - 1) && !isSpike(room, tx, ty - 1);
+      for (let ty = 1; ty < ROOM.ROWS; ty++) for (let tx = 0; tx < ROOM.COLS; tx++) {
+        if (!top(tx, ty)) continue;
+        let d = 1;
+        while (d < 3 && ty + d < ROOM.ROWS && isSolid(room, tx, ty + d)) d++;
+        const y = ty * T, depth = d * T;
+        g.save();
+        g.beginPath(); g.rect(tx * T, y + 2, T, depth - 2); g.clip();
+        g.globalAlpha = 0.3;
+        g.translate(0, 2 * y); g.scale(1, -1);
+        g.drawImage(comp, 0, 0);
+        g.restore();
+        const fade = g.createLinearGradient(0, y, 0, y + depth);
+        fade.addColorStop(0, 'rgba(18,22,34,0)'); fade.addColorStop(1, 'rgba(18,22,34,1)');
+        g.fillStyle = fade; g.fillRect(tx * T, y + 2, T, depth - 2);
+      }
+    }
     // hazards cast a low rose light
     if (theme.lights) {
       g.save(); g.globalCompositeOperation = 'lighter';
@@ -118,8 +194,11 @@ function drawTiles(ctx, room, theme) {
       }
       g.restore();
     }
-    tileCache = { room, solid: room.solid, theme, canvas: c };
+    tileCache = { room, solid: room.solid, theme, back, canvas: c };
   }
+  ctx.drawImage(tileCache.back, 0, 0);
+  const sc = scenery(room, theme);
+  if (sc) { drawLayer(ctx, sc.far, DEPTH.far, camera); drawLayer(ctx, sc.mid, DEPTH.mid, camera); }
   ctx.drawImage(tileCache.canvas, 0, 0);
 }
 export const invalidateTiles = () => { tileCache = null; };
@@ -269,6 +348,16 @@ function drawPlayer(ctx, p, alpha, theme, fx, ghost) {
   const pose = heroPose(p, moving, stride, reflect);
   const f = pose.dir === 'left' ? -1 : pose.dir === 'right' ? 1 : p.facing;
   drawHero(ctx, px, py, f, pose, theme, { sq: fx && !ghost ? fx.squash : 0, ghost });
+  // Echo's mirror floor: the hero's reflection, upside down below the surface
+  if (theme.stage === 'echo' && !ghost && p.grounded) {
+    const fy = py + PLAYER.H;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(px - 10, fy + 2, PLAYER.W + 20, 30); ctx.clip();
+    ctx.globalAlpha = 0.28;
+    ctx.translate(0, 2 * fy); ctx.scale(1, -1);
+    drawHero(ctx, px, py, f, pose, theme, { ghost: false });
+    ctx.restore();
+  }
   return [px + PLAYER.W / 2, py + PLAYER.H / 2];
 }
 
@@ -300,6 +389,52 @@ function drawPreview(ctx, state, room, cx, cy, theme) {
   ctx.restore();
 }
 
+// Examiner tethers: each core hangs from the body on a short strut and a line
+// (docs/art-ref/examiner-ch1.jpg), so you can see what the cores belong to.
+// A broken core's tether goes dim and dashed.
+function drawTethers(ctx, state, theme, collapse) {
+  const bodies = state.objects.filter((o) => o.kind === 'body');
+  if (!bodies.length) return;
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, 1 - collapse);
+  for (const c of state.objects) {
+    if (c.kind !== 'core') continue;
+    const cx = (c.tx + 0.5) * T, cy = (c.ty + 0.5) * T;
+    // nearest body, and the nearest point on its edge
+    let best = null;
+    for (const b of bodies) {
+      const x0 = b.tx * T, y0 = b.ty * T, x1 = x0 + b.w * T, y1 = y0 + b.h * T;
+      const px = Math.max(x0, Math.min(x1, cx)), py = Math.max(y0, Math.min(y1, cy));
+      const d = Math.hypot(cx - px, cy - py);
+      if (!best || d < best.d) best = { px, py, d };
+    }
+    if (!best || best.d > 8 * T) continue;
+    const ux = (cx - best.px) / (best.d || 1), uy = (cy - best.py) / (best.d || 1);
+    const end = c.broken ? 8 : 12;
+    ctx.strokeStyle = c.broken ? theme.examinerDim : theme.examiner;
+    ctx.globalAlpha = Math.max(0, 1 - collapse) * (c.broken ? 0.5 : 0.75);
+    if (c.broken) ctx.setLineDash([2, 3]);
+    ctx.lineWidth = 1.2;
+    // a pair of thin rails, then a dashed ring around the core
+    for (const o of [-2, 2]) {
+      ctx.beginPath();
+      ctx.moveTo(best.px - uy * o, best.py + ux * o);
+      ctx.lineTo(cx - ux * end - uy * o, cy - uy * end + ux * o);
+      ctx.stroke();
+    }
+    if (!c.broken) {
+      ctx.fillStyle = theme.examinerBody;
+      ctx.strokeStyle = theme.examiner;
+      ctx.beginPath(); ctx.rect(best.px - 5 - Math.abs(uy) * 2, best.py - 5 - Math.abs(ux) * 2, 10 + Math.abs(uy) * 4, 10 + Math.abs(ux) * 4); ctx.fill(); ctx.stroke();
+      ctx.globalAlpha *= 0.45;
+      ctx.setLineDash([2, 3]);
+      ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+}
+
 export function render(ctx, {
   state, room, alpha, fx, time, hud = { par: null, hint: false }, editorOverlay = null,
   theme = THEME, shake = true, flashes = true, preview = null, ghost = null, camera = null,
@@ -307,7 +442,7 @@ export function render(ctx, {
   ctx.save();
   if (fx && shake && fx.shake > 0) ctx.translate(Math.sin(time * 90) * FEEL.SHAKE_PX, Math.cos(time * 70) * FEEL.SHAKE_PX);
   if (camera) applyCamera(ctx, camera);
-  drawTiles(ctx, room, theme);
+  drawTiles(ctx, room, theme, camera);
   if (theme.mote) drawMotes(ctx, time, theme);
   if (theme.lights) drawLights(ctx, state, room, alpha, time, theme, flashes ? 1 : 0.5);
   drawExit(ctx, room, time, theme);
@@ -333,8 +468,9 @@ export function render(ctx, {
   }
   ctx.restore();
 
+  drawTethers(ctx, state, theme, fx && fx.collapse ? fx.collapse.k : 0);
   const objView = { look: [state.player.x + PLAYER.W / 2, state.player.y + PLAYER.H / 2], collapse: fx && fx.collapse ? fx.collapse.k : 0 };
-  for (const o of state.objects) OBJECTS[o.kind].render(ctx, o, theme, objView);
+  for (const o of state.objects) (OBJECT_LOOKS[o.kind] || OBJECTS[o.kind].render)(ctx, o, theme, objView);
 
   // door light trails
   if (fx) for (const tr of fx.trails) {
@@ -391,7 +527,8 @@ export function render(ctx, {
 
   for (const s of state.projectiles) {
     const th = { ...theme, flash: flashes && fx && fx.flashIds.has(s.id), orb: s.reflected ? theme.orbReflected : theme.orb, orbGlow: s.reflected ? theme.orbReflected : theme.orbGlow };
-    PROJECTILES[s.type].render(ctx, s, alpha, th);
+    const own = PROJECTILES[s.type].render, look = PROJECTILE_LOOKS[s.type];
+    if (look) look(ctx, s, alpha, th, own); else own(ctx, s, alpha, th);
   }
 
   // hint ghost / solution ghost

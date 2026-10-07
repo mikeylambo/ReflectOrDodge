@@ -27,6 +27,7 @@ export function defaultSave() {
       speedrunTimer: false, // GDD: Speedrun support — off by default
       cameraClose: true, // close, following camera (playtest 2)
       postfx: true, // bloom, ripples, grade, grain (docs/ART.md: Post FX)
+      scenery: true, // stage backgrounds (docs/ART.md: Stages)
     },
     stats: { totalDeaths: 0, totalReflects: 0, playTimeMs: 0 },
     seenPrompts: [], // onboarding glyphs already learned (additive field; defaults fill old saves)

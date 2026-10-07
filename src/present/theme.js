@@ -64,23 +64,37 @@ export const HIGH_CONTRAST = {
 // the same in every chapter. See docs/ART.md.
 export const CHAPTER_ART = {
   0: { accent: '#7fd4ff', motif: 'none', grade: { tint: [1, 1, 1.02], sat: 1 } }, //            Prologue: bare diagram
-  1: { accent: '#6fd3c1', motif: 'rings', grade: { tint: [0.97, 1.02, 1.03], sat: 1.05 } }, //           Answer: concentric answers
-  2: { accent: '#9aa6c8', motif: 'strata', grade: { tint: [0.98, 0.99, 1.04], sat: 0.88 } }, //          Weight: heavy horizontal bands
-  3: { accent: '#9be37a', motif: 'tendrils', grade: { tint: [1.02, 1.03, 0.96], sat: 1.04 } }, //        Ground: growth lines
-  4: { accent: '#d7a6ff', motif: 'none', grade: { tint: [1.02, 0.98, 1.04], sat: 1 } },
+  1: { accent: '#6fd3c1', motif: 'rings', stage: 'answer', preview: true, grade: { tint: [0.97, 1.02, 1.03], sat: 1.05 } }, //           Answer: concentric answers
+  2: { accent: '#9aa6c8', motif: 'strata', stage: 'weight', preview: true, grade: { tint: [0.98, 0.99, 1.04], sat: 0.88 } }, //          Weight: heavy horizontal bands
+  3: { accent: '#9be37a', motif: 'tendrils', stage: 'ground', grade: { tint: [1.02, 1.03, 0.96], sat: 1.04 } }, //        Ground: growth lines
+  4: { accent: '#d7a6ff', motif: 'none', stage: 'echo', preview: true, grade: { tint: [1.02, 0.98, 1.04], sat: 1 } },
 };
+
+// Stages marked preview are off in play until approved; ?stages=all shows them.
+const STAGES_ALL = typeof location !== 'undefined' && /[?&]stages=all\b/.test(location.search);
+const stageOf = (art) => (art.stage && (!art.preview || STAGES_ALL) ? art.stage : null);
 
 const hexA = (hex, a) => {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 };
 
-export function chapterTheme(ci, highContrast = false) {
+// Memoized: render caches (tiles, scenery) key on the theme object, so the same
+// chapter must give the same object every frame or they rebuild every frame.
+const themes = new Map();
+// scenery: false (Settings → Stage backgrounds) gives the chapter's plain look.
+export function chapterTheme(ci, highContrast = false, scenery = true) {
+  const key = `${ci}:${highContrast}:${scenery}`;
+  if (!themes.has(key)) themes.set(key, Object.freeze(makeTheme(ci, highContrast, scenery)));
+  return themes.get(key);
+}
+
+function makeTheme(ci, highContrast, scenery) {
   const base = highContrast ? HIGH_CONTRAST : THEME;
   const art = CHAPTER_ART[ci] || CHAPTER_ART[0];
   if (highContrast) return { ...base, motif: 'none', accent: '#ffffff' };
   return {
-    ...base, accent: art.accent, motif: art.motif,
+    ...base, accent: art.accent, motif: scenery && stageOf(art) ? 'none' : art.motif, stage: scenery ? stageOf(art) : null,
     tileEdge: hexA(art.accent, 0.38), tileTop: hexA(art.accent, 0.9), floorGlow: hexA(art.accent, 0.16),
     tileShade: 'rgba(0,0,0,0.3)', tile: '#121622', hatch: hexA(art.accent, 0.085),
     grid: hexA(art.accent, 0.03), motifInk: hexA(art.accent, 0.09), haze: hexA(art.accent, 0.10),

@@ -81,6 +81,35 @@ High-contrast mode drops the motif, uses a pure black field and white edges, and
 | reflect ×5 (arc on the held side; full ring for neutral) | done as an arc effect; no body pose yet |
 | death (burst into the killer's shape) | done |
 
+## Reference art (`docs/art-ref/`)
+
+Made from `docs/ART-PROMPTS.md`: the character turnaround, pose sheet, key art, the Chapter 1 Examiner sheet and title cards for chapters 1–4. The game takes from them:
+
+- **Hero:** unchanged. Hair and shoes were tried and dropped: at game size they read as noise.
+- **Examiner:** a diagram axis with end nodes and a dashed outline, inner rings that tilt toward you, a glowing pupil, and struts and rails tethering each core to the body (`looks.js`, `drawTethers` in `render.js`).
+- **Seed:** a planted seed is the card's cut lens: flat lit top (the collision line, unchanged), a faceted keel and a node (`looks.js`).
+- **Chapter menu:** the painted card fills each chapter's tile (`skin.js`).
+
+`src/present/looks.js` replaces a type's own `render()` for the game view. It exists because `src/objects/` and `src/projectiles/` key the solver cache; a drawing change there would make CI re-solve every room.
+
+## Stages
+
+Rooms take the title cards' look (`scenery.js`, `theme.stage`). Chapter 3 (`ground`) is on. Chapters 1 (`answer`: a great target ring), 2 (`weight`: diagonal beams, a hanging cube) and 4 (`echo`: a central orb ring, thin pillars, a mirror floor that reflects the room and the hero) are previews, off in play until approved; `?stages=all` shows them.
+
+- **Far layer** (parallax 0.35): a diagram (one ring cluster with crosshair and nodes, dashed axes from the top) and a skyline of tall blocks with lit rims, panels and vines, sunk in fog.
+- **Mid layer** (parallax 0.7, slightly blurred): stepped blocks rising at the room's edges.
+- **Tiles:** a soft top-lit body and panel seams instead of hatching; glowing moss on walkable tops (at most 2 px above the line), vines draping down faces, hanging from ceilings and climbing walls from the floor.
+- **Generated per room** from a seed of its id: every room differs and always looks the same, with no per-room art.
+
+**Readability rules:**
+- no arches or frames, which read as exits;
+- no gameplay colours, accent only;
+- every scenery rim stays dimmer than the room's tile edges, so it never reads as a ledge;
+- the mid layer is out of focus;
+- high contrast drops all of it.
+
+Painted cards stay on menus, never behind play.
+
 ## VFX language
 
 Rings mean impact or trigger. Pulses (expanding squares) mean a target answered. Particles take the shape of the thing that caused them. Light trails mean doors moving. Reduced flashing removes white flashes and softens glows; screen shake is optional.
