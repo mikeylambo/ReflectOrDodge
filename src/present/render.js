@@ -126,46 +126,102 @@ function drawShape(ctx, shape, x, y, s) {
   ctx.fill();
 }
 
-// A luminous simple humanoid (GDD: Art direction), drawn inside the 14×22
-// collision box: head, torso, arms, legs on a stride driven by position. Pure
-// presentation — collision stays the box.
+// The player: the kid from docs/art/character-turnaround.jpg, drawn as
+// vector shapes inside the 14×22 collision box. At this size the read is a
+// beanie on a cream body, so detail is limited to what survives: hat and cuff,
+// hair, face, one lens, sweatshirt, legs, shoes. Pure presentation; collision
+// stays the box.
+//
+// Poses (docs/ART.md): idle, run, jump, fall, land (squash), and reflect ×5
+// while the latest reflect arc lives: an open palm toward left/right/up/down,
+// and for neutral the glasses push with a lens glint (the pose sheet's idea).
+// Drawn in local space: origin at the feet, +x = the way the player faces.
+const SH = -10; // shoulder height
+const HIP = -5.5;
+function playerPose(p, fx) {
+  const arc = fx && fx.arcs.length ? fx.arcs[fx.arcs.length - 1] : null;
+  if (arc) return { kind: 'reflect', dir: arc.dir, k: arc.t / (FEEL.ARC_TIME * (arc.strong ? 1.6 : 1)) };
+  if (!p.grounded) return { kind: p.vy < 0 ? 'jump' : 'fall' };
+  return { kind: Math.abs(p.x - p.px) > 0.05 ? 'run' : 'idle' };
+}
+function limbs(pose, p, f, s) {
+  // → { front, back } hands and { a, b } feet, local coords
+  const L = { front: [3.4, -6.2], back: [-3.2, -6.2], a: [-2, 0], b: [2, 0] };
+  if (pose.kind === 'run') {
+    L.front = [1 + 4 * s, -6.8]; L.back = [-1 - 4 * s, -6.8];
+    L.a = [-1.5 + 3.5 * s, -Math.max(0, -s) * 1.4]; L.b = [1.5 - 3.5 * s, -Math.max(0, s) * 1.4];
+  } else if (pose.kind === 'jump') {
+    L.front = [4, -14.5]; L.back = [-4, -14.5]; L.a = [-2, -2.5]; L.b = [2.2, -1.5];
+  } else if (pose.kind === 'fall') {
+    L.front = [6.5, -11]; L.back = [-6.5, -11]; L.a = [-3, -0.5]; L.b = [3, -1.5];
+  } else if (pose.kind === 'reflect') {
+    const d = pose.dir;
+    if (d === 'left' || d === 'right') {
+      const side = (d === 'right' ? 1 : -1) * f; // +1 = in front
+      if (side > 0) { L.front = [9.5, -10.3]; L.back = [-3.5, -7.5]; } else { L.back = [-9.5, -10.3]; L.front = [3.5, -7.5]; }
+      if (p.grounded) { L.a = [-4.2, 0]; L.b = [4.2, 0]; }
+    } else if (d === 'up') { L.front = [2.5, -23]; L.back = [-3.5, -7]; }
+    else if (d === 'down') { L.front = [7, -2]; L.back = [-3.5, -9]; }
+    else L.front = [3.6, -14.8]; // neutral: hand to the glasses
+    if (!p.grounded && d !== 'left' && d !== 'right') { L.a = [-2.5, -1]; L.b = [2.5, -2]; }
+  }
+  return L;
+}
 function drawPlayer(ctx, p, alpha, theme, fx, ghost) {
   const px = lerp(p.px, p.x, alpha), py = lerp(p.py, p.y, alpha);
   const cx = px + PLAYER.W / 2;
   const sq = fx && !ghost ? fx.squash : 0;
-  const H = PLAYER.H * (1 - sq), W = PLAYER.W * (1 + sq);
-  const top = py + PLAYER.H - H;
-  const moving = Math.abs(p.x - p.px) > 0.05;
-  const air = !p.grounded;
-  const stride = moving && !air ? Math.sin(px * 0.22) : 0;
   const f = p.facing;
+  const pose = playerPose(p, ghost ? null : fx);
+  const L = limbs(pose, p, f, Math.sin(px * 0.22));
+  const one = ghost ? theme.ghostReflected : null; // the hint ghost is a single-tint silhouette
+  const C = {
+    hat: one || theme.playerHat, cuff: one || theme.playerHatCuff, hair: one || theme.playerHair,
+    skin: one || theme.playerSkin, cloth: one || theme.playerCloth, shoe: one || theme.playerShoe, frame: one || theme.playerFrame,
+  };
   ctx.save();
-  ctx.lineCap = 'round';
-  if (ghost) { ctx.globalAlpha = 0.4; ctx.setLineDash([2, 3]); } else { ctx.shadowColor = theme.playerGlow; ctx.shadowBlur = 14; }
-  ctx.strokeStyle = theme.player;
-  ctx.fillStyle = theme.player;
-  const headR = W * 0.27;
-  const neck = top + headR * 2 + 0.5, hip = top + H * 0.62, foot = py + PLAYER.H;
-  // head
-  ctx.beginPath(); ctx.arc(cx + f * 0.8, top + headR, headR, 0, Math.PI * 2);
-  if (ghost) ctx.stroke(); else ctx.fill();
-  // torso
-  ctx.lineWidth = W * 0.32;
-  ctx.beginPath(); ctx.moveTo(cx, neck + 1); ctx.lineTo(cx, hip); ctx.stroke();
-  // legs
-  ctx.lineWidth = W * 0.2;
-  const legSpread = air ? 3 : 2 + Math.abs(stride) * 3;
-  ctx.beginPath();
-  ctx.moveTo(cx, hip); ctx.lineTo(cx - legSpread + stride * 3 * f, foot - (air ? 3 : 0));
-  ctx.moveTo(cx, hip); ctx.lineTo(cx + legSpread - stride * 3 * f, foot);
-  ctx.stroke();
-  // arms: swing with the stride, raised in the air
-  ctx.lineWidth = W * 0.16;
-  const sh = neck + 2.5, armY = air ? sh - 3 : sh + 6;
-  ctx.beginPath();
-  ctx.moveTo(cx, sh); ctx.lineTo(cx - 5 - stride * 2 * f, armY);
-  ctx.moveTo(cx, sh); ctx.lineTo(cx + 5 + stride * 2 * f, armY);
-  ctx.stroke();
+  ctx.translate(cx, py + PLAYER.H);
+  ctx.scale(f * (1 + sq), 1 - sq);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (ghost) ctx.globalAlpha = 0.4; else { ctx.shadowColor = theme.playerGlow; ctx.shadowBlur = 5; }
+  const rr = (x, y, w, h, r, c) => { ctx.fillStyle = c; ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill(); };
+  const limb = (x0, y0, [x1, y1], w, c) => { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); };
+  // legs and shoes
+  for (const [ft, hx] of [[L.a, -1.4], [L.b, 1.4]]) {
+    limb(hx, HIP, ft, 2.7, C.cloth);
+    rr(ft[0] - 1.4, ft[1] - 1.5, 3.8, 1.7, 0.8, C.shoe);
+  }
+  // back arm, torso, front arm
+  limb(-2.6, SH, L.back, 2.1, C.cloth);
+  rr(-4, -11.2, 8, 6.6, 2.2, C.cloth);
+  if (pose.kind === 'reflect' && pose.dir === 'neutral') {
+    ctx.strokeStyle = C.cloth; ctx.lineWidth = 2.1;
+    ctx.beginPath(); ctx.moveTo(2.6, SH); ctx.lineTo(6, -11.5); ctx.lineTo(L.front[0], L.front[1]); ctx.stroke();
+  } else limb(2.6, SH, L.front, 2.1, C.cloth);
+  // head: hair behind, face forward, then the beanie over both
+  rr(-5.2, -16.8, 4.6, 4.8, 1.6, C.hair);
+  rr(-2.2, -16.6, 6.8, 5.2, 1.8, C.skin);
+  ctx.shadowBlur = 0;
+  rr(-2.4, -17, 7, 1.3, 0.6, C.hair); // fringe under the cuff
+  // one round lens on the near side, with the eye inside (a full-width frame line reads as sunglasses)
+  ctx.strokeStyle = C.frame; ctx.lineWidth = 0.7;
+  ctx.beginPath(); ctx.arc(2.6, -14.2, 1.35, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = C.frame; ctx.fillRect(2.4, -14.5, 0.8, 0.8);
+  ctx.fillStyle = C.hat;
+  ctx.beginPath(); ctx.ellipse(0.2, -18.6, 5.6, 3.6, 0, Math.PI, 0); ctx.lineTo(5.8, -17.4); ctx.lineTo(-5.4, -17.4); ctx.closePath(); ctx.fill();
+  rr(-6, -18.6, 12.4, 2.4, 1, C.cuff);
+  if (!ghost && pose.kind === 'reflect') {
+    const behind = (pose.dir === 'left' || pose.dir === 'right') && (pose.dir === 'right' ? 1 : -1) * f < 0;
+    const [hx, hy] = pose.dir === 'neutral' ? [2.6, -14.2] : behind ? L.back : L.front;
+    // palm spark, or the lens glint for neutral: a small four-point star
+    const r = (pose.dir === 'neutral' ? 4 : 3) * (0.6 + 0.4 * pose.k);
+    ctx.globalAlpha = Math.min(1, pose.k * 1.5);
+    ctx.fillStyle = theme.arc; ctx.shadowColor = theme.arc; ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.moveTo(hx, hy - r); ctx.lineTo(hx + r * 0.25, hy - r * 0.25); ctx.lineTo(hx + r, hy); ctx.lineTo(hx + r * 0.25, hy + r * 0.25);
+    ctx.lineTo(hx, hy + r); ctx.lineTo(hx - r * 0.25, hy + r * 0.25); ctx.lineTo(hx - r, hy); ctx.lineTo(hx - r * 0.25, hy - r * 0.25);
+    ctx.closePath(); ctx.fill();
+  }
   ctx.restore();
   return [cx, py + PLAYER.H / 2];
 }

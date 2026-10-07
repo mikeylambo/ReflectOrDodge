@@ -38,7 +38,8 @@ import { glyphFamily } from '../platform/steam/glyphs.js';
 import { BrowserStorage } from '@slu/web-shell/platform/browser/BrowserStorage.js';
 import { createMap } from './map.js';
 import { drawPrompts, ROOM_PROMPTS } from '../present/prompts.js';
-import { INTRO_TIME, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
+import { TITLE_CARDS } from '../present/title-cards.js';
+import { INTRO_TIME, CARD, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
 
 const { SPEEDS, WINDOWS } = ASSIST_STEPS;
 const WINDOW_LABEL = { 1: 'Normal', 1.5: 'Wide', 2: 'Very wide' };
@@ -164,6 +165,7 @@ export async function startApp(canvas, ctx) {
   let chapterIdx = 0;
   let roomId = null;
   let introT = 0;
+  let card = null; // { ci, then: 'intro' | 'play' } while a chapter title card shows
   let msInRoom = 0;
   let lastMask = 0;
   let time = 0;
@@ -311,6 +313,15 @@ export async function startApp(canvas, ctx) {
     const firstVisit = !save.room(id);
     state = firstVisit ? 'intro' : 'play';
     introT = 0;
+    // first time into a chapter: its title card, then the room intro as usual
+    const seenCards = save.data.seenCards || (save.data.seenCards = []);
+    card = null;
+    if (!encounter && TITLE_CARDS[chapterIdx] && !seenCards.includes(chapterIdx)) {
+      card = { ci: chapterIdx, then: state };
+      state = 'intro';
+      seenCards.push(chapterIdx);
+      save.save();
+    }
     if (firstVisit) {
       save.data.rooms[id] = { cleared: false, bestReflects: null, medal: 0, deaths: 0, hintsUsed: 0, bestTimeMs: null };
       save.save();
@@ -574,6 +585,17 @@ export async function startApp(canvas, ctx) {
       time += dt;
       if (collapseUntil && performance.now() > collapseUntil) { collapseUntil = 0; applyAssists(); }
       if (state === 'title' || (state === 'menu' && menuBehind === 'title')) { demo.tick(0); setMusicLayers(0); return; }
+      if (state === 'intro' && card) {
+        introT += real;
+        const m = input.sample();
+        if ((m && introT >= CARD.MIN_SKIP) || introT >= CARD.TIME) {
+          if (m) swallow = m;
+          state = card.then;
+          card = null;
+          introT = 0;
+        }
+        return;
+      }
       if (state === 'intro') {
         introT += real;
         const m = input.sample();
@@ -628,7 +650,8 @@ export async function startApp(canvas, ctx) {
         const p = session.state.player;
         drawPrompts(ctx, prompts, document.body.dataset.input, { x: p.x, y: p.y }, 1, view.theme);
       }
-      if (state === 'intro') drawIntro(ctx, ROOM_BY_ID[roomId], sc, introT);
+      if (state === 'intro' && card) drawCard(ctx, card.ci, CHAPTERS[card.ci], introT);
+      else if (state === 'intro') drawIntro(ctx, ROOM_BY_ID[roomId], sc, introT);
       if (state === 'replay') drawReplayBadge(ctx, time);
     },
   });
@@ -691,6 +714,30 @@ function drawIntro(ctx, data, scored, t) {
     ctx.fillStyle = 'rgba(230,236,255,0.75)';
     ctx.fillText(`◇ ${data.par}`, ROOM.W / 2, ROOM.H / 2 + 20);
   }
+  ctx.restore();
+}
+
+// Chapter title card: the art full screen (never behind play: its arches and
+// emitters would read as exits and hazards, docs/ART.md), then a fade to the room.
+function drawCard(ctx, ci, chapter, t) {
+  const img = TITLE_CARDS[ci];
+  const a = Math.min(1, t / CARD.FADE_IN) * Math.min(1, Math.max(0, (CARD.TIME - t) / CARD.FADE_OUT));
+  ctx.save();
+  ctx.globalAlpha = a;
+  ctx.fillStyle = '#07080d';
+  ctx.fillRect(0, 0, ROOM.W, ROOM.H);
+  if (img.complete && img.naturalWidth) ctx.drawImage(img, 0, 0, ROOM.W, ROOM.H);
+  const g = ctx.createLinearGradient(0, ROOM.H * 0.55, 0, ROOM.H);
+  g.addColorStop(0, 'rgba(7,8,13,0)'); g.addColorStop(1, 'rgba(7,8,13,0.85)');
+  ctx.fillStyle = g; ctx.fillRect(0, ROOM.H * 0.55, ROOM.W, ROOM.H * 0.45);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = 'rgba(230,236,255,0.7)';
+  ctx.font = '600 14px ui-monospace, Menlo, monospace';
+  ctx.fillText(`CHAPTER ${ci}`, 48, ROOM.H - 82);
+  ctx.fillStyle = '#f5f7ff';
+  ctx.font = '700 40px ui-monospace, Menlo, monospace';
+  ctx.fillText((chapter && chapter.name ? chapter.name : '').toUpperCase(), 46, ROOM.H - 42);
   ctx.restore();
 }
 

@@ -8,6 +8,15 @@ export const THEME = {
   tileEdge: '#2c3550',
   player: '#e8f4ff',
   playerGlow: '#7fd4ff',
+  // The kid (docs/art/character-turnaround.jpg). The beanie is indigo, not the
+  // sheet's violet, so it never matches doors (#c49bff) or Chapter 4's accent.
+  playerHat: '#5865f2',
+  playerHatCuff: '#8590ff',
+  playerHair: '#2a1d1b',
+  playerSkin: '#f1c7a6',
+  playerCloth: '#efe8da',
+  playerShoe: '#f7f5ef',
+  playerFrame: '#141018',
   zone: 'rgba(127,212,255,0.10)',
   arc: '#bff0ff',
   orb: '#ffb347',

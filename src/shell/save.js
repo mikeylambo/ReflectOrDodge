@@ -28,6 +28,7 @@ export function defaultSave() {
     },
     stats: { totalDeaths: 0, totalReflects: 0, playTimeMs: 0 },
     seenPrompts: [], // onboarding glyphs already learned (additive field; defaults fill old saves)
+    seenCards: [], // chapter title cards already shown (additive)
   };
 }
 
@@ -53,6 +54,7 @@ function withDefaults(data) {
     chapters: { ...(data.chapters || {}) },
     mirrorsUnlocked: [...(data.mirrorsUnlocked || [])],
     seenPrompts: [...(data.seenPrompts || [])],
+    seenCards: [...(data.seenCards || [])],
   };
 }
 

@@ -9,6 +9,8 @@ export const HINT = {
 };
 
 export const INTRO_TIME = 0.8; // s (GDD: Room intro)
+// Chapter title card, shown full screen the first time a chapter is entered.
+export const CARD = { TIME: 2.6, FADE_IN: 0.35, FADE_OUT: 0.45, MIN_SKIP: 0.5 }; // s
 export const CLEAR_HOLD = 0.6; // s of room-clear glow before results (GDD: Game feel)
 
 export const ASSIST_STEPS = {
