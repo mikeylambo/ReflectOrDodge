@@ -41,7 +41,7 @@ import { glyphFamily } from '../platform/steam/glyphs.js';
 import { BrowserStorage } from '@slu/web-shell/platform/browser/BrowserStorage.js';
 import { createMap } from './map.js';
 import { drawPrompts, ROOM_PROMPTS } from '../present/prompts.js';
-import { CAMERA_ZOOM, INTRO_TIME, RESET_PROMPT_DEATHS, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
+import { CAMERA_ZOOM, CAMERA_HOLD, CAMERA_EASE, INTRO_TIME, RESET_PROMPT_DEATHS, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
 
 const { SPEEDS, WINDOWS } = ASSIST_STEPS;
 const WINDOW_LABEL = { 1: 'Normal', 1.5: 'Wide', 2: 'Very wide' };
@@ -194,19 +194,22 @@ export async function startApp(canvas, ctx) {
   let collapseUntil = 0; // real-time ms: slow-motion + collapse after the final core
   // Camera (playtest 2: "too far out"): close and following the hero, clamped
   // to the room. Each room opens on the whole room, then eases in, so the
-  // machine is read first. Examiner phases stay wide. Settings → Close camera.
+  // machine is read first. Examiner phases stay wide. Settings → Close camera,
+  // off by default: every room fits one screen. It follows the hero's drawn
+  // (interpolated) position, not the sim's 120 Hz steps, so it doesn't judder.
   const cam = { x: ROOM.W / 2, y: ROOM.H / 2, z: 1 };
   let camT = 0;
-  function updateCamera(dt) {
+  function updateCamera(dt, alpha) {
     const s = save.data.settings;
     const p = session.state && session.state.player;
-    const close = s.cameraClose !== false && !encounter && p;
+    const close = s.cameraClose === true && !encounter && p;
     camT += dt;
-    const ease = Math.min(1, Math.max(0, (camT - 0.6) / 0.9)); // whole room for 0.6 s, then in over 0.9 s
+    const ease = Math.min(1, Math.max(0, (camT - CAMERA_HOLD) / CAMERA_EASE));
     const zt = close ? 1 + (CAMERA_ZOOM - 1) * (ease * ease * (3 - 2 * ease)) : 1;
     cam.z += (zt - cam.z) * Math.min(1, dt * 8);
     const hw = ROOM.W / (2 * cam.z), hh = ROOM.H / (2 * cam.z);
-    const tx = p ? p.x + 7 + p.facing * 40 : ROOM.W / 2, ty = p ? p.y + 11 - 30 : ROOM.H / 2;
+    const px = p ? p.px + (p.x - p.px) * alpha : 0, py = p ? p.py + (p.y - p.py) * alpha : 0;
+    const tx = p ? px + 7 + p.facing * 40 : ROOM.W / 2, ty = p ? py + 11 - 30 : ROOM.H / 2;
     const k = Math.min(1, dt * 5);
     cam.x += (Math.max(hw, Math.min(ROOM.W - hw, tx)) - cam.x) * k;
     cam.y += (Math.max(hh, Math.min(ROOM.H - hh, ty)) - cam.y) * k;
@@ -486,7 +489,7 @@ export async function startApp(canvas, ctx) {
         { id: 'flashing', label: `Reduced flashing: ${onOff(s.reducedFlashing)}` },
         { id: 'shake', label: `Screen shake: ${onOff(s.shake)}` },
         { id: 'fullscreen', label: 'Fullscreen' },
-        { id: 'camera', label: `Close camera: ${onOff(s.cameraClose !== false)}`, description: 'Follows you up close; off shows the whole room' },
+        { id: 'camera', label: `Close camera: ${onOff(s.cameraClose === true)}`, description: 'Follows you up close; off shows the whole room' },
         { id: 'scenery', label: `Stage backgrounds: ${onOff(s.scenery !== false)}`, description: 'Architecture and diagrams behind the room' },
         { id: 'postfx', label: `Post effects: ${onOff(s.postfx !== false)}`, description: 'Bloom, reflect ripples, colour grade, grain' },
         { id: 'speedrun', label: `Speedrun timer: ${onOff(s.speedrunTimer)}` },
@@ -605,7 +608,7 @@ export async function startApp(canvas, ctx) {
       else if (choice === 'shake') s.shake = !s.shake;
       else if (choice === 'postfx') s.postfx = s.postfx === false;
       else if (choice === 'scenery') s.scenery = s.scenery === false;
-      else if (choice === 'camera') s.cameraClose = s.cameraClose === false;
+      else if (choice === 'camera') s.cameraClose = s.cameraClose !== true;
       else if (choice === 'telemetry') s.telemetry = !s.telemetry;
       else if (choice === 'speedrun') { s.speedrunTimer = !s.speedrunTimer; if (!s.speedrunTimer) endRun(); }
       else if (choice === 'export') telemetry.export();
@@ -734,7 +737,7 @@ export async function startApp(canvas, ctx) {
     },
     render: (alpha) => {
       const nowMs = performance.now(); const dtCam = lastCamMs ? Math.min(0.1, (nowMs - lastCamMs) / 1000) : 0; lastCamMs = nowMs;
-      if (state === 'play' || state === 'intro' || state === 'replay') updateCamera(dtCam);
+      if (state === 'play' || state === 'intro' || state === 'replay') updateCamera(dtCam, alpha);
       // a menu over a room shows a frozen frame: draw it once, not every frame
       if (state === 'menu' && menuBehind === 'room') { if (frozenDrawn) return; frozenDrawn = true; } else frozenDrawn = false;
       const s = save.data.settings;

@@ -206,9 +206,11 @@ export const invalidateTiles = () => { tileCache = null; };
 // Camera (presentation only): { x, y, z } = room-space centre and zoom. The
 // world draws through it; the HUD and screen effects don't.
 export function applyCamera(ctx, cam) {
+  // snap the scroll to whole device pixels, so thin lines don't shimmer as it moves
+  const s = ctx.getTransform().a * cam.z;
   ctx.translate(ROOM.W / 2, ROOM.H / 2);
   ctx.scale(cam.z, cam.z);
-  ctx.translate(-cam.x, -cam.y);
+  ctx.translate(-Math.round(cam.x * s) / s, -Math.round(cam.y * s) / s);
 }
 // room point → screen point under a camera
 export const toScreen = (cam, x, y) => (cam ? [(x - cam.x) * cam.z + ROOM.W / 2, (y - cam.y) * cam.z + ROOM.H / 2] : [x, y]);

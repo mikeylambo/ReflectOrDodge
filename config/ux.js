@@ -12,6 +12,9 @@ export const RESET_PROMPT_DEATHS = 2; // deaths in a room before the reset glyph
 
 // close camera zoom (presentation only; Settings → Close camera turns it off)
 export const CAMERA_ZOOM = 1.35;
+// Close camera (opt-in): the whole room shows for HOLD s, then eases in over EASE s.
+export const CAMERA_HOLD = 1.6;
+export const CAMERA_EASE = 1.2;
 
 export const INTRO_TIME = 0.8; // s (GDD: Room intro)
 export const CLEAR_HOLD = 0.6; // s of room-clear glow before results (GDD: Game feel)

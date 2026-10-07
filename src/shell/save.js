@@ -25,7 +25,7 @@ export function defaultSave() {
       audioOffsetMs: 0, musicVol: 0.8, sfxVol: 1.0, highContrast: false, shake: true,
       reducedFlashing: false, telemetry: false,
       speedrunTimer: false, // GDD: Speedrun support — off by default
-      cameraClose: true, // close, following camera (playtest 2)
+      cameraClose: false, // close, following camera (playtest 2); off by default: every room fits one screen
       postfx: true, // bloom, ripples, grade, grain (docs/ART.md: Post FX)
       scenery: true, // stage backgrounds (docs/ART.md: Stages)
     },
