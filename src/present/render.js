@@ -76,12 +76,17 @@ function drawTiles(ctx, room, theme, camera) {
     for (let ty = 0; ty < ROOM.ROWS; ty++) for (let tx = 0; tx < ROOM.COLS; tx++) {
       const x = tx * T, y = ty * T;
       if (isSpike(room, tx, ty)) {
-        // three teeth on a base plate — reads as "hazard" by silhouette alone
-        g.fillStyle = theme.spikeBase; g.fillRect(x + 2, y + T - 5, T - 4, 5);
-        g.fillStyle = theme.spike;
-        for (let k = 0; k < 3; k++) {
-          const bx = x + 3 + k * ((T - 6) / 3), w = (T - 6) / 3;
-          g.beginPath(); g.moveTo(bx, y + T - 4); g.lineTo(bx + w / 2, y + 12); g.lineTo(bx + w, y + T - 4); g.closePath(); g.fill();
+        // three crystal shards on a lit plinth — "hazard" by silhouette alone.
+        // Tips stay at or below y+10, near the lethal region (SPIKE.TOP), so
+        // the drawing never claims more danger than the hitbox has.
+        g.fillStyle = theme.spikeBase; g.fillRect(x + 1, y + T - 5, T - 2, 5);
+        g.save(); g.shadowColor = theme.spike; g.shadowBlur = 6;
+        g.fillStyle = theme.spike; g.fillRect(x + 1, y + T - 5, T - 2, 1);
+        g.restore();
+        for (const [bx, w, ht] of [[3, 8, 13], [11, 10, 17], [21, 8, 12]]) {
+          const tx0 = x + bx + w / 2, ty0 = y + T - 5 - ht;
+          g.fillStyle = '#ff7a93'; g.beginPath(); g.moveTo(x + bx, y + T - 5); g.lineTo(tx0, ty0); g.lineTo(tx0, y + T - 5); g.closePath(); g.fill();
+          g.fillStyle = '#c92d4c'; g.beginPath(); g.moveTo(tx0, y + T - 5); g.lineTo(tx0, ty0); g.lineTo(x + bx + w, y + T - 5); g.closePath(); g.fill();
         }
         continue;
       }
@@ -534,7 +539,7 @@ export function render(ctx, {
   for (const s of state.projectiles) {
     const th = { ...theme, flash: flashes && fx && fx.flashIds.has(s.id), orb: s.reflected ? theme.orbReflected : theme.orb, orbGlow: s.reflected ? theme.orbReflected : theme.orbGlow };
     const own = PROJECTILES[s.type].render, look = PROJECTILE_LOOKS[s.type];
-    if (look) look(ctx, s, alpha, th, own); else own(ctx, s, alpha, th);
+    if (look) look(ctx, s, alpha, th, own, PROJECTILES[s.type]); else own(ctx, s, alpha, th);
   }
 
   // hint ghost / solution ghost
