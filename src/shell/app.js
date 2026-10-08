@@ -41,7 +41,7 @@ import { glyphFamily } from '../platform/steam/glyphs.js';
 import { BrowserStorage } from '@slu/web-shell/platform/browser/BrowserStorage.js';
 import { createMap } from './map.js';
 import { drawPrompts, ROOM_PROMPTS } from '../present/prompts.js';
-import { CAMERA_ZOOM, CAMERA_HOLD, CAMERA_EASE, INTRO_TIME, RESET_PROMPT_DEATHS, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
+import { CAMERA_ZOOM, CAMERA_HOLD, CAMERA_EASE, RESULTS_SETTLE, INTRO_TIME, RESET_PROMPT_DEATHS, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
 
 const { SPEEDS, WINDOWS } = ASSIST_STEPS;
 const WINDOW_LABEL = { 1: 'Normal', 1.5: 'Wide', 2: 'Very wide' };
@@ -91,6 +91,11 @@ export async function startApp(canvas, ctx) {
     onActivate: (screen, choice) => { if (!fresh()) onActivate(screen, choice); },
     onBack: (screen) => { if (!fresh()) onBack(screen); },
   });
+  // Menus stop at their ends instead of wrapping: with wrap, Up on the first
+  // choice (aim up is W/↑) jumped to the last one, which on results was
+  // Export run, and Space/J then downloaded the run.
+  const wrapMove = ui.move.bind(ui);
+  ui.move = (d) => { const i = ui.focusIndex + d; if (i >= 0 && i < ui.enabledChoices().length) wrapMove(d); };
   // DOMGameUI focuses real <button>s, so Enter/Space would ALSO fire a native
   // click on top of the shell's ui_accept — a double activation. Keyboard
   // activation goes through the shell only; pointer clicks still work.
@@ -103,6 +108,7 @@ export async function startApp(canvas, ctx) {
   const uiSound = (type) => playEvent({ type });
   const pollUI = () => {
     uiInput.update(uiSource.poll());
+    if (settleUntil && performance.now() >= settleUntil) { settleUntil = 0; ui.startInputLoop(); }
     const fid = map.active ? (map.focused && map.focused.id) : (uiRoot.querySelector('[data-focused="true"]') || {}).dataset?.choiceId;
     if (fid && lastFocus && fid !== lastFocus) uiSound('ui.move');
     lastFocus = fid || lastFocus;
@@ -116,7 +122,11 @@ export async function startApp(canvas, ctx) {
   // guard: the screen was opened by a keypress, which must not also act on it
   // (re-rendering the screen already showing — a toggle — never re-arms it)
   let current = null;
-  function showScreen(id, model, { guard = true, skin = {} } = {}) {
+  // settle (s): menu input is ignored this long after the screen opens. The UI
+  // input still tracks held keys meanwhile, so a key held through it never
+  // arrives as a fresh press afterwards.
+  let settleUntil = 0;
+  function showScreen(id, model, { guard = true, skin = {}, settle = 0 } = {}) {
     if (map.active) { map.hide(); current = null; }
     const same = current === id && !uiRoot.hidden;
     uiRoot.style.setProperty('--rd-accent', chapterTheme(chapterIdx, save.data.settings.highContrast).accent);
@@ -131,7 +141,8 @@ export async function startApp(canvas, ctx) {
     shownAt = guard ? performance.now() : -Infinity;
     uiRoot.hidden = false;
     if (!uiPolling) { uiPolling = true; requestAnimationFrame(pollUI); }
-    ui.startInputLoop();
+    settleUntil = settle ? performance.now() + settle * 1000 : 0;
+    if (settleUntil) ui.stopInputLoop(); else ui.startInputLoop();
   }
   function hideUI() {
     map.hide();
@@ -139,6 +150,7 @@ export async function startApp(canvas, ctx) {
     uiRoot.hidden = true;
     uiRoot.innerHTML = '';
     ui.stopInputLoop();
+    settleUntil = 0;
     uiPolling = false;
     input.clear();
   }
@@ -545,7 +557,7 @@ export async function startApp(canvas, ctx) {
         ...(next ? [{ id: 'map', label: 'Map' }] : []),
         ...(run && run.segments.length ? [{ id: 'export-run', label: `Export run ${formatTime(runTotal)}` }] : []),
       ],
-    }, { guard, skin });
+    }, { guard, skin, settle: RESULTS_SETTLE });
   }
 
   function showExaminerResults(ci) {
@@ -559,7 +571,7 @@ export async function startApp(canvas, ctx) {
         ...(next ? [{ id: 'next-chapter', label: next.name }] : []),
         { id: 'map', label: 'Map' },
       ],
-    }, { guard: false, skin: { results: { examiner: true } } });
+    }, { guard: false, skin: { results: { examiner: true } }, settle: RESULTS_SETTLE });
   }
 
   // ── UI handlers ──

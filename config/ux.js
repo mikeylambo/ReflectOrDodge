@@ -17,6 +17,10 @@ export const CAMERA_HOLD = 1.6;
 export const CAMERA_EASE = 1.2;
 
 export const INTRO_TIME = 0.8; // s (GDD: Room intro)
+// Results ignore menu input this long after opening (s): gameplay keys are menu
+// keys (W/S move, Space/J accept), so presses still in flight from the room
+// would otherwise pick Retry or Export run instead of Next.
+export const RESULTS_SETTLE = 0.45;
 export const CLEAR_HOLD = 0.6; // s of room-clear glow before results (GDD: Game feel)
 
 export const ASSIST_STEPS = {
