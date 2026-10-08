@@ -2,7 +2,7 @@
 // view. They live here, not in src/objects/ or src/projectiles/, because those
 // files key the solver cache (test/solve-cache.mjs): a drawing change there
 // would make CI re-solve every room. render.js calls LOOKS[kind] first.
-import { ROOM, SEED, CHARGE, TIMESTEP } from '../../config/tunables.js';
+import { ROOM, SEED, CHARGE, TWIN, TIMESTEP } from '../../config/tunables.js';
 
 const T = ROOM.TILE;
 const LIFE_F = Math.round(SEED.LIFE * TIMESTEP.HZ);
@@ -250,5 +250,108 @@ function seed(ctx, s, alpha, theme, own) {
   ctx.restore();
 }
 
-export const OBJECT_LOOKS = { body, emitter, switch: switchLook };
-export const PROJECTILE_LOOKS = { seed, orb, splitter, charge };
+// Door — the Shutter: slats roll up into a cap between two posts. The frame
+// stays when open, so an open door still reads as a door. The leading edge of
+// the shutter glows. (slide: 0 closed → 1 open)
+function door(ctx, s, theme) {
+  const V = theme.door, x = s.tx * T, y = s.ty * T, H = s.h * T;
+  const n = s.h * 4, sh = (H - 4) / n, shown = Math.round(n * (1 - s.slide));
+  ctx.save();
+  for (let i = 0; i < shown; i++) {
+    const sy = y + 4 + i * sh;
+    ctx.fillStyle = i % 2 ? '#2b2046' : '#33265a'; ctx.fillRect(x + 6, sy, T - 12, sh - 1);
+    ctx.fillStyle = A(V, 0.8); ctx.fillRect(x + 6, sy, T - 12, 1);
+  }
+  if (shown > 0) { ctx.shadowColor = V; ctx.shadowBlur = 8; ctx.fillStyle = V; ctx.fillRect(x + 6, y + 4 + shown * sh - 2, T - 12, 2); ctx.shadowBlur = 0; }
+  ctx.fillStyle = '#3d2d63'; ctx.fillRect(x + 3, y, T - 6, 4);
+  ctx.fillStyle = V; ctx.fillRect(x + 3, y + 3, T - 6, 1);
+  ctx.strokeStyle = V; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x + 5.5, y); ctx.lineTo(x + 5.5, y + H); ctx.moveTo(x + T - 5.5, y); ctx.lineTo(x + T - 5.5, y + H); ctx.stroke();
+  ctx.restore();
+}
+
+// Breakable walls — Glass (light): a pale pane with a sheen and a crack per
+// tile. Plate (heavy): a bolted steel plate with a band across each tile.
+function wall(ctx, s, theme) {
+  if (s.broken) return;
+  const E = theme.wallEdge, x = s.tx * T, y = s.ty * T, H = s.h * T;
+  ctx.save();
+  if (s.heavy) {
+    ctx.fillStyle = '#2b3041'; ctx.fillRect(x + 3, y, T - 6, H);
+    ctx.fillStyle = '#3a4156';
+    for (let k = 0; k < s.h; k++) ctx.fillRect(x + 3, y + k * T + T / 2 - 1, T - 6, 3);
+    ctx.fillRect(x + 3, y, T - 6, 3);
+    ctx.strokeStyle = E; ctx.lineWidth = 2; ctx.strokeRect(x + 4, y + 1, T - 8, H - 2);
+    ctx.fillStyle = E;
+    for (let k = 0; k < s.h; k++) for (const yy of [6, T - 6]) for (const xx of [8, T - 8]) { ctx.beginPath(); ctx.arc(x + xx, y + k * T + yy, 1.8, 0, TAU); ctx.fill(); }
+  } else {
+    ctx.fillStyle = A(E, 0.14); ctx.fillRect(x + 6, y, T - 12, H);
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    for (let k = 0; k < s.h; k++) { const yy = y + k * T; ctx.beginPath(); ctx.moveTo(x + 6, yy + 22); ctx.lineTo(x + T - 6, yy + 4); ctx.lineTo(x + T - 6, yy + 11); ctx.lineTo(x + 6, yy + 29); ctx.closePath(); ctx.fill(); }
+    ctx.strokeStyle = E; ctx.lineWidth = 1.2; ctx.strokeRect(x + 6.5, y + 0.5, T - 13, H - 1);
+    ctx.strokeStyle = A(E, 0.8); ctx.lineWidth = 1;
+    for (let k = 0; k < s.h; k++) {
+      const yy = y + k * T;
+      ctx.beginPath(); ctx.moveTo(x + 14, yy + 8); ctx.lineTo(x + 18, yy + 15); ctx.lineTo(x + 15, yy + 23); ctx.moveTo(x + 18, yy + 15); ctx.lineTo(x + 24, yy + 18); ctx.moveTo(x + 14, yy + 8); ctx.lineTo(x + 9, yy + 12); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+
+// Examiner core — the Caged gem: a lit gem held in a hex frame by three
+// prongs. Broken: the empty cage, dim.
+function core(ctx, s, theme) {
+  const C = theme.examinerCore, cx = (s.tx + 0.5) * T, cy = (s.ty + 0.5) * T;
+  const hex = (r) => { ctx.beginPath(); for (let k = 0; k < 6; k++) { const a = (k / 6) * TAU + Math.PI / 6; ctx[k ? 'lineTo' : 'moveTo'](cx + Math.cos(a) * r, cy + Math.sin(a) * r); } ctx.closePath(); };
+  ctx.save();
+  ctx.strokeStyle = s.broken ? theme.examinerDim : A(C, 0.75); ctx.lineWidth = 1.3;
+  hex(14); ctx.stroke();
+  for (const a of [Math.PI / 6, (5 * Math.PI) / 6, (3 * Math.PI) / 2]) { ctx.beginPath(); ctx.moveTo(cx + Math.cos(a) * 14, cy + Math.sin(a) * 14); ctx.lineTo(cx + Math.cos(a) * 8, cy + Math.sin(a) * 8); ctx.stroke(); }
+  if (!s.broken) {
+    ctx.shadowColor = C; ctx.shadowBlur = 14;
+    const gr = ctx.createRadialGradient(cx - 2, cy - 2, 0, cx, cy, 8); gr.addColorStop(0, '#fffbe0'); gr.addColorStop(1, C);
+    ctx.fillStyle = gr; hex(8); ctx.fill();
+  }
+  ctx.restore();
+}
+
+// Anchor — the Cube: a solid block seen a little from above, its top and side
+// faces showing (the Chapter 2 cube, small). Same square silhouette.
+function anchor(ctx, s, alpha, theme) {
+  const x = s.px + (s.x - s.px) * alpha, y = s.py + (s.y - s.py) * alpha;
+  const h = s.r - 1, d = h * 0.5, AN = theme.anchor;
+  ctx.save();
+  ctx.shadowColor = AN; ctx.shadowBlur = 8;
+  ctx.fillStyle = '#56627f'; ctx.beginPath(); ctx.moveTo(x - h, y - h); ctx.lineTo(x - h + d, y - h - d); ctx.lineTo(x + h + d, y - h - d); ctx.lineTo(x + h, y - h); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#2b3347'; ctx.beginPath(); ctx.moveTo(x + h, y - h); ctx.lineTo(x + h + d, y - h - d); ctx.lineTo(x + h + d, y + h - d); ctx.lineTo(x + h, y + h); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = theme.flash ? '#ffffff' : theme.anchorBody; ctx.fillRect(x - h, y - h, 2 * h, 2 * h);
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = AN; ctx.lineWidth = 1.6; ctx.lineJoin = 'round';
+  ctx.strokeRect(x - h, y - h, 2 * h, 2 * h);
+  ctx.beginPath(); ctx.moveTo(x - h, y - h); ctx.lineTo(x - h + d, y - h - d); ctx.lineTo(x + h + d, y - h - d); ctx.lineTo(x + h + d, y + h - d); ctx.lineTo(x + h, y + h);
+  ctx.moveTo(x + h, y - h); ctx.lineTo(x + h + d, y - h - d); ctx.stroke();
+  ctx.restore();
+}
+
+// Twin — Mirrored: each is a diamond with an inner mark pointing toward its
+// partner, so the two read as mirror images; a short stub reaches across.
+function twin(ctx, s, alpha, theme) {
+  const x = s.px + (s.x - s.px) * alpha, y = s.py + (s.y - s.py) * alpha;
+  const [ax, ay] = s.axis, px = ay * s.side, py = -ax * s.side; // toward the partner
+  const r = s.r + 2, c = theme.flash ? '#ffffff' : theme.twin;
+  ctx.save();
+  ctx.shadowColor = theme.twin; ctx.shadowBlur = 10;
+  ctx.fillStyle = c;
+  ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r, y); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#e8fdff';
+  const m = r * 0.5;
+  ctx.beginPath(); ctx.moveTo(x + px * m, y + py * m); ctx.lineTo(x - py * m - px * m * 0.2, y + px * m - py * m * 0.2); ctx.lineTo(x + py * m - px * m * 0.2, y - px * m - py * m * 0.2); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = A(theme.twin, 0.6); ctx.lineWidth = 1.5;
+  const L = TWIN.GAP / 2 - 2;
+  ctx.beginPath(); ctx.moveTo(x + px * (r + 2), y + py * (r + 2)); ctx.lineTo(x + px * L, y + py * L); ctx.stroke();
+  ctx.restore();
+}
+
+export const OBJECT_LOOKS = { body, emitter, switch: switchLook, door, wall, core };
+export const PROJECTILE_LOOKS = { seed, orb, splitter, charge, anchor, twin };
