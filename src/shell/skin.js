@@ -176,6 +176,8 @@ export const SKIN_CSS = `
 .rd-slider b { position: absolute; top: 50%; width: 11px; height: 11px; background: #efe7d8; transform: translate(-50%,-50%) rotate(45deg); box-shadow: 0 0 8px rgba(127,212,255,.8); }
 .rd-val { font: 800 16px/1 ${FONT.mono}; width: 48px; text-align: right; }
 .rd-has-slider .slu-choice-label { flex: none; width: 34%; }
+/* pause: Resume (Esc) already goes back, so the shell's Back link is hidden */
+[data-screen-id="pause"] .slu-back { display: none !important; }
 /* chapter cards */
 [data-screen-id="chapters"] .slu-panel { max-width: min(94vw, 880px) !important; width: min(94vw, 880px); }
 .rd-cards { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important; }

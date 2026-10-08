@@ -10,6 +10,7 @@
 // no gameplay colours (accent only), and every line stays far dimmer than the
 // room's own tile edges. Pure presentation; nothing here is collision.
 import { ROOM } from '../../config/tunables.js';
+import { isSolid } from '../sim/room.js';
 
 export const MARGIN = 140; // px of layer beyond each room edge, for parallax travel
 export const DEPTH = { far: 0.35, mid: 0.7 }; // 1 = moves with the room, 0 = fixed to the screen
@@ -30,9 +31,55 @@ export const rgba = (hex, a) => {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 };
 
+// Where a set piece shows best: the candidate point (layer coords) with the
+// most open air around it, so a ring or a cube isn't hidden behind rock.
+function openSpot(room, r, radius, { yMin = 0.12, yMax = 0.7 } = {}) {
+  const T = ROOM.TILE, rt = Math.ceil(radius / T);
+  let best = null;
+  for (let i = 0; i < 48; i++) {
+    const x = ROOM.W * (0.1 + r() * 0.8), y = ROOM.H * (yMin + r() * (yMax - yMin));
+    const cx = Math.floor(x / T), cy = Math.floor(y / T);
+    let air = 0;
+    for (let ty = cy - rt; ty <= cy + rt; ty++) for (let tx = cx - rt; tx <= cx + rt; tx++) {
+      if (tx < 0 || ty < 0 || tx >= ROOM.COLS || ty >= ROOM.ROWS) continue;
+      if ((tx - cx) ** 2 + (ty - cy) ** 2 > rt * rt) continue;
+      if (!isSolid(room, tx, ty)) air++;
+    }
+    if (!best || air > best.air) best = { x: x + MARGIN, y: y + MARGIN, air };
+  }
+  return best;
+}
+
+// Answer: the great target — rings answering outward from one bright centre
+// (title-card-ch1), glowing nodes on its rings, a crosshair across the sky
+function target(g, cx, cy, R, acc) {
+  g.save();
+  g.strokeStyle = rgba(acc, 0.1); g.lineWidth = 1;
+  g.beginPath(); g.moveTo(0, cy); g.lineTo(W, cy); g.moveTo(cx, 0); g.lineTo(cx, H); g.stroke();
+  g.shadowColor = acc;
+  for (const [f, a, w, dash] of [[0.14, 0.5, 1.6], [0.3, 0.3, 1.2], [0.5, 0.36, 1.4], [0.72, 0.22, 1.1], [1, 0.32, 1.6], [1.18, 0.16, 1, [4, 7]]]) {
+    g.shadowBlur = a > 0.3 ? 8 : 0;
+    g.strokeStyle = rgba(acc, a); g.lineWidth = w; g.setLineDash(dash || []);
+    g.beginPath(); g.arc(cx, cy, R * f, 0, Math.PI * 2); g.stroke();
+  }
+  g.setLineDash([]);
+  const glow = g.createRadialGradient(cx, cy, 0, cx, cy, R * 0.22);
+  glow.addColorStop(0, rgba(acc, 0.5)); glow.addColorStop(0.3, rgba(acc, 0.16)); glow.addColorStop(1, rgba(acc, 0));
+  g.fillStyle = glow; g.beginPath(); g.arc(cx, cy, R * 0.22, 0, Math.PI * 2); g.fill();
+  g.shadowBlur = 10; g.fillStyle = rgba(acc, 0.85);
+  g.beginPath(); g.arc(cx, cy, 5, 0, Math.PI * 2); g.fill();
+  // nodes where the crosshair meets the rings, and a few riding the rings
+  for (const f of [0.5, 1]) for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    g.fillStyle = rgba(acc, f === 1 ? 0.7 : 0.5);
+    g.beginPath(); g.arc(cx + dx * R * f, cy + dy * R * f, f === 1 ? 3.6 : 2.6, 0, Math.PI * 2); g.fill();
+  }
+  for (const a of [0.7, 2.3, 4.1]) { g.fillStyle = rgba(acc, 0.6); g.beginPath(); g.arc(cx + Math.cos(a) * R * 0.72, cy + Math.sin(a) * R * 0.72, 3, 0, Math.PI * 2); g.fill(); }
+  g.restore();
+}
+
 // Per chapter: what the far layer carries and how the skyline is shaped.
 const STAGE = {
-  answer: { ring: [180, 240], rings: 2, sky: [0.25, 0.75], width: [40, 90], caps: 0.35, axes: [4, 6] },
+  answer: { ring: [200, 250], rings: 0, target: true, sky: [0.25, 0.7], width: [40, 90], caps: 0.35, axes: [3, 5] },
   weight: { ring: [90, 120], rings: 1, sky: [0.14, 0.4], width: [80, 150], caps: 0.15, axes: [2, 3], beams: true },
   ground: { ring: [110, 180], rings: 1, sky: [0.22, 0.72], width: [40, 120], caps: 0.3, axes: [3, 5], vines: true },
   echo: { ring: [130, 160], rings: 0, sky: [0.3, 0.8], width: [18, 44], caps: 0.2, axes: [2, 4], orb: true },
@@ -128,8 +175,17 @@ function beam(g, y0, slope, t, acc) {
   body.addColorStop(0, '#18202c'); body.addColorStop(1, '#0d121a');
   g.fillStyle = body;
   g.beginPath(); pts.forEach(([x, y], i) => g[i ? 'lineTo' : 'moveTo'](x, y)); g.closePath(); g.fill();
-  g.fillStyle = rgba(acc, 0.05);
-  g.beginPath(); g.moveTo(-40, y0); g.lineTo(W + 40, y0 + slope * (W + 80)); g.lineTo(W + 40, y0 + slope * (W + 80) - 10); g.lineTo(-40, y0 - 10); g.closePath(); g.fill();
+  // the top face, seen from below the beam's line: a lighter slab
+  g.fillStyle = '#273244';
+  g.beginPath(); g.moveTo(-40, y0); g.lineTo(W + 40, y0 + slope * (W + 80)); g.lineTo(W + 40, y0 + slope * (W + 80) - 16); g.lineTo(-40, y0 - 16); g.closePath(); g.fill();
+  g.fillStyle = rgba(acc, 0.08); g.fill();
+  // stone: faint joints across the beam and a scatter of grain
+  g.strokeStyle = 'rgba(0,0,0,0.35)'; g.lineWidth = 1;
+  for (let x = 60; x < W; x += 150) { const y = y0 + slope * (x + 40); g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + t); g.stroke(); }
+  for (let i = 0; i < 240; i++) {
+    const x = (i * 53) % W, y = y0 + slope * (x + 40) + ((i * 37) % Math.max(1, t - 4)) + 2;
+    g.fillStyle = i % 3 ? 'rgba(255,255,255,0.025)' : 'rgba(0,0,0,0.25)'; g.fillRect(x, y, 2, 1);
+  }
   g.shadowColor = acc; g.shadowBlur = 6;
   g.strokeStyle = rgba(acc, 0.38); g.lineWidth = 1.5;
   g.beginPath(); g.moveTo(-40, y0); g.lineTo(W + 40, y0 + slope * (W + 80)); g.stroke();
@@ -179,12 +235,17 @@ function farLayer(room, acc, stage) {
   const span = ([a, b]) => a + r() * (b - a);
   // the diagram: ring clusters, dashed axes from the top
   if (S.orb) orbRing(g, W / 2, H * 0.36, span(S.ring), acc);
+  if (S.target) { const p = openSpot(room, r, 150, { yMin: 0.2, yMax: 0.55 }); target(g, p.x, p.y, span(S.ring), acc); }
   for (let i = 0; i < S.rings; i++) ring(g, W * (0.2 + r() * 0.6), H * (0.24 + r() * 0.2), span(S.ring) * (i ? 0.55 : 1), acc, 1);
   for (let i = 0, n = Math.round(span(S.axes)); i < n; i++) axis(g, MARGIN + r() * ROOM.W, 0, H * (0.3 + r() * 0.4), acc, 1, r);
   if (S.beams) {
-    beam(g, H * (0.12 + r() * 0.1), 0.32 + r() * 0.1, 70 + r() * 30, acc);
-    beam(g, H * (0.02 + r() * 0.06), 0.36 + r() * 0.08, 50 + r() * 20, acc);
-    cube(g, W * (0.45 + r() * 0.25), H * (0.18 + r() * 0.08), 72 + r() * 20, acc);
+    // two great beams crossing the open part of the room, and a cube hanging in the air
+    const p = openSpot(room, r, 110, { yMin: 0.2, yMax: 0.6 });
+    const slope = 0.3 + r() * 0.08, t = 64 + r() * 26;
+    beam(g, p.y - 120 - slope * (p.x + 40) - t / 2, slope, t, acc);
+    beam(g, p.y + 150 - slope * (p.x + 40), slope * 0.85, 46 + r() * 16, acc);
+    const q = openSpot(room, r, 70, { yMin: 0.1, yMax: 0.3 }); // high in the sky, clear of ledges
+    cube(g, q.x - 40, q.y - 20, 70 + r() * 18, acc);
   }
   // skyline (echo: thin pillars in near-mirrored pairs about the centre axis)
   if (S.orb) {

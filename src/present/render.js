@@ -471,7 +471,11 @@ export function render(ctx, {
   ctx.restore();
 
   drawTethers(ctx, state, theme, fx && fx.collapse ? fx.collapse.k : 0);
-  const objView = { look: [state.player.x + PLAYER.W / 2, state.player.y + PLAYER.H / 2], collapse: fx && fx.collapse ? fx.collapse.k : 0 };
+  const coreObjs = state.objects.filter((o) => o.kind === 'core');
+  const objView = {
+    look: [state.player.x + PLAYER.W / 2, state.player.y + PLAYER.H / 2], collapse: fx && fx.collapse ? fx.collapse.k : 0,
+    time, cores: { n: coreObjs.length, broken: coreObjs.filter((o) => o.broken).length },
+  };
   for (const o of state.objects) (OBJECT_LOOKS[o.kind] || OBJECTS[o.kind].render)(ctx, o, theme, objView);
 
   // door light trails
