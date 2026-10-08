@@ -1,6 +1,6 @@
 {
   "id": "c6-04",
-  "name": "Don't Light It",
+  "name": "Which Is Which",
   "tiles": [
     "##############################",
     "##############################",
@@ -21,12 +21,13 @@
     "##############################"
   ],
   "spawn": [3,15],
-  "exit": [26,15],
+  "exit": [25,15],
   "emitters": [
-    {"type":"charge","at":[28,15],"dir":"left","period":2.2,"phase":0.4}
+    {"type":"orb","at":[28,15],"dir":"left","period":2.12,"phase":0.62,"count":1},
+    {"type":"charge","at":[28,14],"dir":"left","period":1.13,"phase":0}
   ],
   "objects": [],
   "par": 0,
-  "solution": "1:2*d8",
+  "solution": "1:2*bc,i*o,2*n",
   "mirrorOf": null
 }

@@ -40,6 +40,8 @@ import { evaluateAchievements } from '../platform/steam/achievements.js';
 import { glyphFamily } from '../platform/steam/glyphs.js';
 import { BrowserStorage } from '@slu/web-shell/platform/browser/BrowserStorage.js';
 import { createMap } from './map.js';
+import { playEnding } from './ending.js';
+import { FINAL_LINE, CREDITS } from '../content/ending.js';
 import { drawPrompts, ROOM_PROMPTS } from '../present/prompts.js';
 import { CAMERA_ZOOM, CAMERA_HOLD, CAMERA_EASE, RESULTS_SETTLE, INTRO_TIME, RESET_PROMPT_DEATHS, ASSIST_STEPS, VOLUMES, SLOWMO, COLLAPSE_TIME, OFFSET } from '../../config/ux.js';
 
@@ -405,6 +407,8 @@ export async function startApp(canvas, ctx) {
       save.data.chapters[cid] = { ...(save.data.chapters[cid] || {}), examinerDefeated: true };
       save.save();
       syncAchievements();
+      // the final Examiner: the one line, then the credits (GDD: Narrative, Credits)
+      if (encounter.ci === CHAPTERS.length - 1) { showEnding(encounter.ci); return; }
       showExaminerResults(encounter.ci);
       return;
     }
@@ -560,6 +564,14 @@ export async function startApp(canvas, ctx) {
     }, { guard, skin, settle: RESULTS_SETTLE });
   }
 
+  function showEnding(ci) {
+    hideUI();
+    state = 'menu';
+    menuBehind = 'title';
+    encounter = null;
+    playEnding({ line: FINAL_LINE, credits: CREDITS, accent: chapterTheme(ci).accent, onDone: showTitle });
+  }
+
   function showExaminerResults(ci) {
     state = 'menu';
     menuBehind = 'room';
@@ -584,12 +596,7 @@ export async function startApp(canvas, ctx) {
         if (!save.room(CHAPTERS[0].rooms[0])) enterRoom(CHAPTERS[0].rooms[0]); // first boot: straight into the prologue
         else showChapters();
       } else if (choice === 'settings') showSettings('title');
-      else if (choice === 'credits') showScreen('credits', {
-        title: 'REFLECT / DODGE',
-        subtitle: 'Mike · built with Claude Code · SLU Web Shell · Living Loop engine',
-        choices: [],
-        backTarget: 'title',
-      });
+      else if (choice === 'credits') { hideUI(); playEnding({ credits: CREDITS, accent: chapterTheme(0).accent, onDone: showTitle }); }
     } else if (screen === 'chapters') {
       showMap(CHAPTERS.findIndex((c) => c.id === choice));
     } else if (screen === 'pause') {
@@ -815,6 +822,7 @@ export async function startApp(canvas, ctx) {
     enterRoom,
     enterEncounter,
     showTitle,
+    showEnding: () => showEnding(CHAPTERS.length - 1),
     get encounter() { return encounter; },
     solutionOf: (id) => decodeLog(ROOM_BY_ID[id].solution),
     get run() { return run || lastRun; },

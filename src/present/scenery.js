@@ -5,6 +5,8 @@
 //   far  — the chapter's set piece and diagram, and a skyline, deep in fog
 //          answer: a great target ring · weight: diagonal beams, a hanging cube
 //          ground: vines on the skyline · echo: a central orb ring, thin pillars
+//          fracture: a great ring split along a crack · momentum: a ricochet across the sky
+//          bond: two linked rings, a mirrored skyline · mastery: an orrery of every shape
 //   mid  — stepped blocks rising at the room's edges, softly out of focus
 // Guardrails (readability first): no arches or frames (they read as exits),
 // no gameplay colours (accent only), and every line stays far dimmer than the
@@ -33,7 +35,7 @@ export const rgba = (hex, a) => {
 
 // Where a set piece shows best: the candidate point (layer coords) with the
 // most open air around it, so a ring or a cube isn't hidden behind rock.
-function openSpot(room, r, radius, { yMin = 0.12, yMax = 0.7 } = {}) {
+function openSpot(room, r, radius, { yMin = 0.12, yMax = 0.7, avoid = false } = {}) {
   const T = ROOM.TILE, rt = Math.ceil(radius / T);
   let best = null;
   for (let i = 0; i < 48; i++) {
@@ -44,6 +46,12 @@ function openSpot(room, r, radius, { yMin = 0.12, yMax = 0.7 } = {}) {
       if (tx < 0 || ty < 0 || tx >= ROOM.COLS || ty >= ROOM.ROWS) continue;
       if ((tx - cx) ** 2 + (ty - cy) ** 2 > rt * rt) continue;
       if (!isSolid(room, tx, ty)) air++;
+    }
+    if (avoid) { // keep a bright centre off every object and emitter (Chapters 5–8 stages)
+      for (const o of [...(room.objects || []), ...(room.emitters || [])]) {
+        const [ox, oy] = o.at, d2 = (ox - cx) ** 2 + (oy - cy) ** 2;
+        if (d2 < (rt + 2) ** 2) air -= 40;
+      }
     }
     if (!best || air > best.air) best = { x: x + MARGIN, y: y + MARGIN, air };
   }
@@ -83,6 +91,10 @@ const STAGE = {
   weight: { ring: [90, 120], rings: 1, sky: [0.14, 0.4], width: [80, 150], caps: 0.15, axes: [2, 3], beams: true },
   ground: { ring: [110, 180], rings: 1, sky: [0.22, 0.72], width: [40, 120], caps: 0.3, axes: [3, 5], vines: true },
   echo: { ring: [130, 160], rings: 0, sky: [0.3, 0.8], width: [18, 44], caps: 0.2, axes: [2, 4], orb: true },
+  fracture: { ring: [190, 230], rings: 0, sky: [0.2, 0.62], width: [50, 110], caps: 0.25, axes: [2, 4], split: true },
+  momentum: { ring: [100, 130], rings: 1, sky: [0.16, 0.5], width: [60, 130], caps: 0.2, axes: [2, 3], ricochet: true },
+  bond: { ring: [80, 100], rings: 0, sky: [0.26, 0.7], width: [24, 56], caps: 0.3, axes: [2, 3], pair: true, mirrored: true },
+  mastery: { ring: [170, 210], rings: 0, sky: [0.2, 0.66], width: [36, 100], caps: 0.3, axes: [3, 4], orrery: true },
 };
 
 // A block in the card style: dark body, a thin top face seen from just above,
@@ -227,6 +239,103 @@ function orbRing(g, cx, cy, R, acc) {
   g.restore();
 }
 
+// Fracture: the great target, cracked along a diagonal, its halves pushed apart;
+// a few faint shards drift off the crack (far bigger than a Splitter, and fogged)
+function fractured(g, cx, cy, R, acc, r) {
+  const a = -0.7 + r() * 0.3, nx = Math.cos(a + Math.PI / 2), ny = Math.sin(a + Math.PI / 2), off = 7;
+  for (const side of [-1, 1]) {
+    g.save();
+    g.beginPath(); // the half-plane on this side of the crack
+    const L = 4 * R, dx = Math.cos(a) * L, dy = Math.sin(a) * L;
+    g.moveTo(cx - dx, cy - dy); g.lineTo(cx + dx, cy + dy); g.lineTo(cx + dx + side * nx * L, cy + dy + side * ny * L); g.lineTo(cx - dx + side * nx * L, cy - dy + side * ny * L); g.closePath();
+    g.clip();
+    g.translate(side * nx * off, side * ny * off);
+    target(g, cx, cy, R, acc);
+    g.restore();
+  }
+  g.save();
+  g.shadowColor = acc; g.shadowBlur = 6;
+  g.strokeStyle = rgba(acc, 0.32); g.lineWidth = 1.2;
+  const L = R * 1.5;
+  g.beginPath(); g.moveTo(cx - Math.cos(a) * L, cy - Math.sin(a) * L); g.lineTo(cx + Math.cos(a) * L, cy + Math.sin(a) * L); g.stroke();
+  g.shadowBlur = 0;
+  for (let i = 0; i < 6; i++) {
+    const t = (r() - 0.5) * 1.8 * R, d = (r() < 0.5 ? -1 : 1) * (18 + r() * 40), s = 7 + r() * 9, rot = r() * 6;
+    const x = cx + Math.cos(a) * t + nx * d, y = cy + Math.sin(a) * t + ny * d;
+    g.strokeStyle = rgba(acc, 0.2 + r() * 0.12); g.lineWidth = 1;
+    g.beginPath();
+    for (let k = 0; k < 3; k++) { const q = rot + k * 2.094; g[k ? 'lineTo' : 'moveTo'](x + Math.cos(q) * s, y + Math.sin(q) * s); }
+    g.closePath(); g.stroke();
+  }
+  g.restore();
+}
+
+// Momentum: one ricochet across the sky — a dashed zig-zag between two bands,
+// a ring at each bounce, and a gauge ring with three speed ticks where it ends
+function ricochet(g, room, acc, r) {
+  const top = H * (0.12 + r() * 0.06), low = H * (0.42 + r() * 0.08);
+  const pts = []; let x = MARGIN * 0.4, up = r() < 0.5;
+  while (x < W - MARGIN * 0.4) { pts.push([x, up ? top : low]); x += 170 + r() * 90; up = !up; }
+  g.save();
+  g.strokeStyle = rgba(acc, 0.24); g.lineWidth = 1.3; g.setLineDash([7, 8]);
+  g.beginPath(); pts.forEach(([px, py], i) => g[i ? 'lineTo' : 'moveTo'](px, py)); g.stroke();
+  g.setLineDash([]);
+  pts.slice(1, -1).forEach(([px, py], i) => {
+    const k = Math.min(1, 0.4 + i * 0.15);
+    g.strokeStyle = rgba(acc, 0.3 * k + 0.1); g.beginPath(); g.arc(px, py, 6 + i * 0.8, 0, Math.PI * 2); g.stroke();
+  });
+  const [ex, ey] = pts[pts.length - 1], R = 26;
+  g.shadowColor = acc; g.shadowBlur = 8;
+  g.strokeStyle = rgba(acc, 0.5); g.lineWidth = 2.4; g.beginPath(); g.arc(ex, ey, R, 0, Math.PI * 2); g.stroke();
+  g.fillStyle = rgba(acc, 0.55);
+  for (let i = 0; i < 3; i++) { const q = -Math.PI / 2 + i * 2.094; g.fillRect(ex + Math.cos(q) * (R + 9) - 2.5, ey + Math.sin(q) * (R + 9) - 2.5, 5, 5); }
+  g.shadowBlur = 0; g.lineWidth = 1;
+  for (let k = 0; k < 3; k++) { const rr = R + 20 + k * 16; g.strokeStyle = rgba(acc, 0.2 - k * 0.05); g.beginPath(); g.arc(ex, ey, rr, 3.4 + k * 0.15, 4.3 + k * 0.15); g.stroke(); }
+  g.restore();
+}
+
+// Bond: two rings side by side, joined, with mirrored dashed paths leaving them
+function pairRings(g, cx, cy, R, acc) {
+  const gap = R * 1.25;
+  for (const sgn of [-1, 1]) ring(g, cx + sgn * gap, cy, R, acc, 1.1);
+  g.save();
+  g.shadowColor = acc; g.shadowBlur = 6;
+  g.strokeStyle = rgba(acc, 0.34); g.lineWidth = 1.4;
+  g.beginPath(); g.moveTo(cx - gap + 10, cy); g.lineTo(cx + gap - 10, cy); g.stroke();
+  g.shadowBlur = 0; g.setLineDash([5, 8]); g.strokeStyle = rgba(acc, 0.2); g.lineWidth = 1.1;
+  for (const sgn of [-1, 1]) { g.beginPath(); g.moveTo(cx + sgn * gap, cy + R); g.lineTo(cx + sgn * (gap + R * 1.6), cy + R * 2.6); g.stroke(); g.beginPath(); g.moveTo(cx + sgn * gap, cy - R); g.lineTo(cx + sgn * (gap + R * 1.6), cy - R * 2.2); g.stroke(); }
+  g.setLineDash([]);
+  g.fillStyle = rgba(acc, 0.5);
+  for (const sgn of [-1, 1]) { const x = cx + sgn * gap; g.beginPath(); g.moveTo(x, cy - 7); g.lineTo(x + 7, cy); g.lineTo(x, cy + 7); g.lineTo(x - 7, cy); g.closePath(); g.fill(); }
+  g.restore();
+}
+
+// Mastery: an orrery — rings about a bright core, every earlier shape on the outer ring
+function orrery(g, cx, cy, R, acc) {
+  g.save();
+  g.shadowColor = acc;
+  for (const [f, a] of [[0.36, 0.3], [0.64, 0.2], [1, 0.3]]) { g.shadowBlur = a > 0.25 ? 6 : 0; g.strokeStyle = rgba(acc, a); g.lineWidth = 1.2; g.beginPath(); g.arc(cx, cy, R * f, 0, Math.PI * 2); g.stroke(); }
+  const glow = g.createRadialGradient(cx, cy, 0, cx, cy, 30);
+  glow.addColorStop(0, rgba(acc, 0.4)); glow.addColorStop(0.35, rgba(acc, 0.12)); glow.addColorStop(1, rgba(acc, 0));
+  g.fillStyle = glow; g.beginPath(); g.arc(cx, cy, 30, 0, Math.PI * 2); g.fill();
+  g.shadowBlur = 8; g.fillStyle = rgba(acc, 0.6); g.beginPath(); g.arc(cx, cy, 6, 0, Math.PI * 2); g.fill();
+  // the shapes are drawn twice an object's size and faint, so none reads as a live projectile
+  g.shadowBlur = 0; g.strokeStyle = rgba(acc, 0.26); g.fillStyle = rgba(acc, 0.16); g.lineWidth = 1.4;
+  for (let k = 0; k < 6; k++) {
+    const q = -Math.PI / 2 + k * Math.PI / 3, x = cx + Math.cos(q) * R, y = cy + Math.sin(q) * R, s = 18;
+    g.save(); g.setLineDash([3, 7]); g.lineWidth = 1; g.strokeStyle = rgba(acc, 0.16);
+    g.beginPath(); g.moveTo(cx + Math.cos(q) * 16, cy + Math.sin(q) * 16); g.lineTo(x - Math.cos(q) * 16, y - Math.sin(q) * 16); g.stroke(); g.restore();
+    g.beginPath();
+    if (k === 0) { g.arc(x, y, s * 0.8, 0, Math.PI * 2); g.fill(); g.stroke(); } //                    orb
+    if (k === 1) { g.strokeRect(x - s, y - s, 2 * s, 2 * s); } //                           anchor
+    if (k === 2) { g.moveTo(x, y - s); g.lineTo(x + s, y); g.lineTo(x, y + s); g.lineTo(x - s, y); g.closePath(); g.fill(); g.stroke(); } // seed
+    if (k === 3) { for (let i = 0; i < 3; i++) { const a = -Math.PI / 2 + i * 2.094; g[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * s * 1.1, y + Math.sin(a) * s * 1.1); } g.closePath(); g.stroke(); } // splitter
+    if (k === 4) { g.arc(x, y, s, 0, Math.PI * 2); g.stroke(); } //                          charge
+    if (k === 5) { for (const d of [-12, 12]) { g.moveTo(x + d, y - 11); g.lineTo(x + d + 11, y); g.lineTo(x + d, y + 11); g.lineTo(x + d - 11, y); g.closePath(); } g.stroke(); } // twin
+  }
+  g.restore();
+}
+
 function farLayer(room, acc, stage) {
   const S = STAGE[stage];
   const c = document.createElement('canvas'); c.width = W; c.height = H;
@@ -235,6 +344,10 @@ function farLayer(room, acc, stage) {
   const span = ([a, b]) => a + r() * (b - a);
   // the diagram: ring clusters, dashed axes from the top
   if (S.orb) orbRing(g, W / 2, H * 0.36, span(S.ring), acc);
+  if (S.split) { const p = openSpot(room, r, 150, { yMin: 0.2, yMax: 0.5, avoid: true }); fractured(g, p.x, p.y, span(S.ring), acc, r); }
+  if (S.ricochet) ricochet(g, room, acc, r);
+  if (S.pair) pairRings(g, W / 2, H * 0.3, span(S.ring), acc);
+  if (S.orrery) { const p = openSpot(room, r, 140, { yMin: 0.2, yMax: 0.45, avoid: true }); orrery(g, p.x, p.y, span(S.ring), acc); }
   if (S.target) { const p = openSpot(room, r, 150, { yMin: 0.2, yMax: 0.55 }); target(g, p.x, p.y, span(S.ring), acc); }
   for (let i = 0; i < S.rings; i++) ring(g, W * (0.2 + r() * 0.6), H * (0.24 + r() * 0.2), span(S.ring) * (i ? 0.55 : 1), acc, 1);
   for (let i = 0, n = Math.round(span(S.axes)); i < n; i++) axis(g, MARGIN + r() * ROOM.W, 0, H * (0.3 + r() * 0.4), acc, 1, r);
@@ -248,7 +361,7 @@ function farLayer(room, acc, stage) {
     cube(g, q.x - 40, q.y - 20, 70 + r() * 18, acc);
   }
   // skyline (echo: thin pillars in near-mirrored pairs about the centre axis)
-  if (S.orb) {
+  if (S.orb || S.mirrored) {
     for (let i = 0; i < 7; i++) {
       const w = span(S.width), h = H * span(S.sky), dx = 80 + i * (60 + r() * 50);
       for (const sgn of [-1, 1]) block(g, W / 2 + sgn * dx - w / 2, H - h * (0.92 + r() * 0.16), w, h, acc, 0.75, r);

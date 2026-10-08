@@ -864,6 +864,820 @@
    "solvable": false,
    "reason": "state cap 400000 hit",
    "explored": 400001
+  },
+  "9f0e824fe331aa27:any:4:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "9f0e824fe331aa27:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 9.32,
+   "explored": 285044
+  },
+  "71cd61eb33f2d1c6:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 4.03,
+   "explored": 1346
+  },
+  "2b5a13ddea7f68a6:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 3.63,
+   "explored": 903
+  },
+  "a17c1cc865838d8e:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 11.32,
+   "explored": 3951
+  },
+  "583c2e22cb892a4c:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.02,
+   "explored": 1784
+  },
+  "7fb595b8011c6da8:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 17.93,
+   "explored": 137291
+  },
+  "91d1ba52d4c2fca7:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.71,
+   "explored": 1968
+  },
+  "8c96069616041dc3:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 15.07,
+   "explored": 63065
+  },
+  "bf49a17908ec08f7:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.83,
+   "explored": 30287
+  },
+  "353bff2e4620c6fb:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.76,
+   "explored": 2712
+  },
+  "d4d8ffebc0770393:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 14.68,
+   "explored": 21182
+  },
+  "6d8355ecd83a263a:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 14.97,
+   "explored": 57255
+  },
+  "aec80adceee6b850:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 17.93,
+   "explored": 84066
+  },
+  "1f612a04a6b097d3:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 7.69,
+   "explored": 2788
+  },
+  "eab0e4b9ec313e7a:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 13.84,
+   "explored": 59747
+  },
+  "da8c693eb6db6308:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 10.68,
+   "explored": 134316
+  },
+  "e980ccd0ca852e2a:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.39,
+   "explored": 82753
+  },
+  "be37399b4e865e57:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 7.42,
+   "explored": 166261
+  },
+  "1fbd36b2026c84f8:any:5:2:p32": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "1fbd36b2026c84f8:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "1fbd36b2026c84f8:any:4:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "1fbd36b2026c84f8:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 8.2,
+   "explored": 119816
+  },
+  "e11928a5279e8bb4:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.24,
+   "explored": 13727
+  },
+  "268bf1a2a13b82e5:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.59,
+   "explored": 82812
+  },
+  "3c912b4e90aa9532:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 6.65,
+   "explored": 1416
+  },
+  "b2d819a3808305e7:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 3.63,
+   "explored": 732
+  },
+  "867df30cda8b486a:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.6,
+   "explored": 5743
+  },
+  "3b382dbdf36515f9:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.2,
+   "explored": 1884
+  },
+  "6a01f44550cb5838:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.11,
+   "explored": 17773
+  },
+  "eec187f2c8cf359d:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 11.72,
+   "explored": 4136
+  },
+  "7290228e39f69a37:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 4.08,
+   "explored": 1491
+  },
+  "628b494c3e5ba956:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.92,
+   "explored": 9196
+  },
+  "c19bc092f243e42d:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.42,
+   "explored": 1779
+  },
+  "21cfcd1368dc7d48:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 5.63,
+   "explored": 33660
+  },
+  "4b642c4f788e8eb1:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 5.83,
+   "explored": 2627
+  },
+  "d400d3968ebc3d38:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 15.66,
+   "explored": 32067
+  },
+  "d23f5862f294f2dd:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 11.43,
+   "explored": 141430
+  },
+  "c387c080b580ff66:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 5.51,
+   "explored": 14265
+  },
+  "d808fab9d300b207:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 5.51,
+   "explored": 38994
+  },
+  "3c20981f97a0d58e:any:5:2:p32": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "3c20981f97a0d58e:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "3c20981f97a0d58e:any:4:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "3c20981f97a0d58e:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 9.72,
+   "explored": 101073
+  },
+  "b703ededed4aa5b4:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.38,
+   "explored": 46127
+  },
+  "ac9f3d54492f7bfa:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 11.82,
+   "explored": 14673
+  },
+  "be6a8d7822b660d6:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.92,
+   "explored": 28103
+  },
+  "5f831cfc5ec8f85e:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 3.97,
+   "explored": 115
+  },
+  "327a3d48f1bfc10c:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.94,
+   "explored": 88108
+  },
+  "fb89b13137407bd4:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 3.51,
+   "explored": 281
+  },
+  "36a075f570082900:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.22,
+   "explored": 41580
+  },
+  "0428cbca155074b4:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.18,
+   "explored": 7152
+  },
+  "0ab4f45acb9e11ff:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 4.14,
+   "explored": 229
+  },
+  "4ab8c9f5e98b47ed:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 11.38,
+   "explored": 164703
+  },
+  "d5301ee74c9016e4:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 5.37,
+   "explored": 1097
+  },
+  "138dfedc5e6ba995:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 6.22,
+   "explored": 9582
+  },
+  "364eabd045c1c487:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 3.97,
+   "explored": 217
+  },
+  "702f35ef0eae77c4:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 3.51,
+   "explored": 281
+  },
+  "4c58601309092bb0:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 9.29,
+   "explored": 6882
+  },
+  "bba43f7a0e462491:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.78,
+   "explored": 176559
+  },
+  "11aefdab6812598b:any:5:2:p32": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "11aefdab6812598b:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "11aefdab6812598b:any:4:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "11aefdab6812598b:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 9.28,
+   "explored": 125814
+  },
+  "c3eef65c772dd021:any:5:2:p32": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "c3eef65c772dd021:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "c3eef65c772dd021:any:4:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "c3eef65c772dd021:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 9.28,
+   "explored": 183242
+  },
+  "9ef994a08c0b57d4:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.26,
+   "explored": 10381
+  },
+  "a2f5a8642ebbce86:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.54,
+   "explored": 12026
+  },
+  "704141b1cbb97a4c:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 6.67,
+   "explored": 1940
+  },
+  "01212943d7332fa6:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.97,
+   "explored": 24230
+  },
+  "27e5faa7064786f2:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.22,
+   "explored": 14679
+  },
+  "834647df342c47c4:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 3.31,
+   "explored": 261
+  },
+  "234a7e4fe761b565:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.16,
+   "explored": 11034
+  },
+  "05ec6d8f2d4e76a5:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 1.13,
+   "explored": 49
+  },
+  "0e239e3281f48020:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 4.2,
+   "explored": 1065
+  },
+  "2e62c855de9bcb9a:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.54,
+   "explored": 12009
+  },
+  "cca282d2d3970c06:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 4.14,
+   "explored": 229
+  },
+  "6973f431ec8910dc:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.26,
+   "explored": 9323
+  },
+  "b22923994e07cc48:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 9.97,
+   "explored": 5265
+  },
+  "9eca45a1891b8eb3:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 3.91,
+   "explored": 10588
+  },
+  "3d59da714e7170a7:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 10.89,
+   "explored": 29025
+  },
+  "4420f85e8ab03454:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.98,
+   "explored": 172356
+  },
+  "f9cdc25cbc316392:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 4.18,
+   "explored": 19576
+  },
+  "baa65f19fc65939b:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 9.12,
+   "explored": 144892
+  },
+  "a7a5c7d4f083a1e3:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.44,
+   "explored": 80350
+  },
+  "12a74619c49cee4b:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.46,
+   "explored": 66101
+  },
+  "fdc1f24f252de29a:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 3.79,
+   "explored": 186
+  },
+  "c6ba30391e2b7bc4:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 3.63,
+   "explored": 1290
+  },
+  "765160945587e270:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 3.63,
+   "explored": 1199
+  },
+  "b91f7ec1e095111a:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.26,
+   "explored": 10630
+  },
+  "f9b0b90d4b746cbb:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 4.23,
+   "explored": 242
+  },
+  "9f76ce30c5414b12:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 8.12,
+   "explored": 80889
+  },
+  "53e4adec8658cb0d:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.54,
+   "explored": 11904
+  },
+  "db631ddb3aa9d42f:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.27,
+   "explored": 4892
+  },
+  "9d2cb7532d7621dc:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.72,
+   "explored": 18534
+  },
+  "60330ae5ae7d7096:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.94,
+   "explored": 179908
+  },
+  "ee2609cf099d83c3:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 4.14,
+   "explored": 211
+  },
+  "fed13cfa23a188a3:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 9.14,
+   "explored": 12855
+  },
+  "a58f4bd7561ce9f2:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 7.44,
+   "explored": 66372
+  },
+  "ecb035e4c977391f:any:5:2:p32": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "ecb035e4c977391f:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "ecb035e4c977391f:any:4:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "ecb035e4c977391f:any:3:2": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 11.15,
+   "explored": 185573
+  },
+  "320d4ded7b0a7e36:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 5.51,
+   "explored": 11873
+  },
+  "90bddea061593065:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 9.78,
+   "explored": 244868
+  },
+  "42aecd8ed06364d8:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 3.97,
+   "explored": 94
+  },
+  "0fb7afb24c2a7008:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.64,
+   "explored": 29434
+  },
+  "9f1d1282978bc42b:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.12,
+   "explored": 3709
+  },
+  "7cb039b6e06d7614:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 4020
+  },
+  "99eab21386d276b7:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 3393
+  },
+  "1b6eacb7bfc1d46d:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 3211
+  },
+  "453de109480c743b:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 12273
+  },
+  "43bae410742cf8c6:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 10067
+  },
+  "37e7ce0b3d9068e0:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 7374
+  },
+  "f928418e24481dfc:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 7374
+  },
+  "79a3d7c65549d9fa:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8692
+  },
+  "b83af7f01ab3ed8a:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8692
+  },
+  "00faf060f53566a8:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 900
+  },
+  "7a56e5a4b5d050a9:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 966
+  },
+  "4ec6e9133bb43c8e:any:5:1": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "838f7fc02a8d03bc:any:5:1": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "45b0f4948c2bdb70:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 11836
+  },
+  "a34be7b170b560be:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 10640
+  },
+  "c034171fea873d75:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 3524
+  },
+  "02991daf31186583:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 2796
+  },
+  "aaab7943cbb1c4cd:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 4397
+  },
+  "cda60b7412a43efd:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 4806
+  },
+  "5f05f03c0eca36b1:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 4171
+  },
+  "0ac6d1be73271b46:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 3540
+  },
+  "c85bd279ceec7069:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8692
+  },
+  "47caec9ed0dbea4a:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8692
+  },
+  "c85f1ce85c6a7e7f:any:5:1": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 180919
+  },
+  "b00e1b49f254ecce:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8875
+  },
+  "023d9289eb3738b0:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 10305
+  },
+  "83cf28d7ee4cef99:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 10079
+  },
+  "26f79f165cf80d07:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8910
+  },
+  "9e340583df772b2b:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 8262
+  },
+  "578960872bd9908b:any:5:1": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 131447
+  },
+  "547219607eb14112:any:5:1": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "08c48881d892d333:any:5:1": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "9a4d21f7dd96e8a3:any:5:0": {
+   "solvable": false,
+   "reason": "search exhausted",
+   "explored": 9307
+  },
+  "f489c52071afd6a3:any:5:1": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
   }
  }
 }

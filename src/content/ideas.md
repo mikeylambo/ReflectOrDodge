@@ -108,17 +108,17 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c6-01 Early | 6 Momentum | (intro) A Charge is harmless until it has bounced three times: answer it up into the switch while it's still cold. | |
 | c6-02 Through You | 6 Momentum | A cold Charge passes straight through you: stand still and let it carry on to the switch behind you. | ✓ |
 | c6-03 Bounce Home | 6 Momentum | Send the Charge up into the rain emitter above you, then go back for the switch. | |
-| c6-04 Don't Light It | 6 Momentum | In a two-tall corridor an answer only heats it into your path: don't answer at all. | ✓ |
+| c6-04 Which Is Which | 6 Momentum | Cold Charges stream overhead in a two-tall hall while an orb comes along the floor: tell them apart, and time the orb. | ✓ |
 | c6-05 Up Through the Gap | 6 Momentum | The switch sits above a hole in the ceiling: answer from right under the gap. | |
 | c6-06 Fall Through It | 6 Momentum | Charges rise up the shaft, harmless: drop straight through them. | ✓ |
 | c6-07 Short Reach | 6 Momentum | Early again from the far side, under a low ceiling: answer it before it warms. | |
 | c6-08 Redirect the Rain | 6 Momentum | A cold Charge falls on you: send it sideways into the wall switch. | |
-| c6-09 Warm Rain | 6 Momentum | A curtain of falling Charges, all cold: walk through it. | ✓ |
+| c6-09 Warm Rain | 6 Momentum | Anchors hide in a curtain of cold Charges: walk through the Charges, time the anchors. | ✓ |
 | c6-10 Both Ways | 6 Momentum | One switch behind you (let it pass through you), one above the gap (answer the next one). | |
 | c6-11 Wait at the Lip | 6 Momentum | The shaft's Charge flies past the lip: wait it out and walk on. | ✓ |
 | c6-12 Sideways at the Lip | 6 Momentum | Answer the shaft's Charge sideways into the switch beside the shaft. | |
-| c6-13 Heavy Rain | 6 Momentum | Anchors rain on your path while a cold Charge follows you through: time the gaps. | ✓ |
-| c6-14 Warm Well | 6 Momentum | Drop down the well past the Charges rising in it before they've bounced hot. | ✓ |
+| c6-13 Heavy Rain | 6 Momentum | Four staggered anchor columns over a low hall, a cold Charge at your heels: find the wave. | ✓ |
+| c6-14 Warm Well | 6 Momentum | Drop through the cold Charges rising in the well, then answer the bottom corridor's orb. | |
 | c6-15 Let Them Through | 6 Momentum | Two Charges, two switches behind you: stand in their path and let both through. | ✓ |
 | c6-ex1 Examiner I | 6 Momentum (Examiner) | A cold Charge crosses the floor: answer it up into the core while the orb harasses you. | |
 | c6-ex2 Examiner II | 6 Momentum (Examiner) | Two cores: two Charges, two answers, each from under its core. | |
@@ -130,10 +130,10 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c7-05 From the Other Side | 7 Bond | Mirror again, the pair coming from the right. | |
 | c7-06 Fall Between | 7 Bond | Drop down a two-wide shaft between a rising pair. | ✓ |
 | c7-07 Home Again | 7 Bond | A falling pair answered neutral flies back up, into the switches beside its emitter. | |
-| c7-08 Crossfire | 7 Bond | A twin and two orbs down the tunnel: there's a way through without a single answer. | ✓ |
+| c7-08 Crossfire | 7 Bond | Orbs ahead, pairs closing from behind (stand between them): time the orbs. | ✓ |
 | c7-09 Partner Shuts | 7 Bond | Send the low twin up into its switch while the orb rains on the spot you answer from. | |
 | c7-10 Home Under Fire | 7 Bond | Send the pair home while an orb crosses high. | |
-| c7-11 Between the Pairs | 7 Bond | Two falling pairs: find the gaps between them. | ✓ |
+| c7-11 Between the Pairs | 7 Bond | Four staggered falling pairs over a low hall: find the gaps between them. | ✓ |
 | c7-12 Mirror in the Rain | 7 Bond | The Mirror answer, with anchors to jump. | |
 | c7-13 Twin Tunnel | 7 Bond | A three-tall tunnel and two pairs: time them through the notch. | ✓ |
 | c7-14 Twin Count | 7 Bond | Three pairs down the tunnel and no way past: two answers. | |
@@ -163,6 +163,7 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 Chapter 1: 8 of 20 rooms are pass rooms, above the quota of 5.
 Chapter 4 (Echo): 15 core rooms, 5 of them pass rooms (quota 4), and the Examiner. Mirrors to come. `c4-01` was the M0 sample room.
 Chapter 5 (Fracture): 15 core rooms, 4 of them pass rooms (quota 4), and the Examiner.
-Chapter 6 (Momentum): 15 core rooms, 8 of them pass rooms (quota 4): the Charge is a lesson in *not* answering as much as answering. And the Examiner.
+Chapter 6 (Momentum): 15 core rooms, 7 of them pass rooms (quota 4): the Charge is a lesson in *not* answering as much as answering. And the Examiner.
 Chapter 7 (Bond): 15 core rooms, 5 of them pass rooms (quota 4), and the Examiner.
+Pass rooms in 6–8 were checked to need timing: holding one input from the start never clears them.
 Chapter 8 (Mastery): 15 core rooms that recombine every projectile, 4 of them pass rooms (quota 4), and the Examiner.
