@@ -7,8 +7,8 @@ import { ROOM, SEED, CHARGE, TWIN, TIMESTEP } from '../../config/tunables.js';
 const T = ROOM.TILE;
 const LIFE_F = Math.round(SEED.LIFE * TIMESTEP.HZ);
 
-// Examiner body — the Orrery (option B, docs/ART.md: Examiner). A dark
-// housing marks the solid block; inside, three gimbal rings precess around
+// Examiner body — the Orrery (option B, docs/ART.md: Examiner). A faint
+// dashed outline marks the solid block; inside, three gimbal rings precess around
 // the eye, back halves dim and front halves bright so they read in depth. One
 // node per core rides the outer ring, gold while that core holds and dark
 // once it breaks; the rings turn faster as the Examiner loses. The eye
@@ -36,12 +36,9 @@ function body(ctx, s, theme, view = {}) {
   ctx.beginPath(); ctx.moveTo(cx, y - 34); ctx.lineTo(cx, y - 6); ctx.moveTo(cx, y + h + 6); ctx.lineTo(cx, y + h + 34); ctx.stroke();
   ctx.setLineDash([]); ctx.globalAlpha = fade * 0.6;
   for (const ny of [y - 34, y + h + 34]) { ctx.beginPath(); ctx.arc(cx, ny, 2, 0, TAU); ctx.fill(); }
-  // housing: the solid block
+  // the solid block: no fill (the room shows through), only a faint dashed outline
   ctx.globalAlpha = fade;
   ctx.beginPath(); ctx.roundRect(x, y, w, h, 18);
-  const fill = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.55);
-  fill.addColorStop(0, '#2a1434'); fill.addColorStop(1, '#130b19');
-  ctx.fillStyle = fill; ctx.fill();
   ctx.strokeStyle = E; ctx.globalAlpha = fade * 0.5; ctx.lineWidth = 1.2; ctx.setLineDash([4, 5]); ctx.stroke(); ctx.setLineDash([]);
   ctx.globalAlpha = fade;
   // rings: [rx, ry, base tilt, width, precession speed]
