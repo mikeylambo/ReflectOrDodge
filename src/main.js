@@ -1,7 +1,8 @@
 import { ROOM } from '../config/tunables.js';
 
 const canvas = document.getElementById('c');
-const dpr = Math.min(window.devicePixelRatio || 1, 2);
+// capture mode (?capture=1) renders at 2× so screenshots are 1920×1080 on any screen
+const dpr = new URLSearchParams(location.search).get('capture') === '1' ? 2 : Math.min(window.devicePixelRatio || 1, 2);
 canvas.width = ROOM.W * dpr;
 canvas.height = ROOM.H * dpr;
 const ctx = canvas.getContext('2d');

@@ -14,7 +14,8 @@ import { BrowserInputFamilyDetector } from '@slu/web-shell/platform/browser/Inpu
 
 import { createLoop } from '../engine/loop.js';
 import { createInput } from '../engine/input.js';
-import { initAudio, setVolume, setKeyRatio, setCalibrationOffset, getCalibrationOffset, playPredicted, playEvent } from '../engine/audio.js';
+import { initAudio, setVolume, setKeyRatio, setCalibrationOffset, getCalibrationOffset, playPredicted, playEvent, registerSamples } from '../engine/audio.js';
+import { SFX_URLS } from '../assets/sfx/index.js';
 import { initMusic, setMusicLayers, setMusicChapter, setMusicVolume, CHAPTER_KEYS } from '../engine/music.js';
 import { untilNext } from '../objects/emitter.js';
 import { TIMESTEP } from '../../config/tunables.js';
@@ -48,6 +49,11 @@ import { CAMERA_ZOOM, CAMERA_HOLD, CAMERA_EASE, RESULTS_SETTLE, INTRO_TIME, RESE
 const { SPEEDS, WINDOWS } = ASSIST_STEPS;
 const WINDOW_LABEL = { 1: 'Normal', 1.5: 'Wide', 2: 'Very wide' };
 const UNLOCK_ALL = new URLSearchParams(location.search).get('all') === '1';
+// Capture mode (GDD M3: store assets), ?capture=1: H hides the HUD, prompts and
+// touch controls; [ and ] step slow motion; K saves a PNG of the frame. With
+// "Watch solution" it records clean trailer footage.
+const CAPTURE = new URLSearchParams(location.search).get('capture') === '1' && import.meta.env.MODE !== 'demo';
+const CAPTURE_SPEEDS = [1, 0.5, 0.25, 0.1];
 const pct = (v) => `${Math.round(v * 100)}%`;
 const onOff = (v) => (v ? 'On' : 'Off');
 
@@ -241,6 +247,7 @@ export async function startApp(canvas, ctx) {
         session.fx.collapse = { k: 0, dur: COLLAPSE_TIME, paths: session.reflectPaths.slice() };
         loop.setSpeed(SLOWMO.SPEED);
         collapseUntil = performance.now() + SLOWMO.TIME * 1000;
+        playEvent({ type: 'examiner.defeat' }); // the cadence (GDD: Game feel)
       }
       if (post) { const [sx, sy] = toScreen(cam, e.x, e.y); post.event({ ...e, x: sx, y: sy }, ROOM.W, ROOM.H); }
       if (e.type === 'player.death') { save.recordDeath(roomId); telemetry.death(roomId); telemetry.attempt(roomId); }
@@ -255,9 +262,10 @@ export async function startApp(canvas, ctx) {
   }
   startDemo();
 
+  const cap = { hud: true, speed: 0, snap: false };
   const applyAssists = () => {
     const a = save.data.assists;
-    loop.setSpeed(a.speed);
+    loop.setSpeed(a.speed * CAPTURE_SPEEDS[cap.speed]);
     session.setOpts({ invincible: a.invincible, windowMult: a.window });
   };
   const post = createPostFX(canvas);
@@ -268,6 +276,7 @@ export async function startApp(canvas, ctx) {
     setMusicVolume(save.data.settings.musicVol);
     setCalibrationOffset(save.data.settings.audioOffsetMs);
   };
+  registerSamples(SFX_URLS);
   const startAudio = () => { initAudio(); initMusic(); applySettings(); };
   // the room's key: ambient bed and event sounds move together
   const setChapterAudio = (ci) => { setMusicChapter(ci); setKeyRatio((CHAPTER_KEYS[ci] || CHAPTER_KEYS[1]) / CHAPTER_KEYS[1]); };
@@ -775,7 +784,7 @@ export async function startApp(canvas, ctx) {
       const sc = scored(chapterIdx);
       render(ctx, {
         state: session.state, room: session.room, alpha: state === 'menu' ? 1 : alpha, fx: session.fx, time,
-        hud: state === 'menu' ? false : {
+        hud: state === 'menu' || !cap.hud ? false : {
           par: sc && !encounter ? session.room.par : null,
           hint: state === 'play' && session.hintAvailable(msInRoom),
           phase: encounter ? { i: encounter.phase, n: CHAPTERS[encounter.ci].examiner.length } : null,
@@ -786,15 +795,16 @@ export async function startApp(canvas, ctx) {
         camera: cam,
         ...view,
       });
-      if (prompts.length && (state === 'play' || state === 'intro')) {
+      if (cap.hud && prompts.length && (state === 'play' || state === 'intro')) {
         const p = session.state.player;
         ctx.save(); applyCamera(ctx, cam);
         drawPrompts(ctx, prompts, document.body.dataset.input, { x: p.x, y: p.y }, 1, view.theme);
         ctx.restore();
       }
-      if (state === 'intro') drawIntro(ctx, ROOM_BY_ID[roomId], sc, introT);
-      if (state === 'replay') drawReplayBadge(ctx, time);
+      if (state === 'intro' && cap.hud) drawIntro(ctx, ROOM_BY_ID[roomId], sc, introT);
+      if (state === 'replay' && cap.hud) drawReplayBadge(ctx, time);
       if (post) post.render(performance.now(), { grade: view.theme.grade, flashes: view.flashes });
+      if (cap.snap) { cap.snap = false; snapshot(); }
     },
   });
 
@@ -803,6 +813,31 @@ export async function startApp(canvas, ctx) {
     let roomF = session.log.length;
     for (const a of session.attempts) roomF += decodeLog(a).length;
     return { room: formatTime(roomF), run: run ? formatTime(runTotal + (session.state.status === 'clear' ? 0 : roomF)) : null };
+  }
+
+  // capture mode keys (see CAPTURE)
+  function snapshot() {
+    const src = post && post.enabled ? post.canvas : canvas; // read in the frame it was drawn
+    const a = document.createElement('a');
+    a.href = src.toDataURL('image/png');
+    a.download = `reflect-dodge-${roomId || 'title'}-${Date.now()}.png`;
+    a.click();
+  }
+  if (CAPTURE) {
+    addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      if (e.key === 'h' || e.key === 'H') {
+        cap.hud = !cap.hud;
+        const t = document.getElementById('touch'); if (t) t.style.visibility = cap.hud ? '' : 'hidden';
+        document.body.style.cursor = cap.hud ? '' : 'none';
+        frozenDrawn = false;
+      } else if (e.key === '[' || e.key === ']') {
+        cap.speed = Math.max(0, Math.min(CAPTURE_SPEEDS.length - 1, cap.speed + (e.key === ']' ? 1 : -1)));
+        applyAssists();
+      } else if (e.key === 'k' || e.key === 'K') { cap.snap = true; frozenDrawn = false; }
+      else return;
+      e.preventDefault(); e.stopPropagation();
+    }, true);
   }
 
   applyAssists();
