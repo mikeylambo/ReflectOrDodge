@@ -87,6 +87,24 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c4-ex1 Examiner I | 4 Echo (Examiner) | Its only feed has three pips while it rains on you: one of them goes up into the core. | |
 | c4-ex2 Examiner II | 4 Echo (Examiner) | Two cores, two pips from each wall, rain from its centre: each core needs one shot, from either side. | |
 | c4-ex3 Examiner III | 4 Echo (Examiner) | One wall never stops, the other has three pips, and the rain falls between the cores. | |
+| c5-01 Fork | 5 Fracture | (intro) One answer up, two halves at 45°, two switches, two doors. | |
+| c5-02 Sideways | 5 Fracture | Send it on sideways: one half climbs to the switch, the other dies in the floor. | |
+| c5-03 Step Aside | 5 Fracture | A reflected splitter never flies straight: step out of the way and let it land whole on the floor switch. | ✓ |
+| c5-04 Split Shaft | 5 Fracture | Up a one-wide shaft: answer it and both halves die on the walls. | |
+| c5-05 Only One | 5 Fracture | Up would send a half into the switch that shuts your door: answer it sideways so only one half flies. | |
+| c5-06 Let It Fly | 5 Fracture | The splitter chasing you is the only thing that can hit the doorway switch: let it fly. | ✓ |
+| c5-07 Half Back | 5 Fracture | Answer it neutral: the half going back and up finds the switch under the shelf behind you. | |
+| c5-08 Last Splitter | 5 Fracture | Three pips down the tunnel: wait them out at the mouth. | ✓ |
+| c5-09 Short Fuse | 5 Fracture | In a one-tall tunnel every answer breaks it into the walls: two shots, two answers. | |
+| c5-10 Fork Up High | 5 Fracture | The fork again from a raised platform: the diagonals reach the high switches. | |
+| c5-11 Split Rain | 5 Fracture | Three splitters come up the shaft: wait at the top for the last, then drop. | ✓ |
+| c5-12 Silence the Well | 5 Fracture | An emitter fires down the shaft you must drop through: a diagonal half silences it from above. | |
+| c5-13 Fork at the Lip | 5 Fracture | Answer the shaft's splitter at the lip: the diagonal half finds the switch high in the room. | |
+| c5-14 Split, Then Answer | 5 Fracture | Wait out the shaft's splitters, drop, then answer the corridor's emitter. | |
+| c5-15 Two Splits | 5 Fracture | Two switches at different heights: two splitters, two answers, each from its own spot. | |
+| c5-ex1 Examiner I | 5 Fracture (Examiner) | Its core sits on a diagonal from the splitter it drops: answer it up. | |
+| c5-ex2 Examiner II | 5 Fracture (Examiner) | Two cores, one on each diagonal: one answer, both cores. | |
+| c5-ex3 Examiner III | 5 Fracture (Examiner) | Both diagonals again, and a third core low on its flank that only a sideways split from the wall can reach. | |
 
 Chapter 1: 8 of 20 rooms are pass rooms, above the quota of 5.
 Chapter 4 (Echo): 15 core rooms, 5 of them pass rooms (quota 4), and the Examiner. Mirrors to come. `c4-01` was the M0 sample room.
