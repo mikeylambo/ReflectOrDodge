@@ -753,6 +753,117 @@
    "solvable": false,
    "reason": "state cap 400000 hit",
    "explored": 400001
+  },
+  "6f51b9e64bd34614:any:3:3": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "4db056ad797c2cb3:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 10.84,
+   "explored": 297593
+  },
+  "503272237e771bf8:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 10.84,
+   "explored": 301691
+  },
+  "a3fa592a94e3666e:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 10.07,
+   "explored": 6618
+  },
+  "98b0014934e824fd:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 10.07,
+   "explored": 8147
+  },
+  "66819def562cd428:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.3,
+   "explored": 1257
+  },
+  "a02785b44e90ee8b:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.3,
+   "explored": 3122
+  },
+  "033f22bb3d3d56be:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.8,
+   "explored": 19788
+  },
+  "19b1096ac1d14faa:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 7.6,
+   "explored": 25151
+  },
+  "18d66f1da810dfce:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 9.24,
+   "explored": 2317
+  },
+  "dcd978b2c25d3b9d:any:5:0:p32": {
+   "solvable": true,
+   "reflects": 0,
+   "seconds": 8.48,
+   "explored": 5313
+  },
+  "7f6cca61722e7aa0:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 15.42,
+   "explored": 64394
+  },
+  "e09bf3d290bd347c:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 12.97,
+   "explored": 44257
+  },
+  "55dc557e826c0c58:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 10.06,
+   "explored": 58574
+  },
+  "ad0302d084ed1158:any:5:1:p32": {
+   "solvable": true,
+   "reflects": 1,
+   "seconds": 10.7,
+   "explored": 188387
+  },
+  "490f1acb8036e316:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 6,
+   "explored": 53830
+  },
+  "fb13f0e315362eb1:any:5:2:p32": {
+   "solvable": true,
+   "reflects": 2,
+   "seconds": 6.01,
+   "explored": 61510
+  },
+  "9f0e824fe331aa27:any:5:2:p32": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
+  },
+  "9f0e824fe331aa27:any:5:2": {
+   "solvable": false,
+   "reason": "state cap 400000 hit",
+   "explored": 400001
   }
  }
 }

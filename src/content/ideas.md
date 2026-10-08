@@ -84,6 +84,9 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c4-13 Two Shafts | 4 Echo | Two drops: time the first shaft between its shots, wait out the second's three pips. | ✓ |
 | c4-14 Patience, Then Answer | 4 Echo | Wait out the shaft's pips, drop, then answer the corridor's emitter. | |
 | c4-15 Use It, Then Silence It | 4 Echo | The rain opens the tunnel door (sideways into the switch); then answer the tunnel's own emitter, and time its stragglers. | |
+| c4-ex1 Examiner I | 4 Echo (Examiner) | Its only feed has three pips while it rains on you: one of them goes up into the core. | |
+| c4-ex2 Examiner II | 4 Echo (Examiner) | Two cores, two pips from each wall, rain from its centre: each core needs one shot, from either side. | |
+| c4-ex3 Examiner III | 4 Echo (Examiner) | One wall never stops, the other has three pips, and the rain falls between the cores. | |
 
 Chapter 1: 8 of 20 rooms are pass rooms, above the quota of 5.
-Chapter 4 (Echo): 15 core rooms, 5 of them pass rooms (quota 4). Examiner and mirrors to come. `c4-01` was the M0 sample room.
+Chapter 4 (Echo): 15 core rooms, 5 of them pass rooms (quota 4), and the Examiner. Mirrors to come. `c4-01` was the M0 sample room.
