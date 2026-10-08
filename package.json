@@ -1,0 +1,23 @@
+{
+  "name": "reflect-dodge",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:demo": "vite build --mode demo --outDir dist-demo && cd dist-demo && rm -f ../reflect-dodge-demo.zip && zip -qr ../reflect-dodge-demo.zip .",
+    "preview": "vite preview",
+    "test": "node test/run.mjs",
+    "desktop:dev": "tauri dev",
+    "desktop:build": "tauri build",
+    "test:fast": "node test/run.mjs --no-browser",
+    "test:unit": "node test/unit-run.mjs",
+    "test:browser": "node test/browser-run.mjs"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.1",
+    "playwright": "1.56.1",
+    "vite": "^6.3.5"
+  }
+}

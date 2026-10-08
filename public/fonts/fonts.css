@@ -1,0 +1,6 @@
+/* Self-hosted fonts, latin subset, all SIL Open Font License 1.1 (see OFL-*.txt).
+   Tektur: display. Doto: numbers / HUD. Atkinson Hyperlegible: menus and body. */
+@font-face { font-family: 'Tektur'; font-style: normal; font-weight: 400 900; font-display: swap; src: url('./Tektur.woff2') format('woff2'); }
+@font-face { font-family: 'Doto'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('./Doto.woff2') format('woff2'); }
+@font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 400; font-display: swap; src: url('./AtkinsonHyperlegible-400.woff2') format('woff2'); }
+@font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 700; font-display: swap; src: url('./AtkinsonHyperlegible-700.woff2') format('woff2'); }
