@@ -69,7 +69,21 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c3-ex1 Examiner I | 3 Ground (Examiner) | The core hangs on the Examiner's flank above your reach: grow a step to the shelf, then answer. | |
 | c3-ex2 Examiner II | 3 Ground (Examiner) | The same on the other flank, with a weight rolling the floor. | |
 | c3-ex3 Examiner III | 3 Ground (Examiner) | Both flanks at once; the lanes plant your steps on their own clocks, so the answers are all timing. | |
-| c4-01 Return to Sender | 4 Echo (draft) | In a tunnel you can't jump: send one orb home to shut its emitter, then hop the rest at the mouth. | |
+| c4-01 Return to Sender | 4 Echo | (intro) In a tunnel you can't jump: send one orb home to shut its emitter, then hop the rest at the mouth. | |
+| c4-02 Drop Shaft | 4 Echo | An emitter at the bottom of a one-wide shaft fires up it: answer it from the lip, or on the way down. | |
+| c4-03 Last Word | 4 Echo | The tunnel's emitter shows three pips: wait out its last word at the mouth, then walk through in silence. | ✓ |
+| c4-04 Let It Pass | 4 Echo | The orb chasing you is the only thing that can hit the door's switch: don't answer it. Send it home and you've silenced your own key. | ✓ |
+| c4-05 Wrong Address | 4 Echo | An anchor can't be answered: send a falling orb sideways down the tunnel into the anchors' emitter. | |
+| c4-06 Patience | 4 Echo | (breather) The shaft's emitter has three pips: wait at the top for its last shot, then drop. | ✓ |
+| c4-07 Onward | 4 Echo | A reflect needn't turn it around: send the orb that's chasing you on, into the anchors' emitter ahead; time the stragglers. | |
+| c4-08 Save the Last One | 4 Echo | Three shots, one switch: spend one of the pips on the switch above the floor before they run out. | |
+| c4-09 Pips Up | 4 Echo | Three shots come up the shaft: spend one at the lip, sideways into the switch that opens the exit. | |
+| c4-10 Escort | 4 Echo | Jump the anchor in the open and let it smash the tunnel's heavy wall for you; then answer the orb that comes through. | ✓ |
+| c4-11 Three Chances | 4 Echo | Onward again, but the orbs behind you have three pips: miss them and the anchors keep coming. | |
+| c4-12 Three Drops | 4 Echo | The rain has three drops: one of them has to go down the tunnel into the anchors' emitter. | |
+| c4-13 Two Shafts | 4 Echo | Two drops: time the first shaft between its shots, wait out the second's three pips. | ✓ |
+| c4-14 Patience, Then Answer | 4 Echo | Wait out the shaft's pips, drop, then answer the corridor's emitter. | |
+| c4-15 Use It, Then Silence It | 4 Echo | The rain opens the tunnel door (sideways into the switch); then answer the tunnel's own emitter, and time its stragglers. | |
 
 Chapter 1: 8 of 20 rooms are pass rooms, above the quota of 5.
-`c4-01` is the M0 sample room, parked for Chapter 4. It is tested, but it's not in the campaign order yet.
+Chapter 4 (Echo): 15 core rooms, 5 of them pass rooms (quota 4). Examiner and mirrors to come. `c4-01` was the M0 sample room.
