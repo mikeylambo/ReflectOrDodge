@@ -105,6 +105,65 @@ One idea per room, stated in one sentence (GDD: Level design guide). Before addi
 | c5-ex1 Examiner I | 5 Fracture (Examiner) | Its core sits on a diagonal from the splitter it drops: answer it up. | |
 | c5-ex2 Examiner II | 5 Fracture (Examiner) | Two cores, one on each diagonal: one answer, both cores. | |
 | c5-ex3 Examiner III | 5 Fracture (Examiner) | Both diagonals again, and a third core low on its flank that only a sideways split from the wall can reach. | |
+| c6-01 Early | 6 Momentum | (intro) A Charge is harmless until it has bounced three times: answer it up into the switch while it's still cold. | |
+| c6-02 Through You | 6 Momentum | A cold Charge passes straight through you: stand still and let it carry on to the switch behind you. | ✓ |
+| c6-03 Bounce Home | 6 Momentum | Send the Charge up into the rain emitter above you, then go back for the switch. | |
+| c6-04 Which Is Which | 6 Momentum | Cold Charges stream overhead in a two-tall hall while an orb comes along the floor: tell them apart, and time the orb. | ✓ |
+| c6-05 Up Through the Gap | 6 Momentum | The switch sits above a hole in the ceiling: answer from right under the gap. | |
+| c6-06 Fall Through It | 6 Momentum | Charges rise up the shaft, harmless: drop straight through them. | ✓ |
+| c6-07 Short Reach | 6 Momentum | Early again from the far side, under a low ceiling: answer it before it warms. | |
+| c6-08 Redirect the Rain | 6 Momentum | A cold Charge falls on you: send it sideways into the wall switch. | |
+| c6-09 Warm Rain | 6 Momentum | Anchors hide in a curtain of cold Charges: walk through the Charges, time the anchors. | ✓ |
+| c6-10 Both Ways | 6 Momentum | One switch behind you (let it pass through you), one above the gap (answer the next one). | |
+| c6-11 Wait at the Lip | 6 Momentum | The shaft's Charge flies past the lip: wait it out and walk on. | ✓ |
+| c6-12 Sideways at the Lip | 6 Momentum | Answer the shaft's Charge sideways into the switch beside the shaft. | |
+| c6-13 Heavy Rain | 6 Momentum | Four staggered anchor columns over a low hall, a cold Charge at your heels: find the wave. | ✓ |
+| c6-14 Warm Well | 6 Momentum | Drop through the cold Charges rising in the well, then answer the bottom corridor's orb. | |
+| c6-15 Let Them Through | 6 Momentum | Two Charges, two switches behind you: stand in their path and let both through. | ✓ |
+| c6-ex1 Examiner I | 6 Momentum (Examiner) | A cold Charge crosses the floor: answer it up into the core while the orb harasses you. | |
+| c6-ex2 Examiner II | 6 Momentum (Examiner) | Two cores: two Charges, two answers, each from under its core. | |
+| c6-ex3 Examiner III | 6 Momentum (Examiner) | Charges from both walls now, and no orb: whichever reaches you first goes up. | |
+| c7-01 Mirror | 7 Bond | (intro) Answer the low twin up: its partner mirrors you and goes down. Two switches, one press. | |
+| c7-02 Home | 7 Bond | Answer one neutral and both come home, into the switches either side of their emitter. | |
+| c7-03 Stand Between | 7 Bond | A falling pair straddles you: stand in the middle and they land on the switches either side. | ✓ |
+| c7-04 Which One | 7 Bond | Answer the high twin instead, and the mirror flips. | |
+| c7-05 From the Other Side | 7 Bond | Mirror again, the pair coming from the right. | |
+| c7-06 Fall Between | 7 Bond | Drop down a two-wide shaft between a rising pair. | ✓ |
+| c7-07 Home Again | 7 Bond | A falling pair answered neutral flies back up, into the switches beside its emitter. | |
+| c7-08 Crossfire | 7 Bond | Orbs ahead, pairs closing from behind (stand between them): time the orbs. | ✓ |
+| c7-09 Partner Shuts | 7 Bond | Send the low twin up into its switch while the orb rains on the spot you answer from. | |
+| c7-10 Home Under Fire | 7 Bond | Send the pair home while an orb crosses high. | |
+| c7-11 Between the Pairs | 7 Bond | Four staggered falling pairs over a low hall: find the gaps between them. | ✓ |
+| c7-12 Mirror in the Rain | 7 Bond | The Mirror answer, with anchors to jump. | |
+| c7-13 Twin Tunnel | 7 Bond | A three-tall tunnel and two pairs: time them through the notch. | ✓ |
+| c7-14 Twin Count | 7 Bond | Three pairs down the tunnel and no way past: two answers. | |
+| c7-15 Mirror, Then Home | 7 Bond | Four doors: one pair mirrored up and down, the next sent home. | |
+| c7-ex1 Examiner I | 7 Bond (Examiner) | Answer the low twin up into the core. | |
+| c7-ex2 Examiner II | 7 Bond (Examiner) | Its cores sit either side of the twin emitter: one neutral answer sends both twins home into both. | |
+| c7-ex3 Examiner III | 7 Bond (Examiner) | Both cores by the emitter again, a third above you, and a second pair falling from its centre. | |
+| c8-01 Old Friends | 8 Mastery | (intro) Chapter 1's answer, up into the switch, under Chapter 2's anchor rain. | |
+| c8-02 Heat and Weight | 8 Mastery | A cold Charge up into the switch before it warms, with anchors falling on the spot. | |
+| c8-03 The Gauntlet | 8 Mastery | Orb, Splitter and Charge down the tunnel, two of each: wait them all out at the mouth. | ✓ |
+| c8-04 Fork the Well | 8 Mastery | Split Shaft again, with an orb sweeping the corridor above. | |
+| c8-05 Down the Well | 8 Mastery | Drop Shaft again, with an anchor sweeping the corridor above. | |
+| c8-06 Warm Mirror | 8 Mastery | The Mirror answer while a cold Charge follows the pair. | |
+| c8-07 Weather | 8 Mastery | Two anchor rains and an anchor along the floor: no answers, only jumps. | ✓ |
+| c8-08 Fork and Pip | 8 Mastery | One splitter answer opens both doors, an orb at your back. | |
+| c8-09 Home in the Rain | 8 Mastery | Send the pair home under anchors. | |
+| c8-10 Low Ceiling | 8 Mastery | A Charge and an orb under a low ceiling: time them through. | ✓ |
+| c8-11 Two by Two | 8 Mastery | The low twin up into the switch while an orb follows from behind. | |
+| c8-12 Gap in the Rain | 8 Mastery | The Charge up through the ceiling's gap while orbs fall beside it. | |
+| c8-13 Roll Call | 8 Mastery | Every kind once along a low hall, all of it dodgeable. | ✓ |
+| c8-14 Twin and Fork | 8 Mastery | A falling pair answered home into both switches while a splitter rides the floor. | |
+| c8-15 Quiet Above | 8 Mastery | Two answers: one to silence what falls from above, one into the high switch. | |
+| c8-ex1 Examiner I | 8 Mastery (Examiner) | One orb to answer twice, up into a core on each side, while its anchor falls between. | |
+| c8-ex2 Examiner II | 8 Mastery (Examiner) | Chapter 5's fork: one answer under the splitter, both cores; an anchor along the floor. | |
+| c8-ex3 Examiner III | 8 Mastery (Examiner) | Four cores: the twins home into the two by their emitter, the splitter's fork into the two above. | |
 
 Chapter 1: 8 of 20 rooms are pass rooms, above the quota of 5.
 Chapter 4 (Echo): 15 core rooms, 5 of them pass rooms (quota 4), and the Examiner. Mirrors to come. `c4-01` was the M0 sample room.
+Chapter 5 (Fracture): 15 core rooms, 4 of them pass rooms (quota 4), and the Examiner.
+Chapter 6 (Momentum): 15 core rooms, 7 of them pass rooms (quota 4): the Charge is a lesson in *not* answering as much as answering. And the Examiner.
+Chapter 7 (Bond): 15 core rooms, 5 of them pass rooms (quota 4), and the Examiner.
+Pass rooms in 6–8 were checked to need timing: holding one input from the start never clears them.
+Chapter 8 (Mastery): 15 core rooms that recombine every projectile, 4 of them pass rooms (quota 4), and the Examiner.

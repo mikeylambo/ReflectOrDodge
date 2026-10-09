@@ -23,7 +23,50 @@ export function initAudio() {
   master.connect(comp);
   comp.connect(actx.destination);
   actx.resume();
+  loadSamples();
 }
+
+// Recorded sounds (src/assets/sfx/<event>.ogg, see docs/SFX-PROMPTS.md) replace
+// the synth for their event. A type-specific file wins over the plain one:
+// `projectile.destroy.charge.ogg` before `projectile.destroy.ogg`. The app
+// passes the file URLs (engine code stays bundler-free for the Node tests).
+const SAMPLES = {};
+let sampleUrls = {};
+export function registerSamples(urls) { sampleUrls = urls; if (actx) loadSamples(); }
+function loadSamples() {
+  for (const [name, url] of Object.entries(sampleUrls)) {
+    if (SAMPLES[name]) continue;
+    SAMPLES[name] = 'loading';
+    fetch(url).then((r) => r.arrayBuffer()).then((b) => actx.decodeAudioData(b)).then((buf) => { SAMPLES[name] = buf; }).catch(() => { delete SAMPLES[name]; });
+  }
+}
+// variant names beyond the projectile type: a heavy wall, a Charge turning lethal
+const VARIANT = { 'wall.break': (ev) => ev.heavy && 'wall.break.heavy', 'charge.bounce': (ev) => ev.bounces >= 3 && 'charge.hot' };
+function sampleFor(ev) {
+  const v = VARIANT[ev.type] && VARIANT[ev.type](ev);
+  if (v && SAMPLES[v] && SAMPLES[v] !== 'loading') return SAMPLES[v];
+  const a = ev.ptype && SAMPLES[`${ev.type}.${ev.ptype}`];
+  const b = SAMPLES[ev.type];
+  const s = a && a !== 'loading' ? a : b;
+  return s && s !== 'loading' ? s : null;
+}
+// play a recorded sound; rate shifts pitch (the chapter key, a reflect's direction)
+function sample(buf, when, { rate = 1, gain = 0.9 } = {}) {
+  const n = overlapCount(when);
+  stats.peak = Math.max(stats.peak, n + 1);
+  if (n >= AUDIO.VOICE_CAP) { stats.capped++; return; }
+  voiceWindows.push({ start: when, stop: when + buf.duration / rate });
+  const src = actx.createBufferSource(), g = actx.createGain();
+  src.buffer = buf; src.playbackRate.value = rate * keyRatio;
+  g.gain.value = gain / Math.sqrt(1 + n * AUDIO.DENSITY_ATTEN);
+  src.connect(g); g.connect(master);
+  src.start(when);
+}
+// how a recorded sound is varied per event (pitch only; the file is the timbre)
+const SAMPLE_RATE = {
+  'projectile.reflect': ({ dir }) => ({ up: 1.26, right: 1.12, neutral: 1, left: 0.94, down: 0.84 }[dir] || 1),
+  'charge.bounce': ({ bounces }) => 1 + 0.12 * ((bounces || 1) - 1),
+};
 
 let volume = 1;
 export function setVolume(v) {
@@ -45,9 +88,15 @@ export function setKeyRatio(r) { keyRatio = r; }
 // only be delayed (negative offsets).
 export function getCalibrationOffset() { return calibrationOffsetMs; }
 export function playPredicted(ev, inSec) {
-  if (!actx || !BANK[ev.type] || volume <= 0) return;
+  if (!actx || volume <= 0) return;
   const now = actx.currentTime;
-  BANK[ev.type](ev, Math.max(now, now + inSec - calibrationOffsetMs / 1000));
+  play(ev, Math.max(now, now + inSec - calibrationOffsetMs / 1000));
+}
+function play(ev, when) {
+  const buf = sampleFor(ev);
+  if (buf) sample(buf, when, { rate: SAMPLE_RATE[ev.type] ? SAMPLE_RATE[ev.type](ev) : 1 });
+  else if (BANK[ev.type]) BANK[ev.type](ev, when);
+  else return;
   stats.scheduled++;
 }
 export const PREDICTED = new Set(['emitter.fire']);
@@ -102,15 +151,21 @@ const BANK = {
   'ui.accept': (_, w) => { voice(N.D5, 0.07, 'triangle', 0.06, null, w); voice(N.A5, 0.1, 'triangle', 0.05, null, w + 0.05); },
   'ui.back': (_, w) => voice(N.A4, 0.09, 'triangle', 0.05, N.D4, w),
   'room.clear': (_, w) => [N.D4, N.F4, N.A4, N.D5].forEach((f, i) => voice(f, 0.5, 'triangle', 0.1, null, w + i * 0.08)),
+  // placeholders until recorded sounds exist (docs/SFX-PROMPTS.md)
+  'charge.bounce': ({ bounces = 1 }, w) => voice([N.D4, N.F4, N.A4][Math.min(2, bounces - 1)] * (bounces >= 3 ? 2 : 1), 0.07, bounces >= 3 ? 'square' : 'sine', bounces >= 3 ? 0.07 : 0.04, null, w),
+  'projectile.mirror': (_, w) => { voice(N.A5, 0.12, 'sine', 0.05, null, w); voice(N.A5 * 1.5, 0.12, 'sine', 0.035, null, w + 0.02); },
+  'examiner.core': (_, w) => { voice(N.D5, 0.9, 'sine', 0.12, null, w); voice(N.A5, 0.7, 'sine', 0.07, null, w + 0.01); voice(N.D5 * 2, 0.5, 'triangle', 0.04, null, w + 0.02); },
+  'examiner.defeat': (_, w) => [N.D3, N.A3, N.D4, N.F4, N.A4, N.D5].forEach((f, i) => voice(f, 1.8 - i * 0.12, 'triangle', 0.09, null, w + i * 0.11)),
+  'wall.break': ({ heavy }, w) => { voice(heavy ? N.D3 / 2 : N.D3, 0.22, 'sawtooth', 0.09, N.D3 / 4, w); voice(N.A3, 0.06, 'square', 0.04, N.D3, w); },
+  'seed.stick': (_, w) => voice(N.G4, 0.12, 'triangle', 0.05, N.D4, w),
+  'seed.expire': (_, w) => voice(N.D4, 0.25, 'sine', 0.03, N.A3, w),
 };
 
 export function playEvent(ev) {
-  if (!actx || !BANK[ev.type] || volume <= 0) return;
+  if (!actx || volume <= 0) return;
   if (calibrationOffsetMs > 0 && PREDICTED.has(ev.type)) return; // already scheduled ahead
   const now = actx.currentTime;
-  const when = Math.max(now, now - calibrationOffsetMs / 1000);
-  BANK[ev.type](ev, when);
-  stats.scheduled++;
+  play(ev, Math.max(now, now - calibrationOffsetMs / 1000));
 }
 
 export const audioDebug = () => ({ ...stats, ready: !!actx });

@@ -86,15 +86,15 @@ High-contrast mode drops the motif, uses a pure black field and white edges, and
 Made from `docs/ART-PROMPTS.md`: the character turnaround, pose sheet, key art, the Chapter 1 Examiner sheet and title cards for chapters 1–4. The game takes from them:
 
 - **Hero:** unchanged. Hair and shoes were tried and dropped: at game size they read as noise.
-- **Examiner:** a diagram axis with end nodes and a dashed outline, inner rings that tilt toward you, a glowing pupil, and struts and rails tethering each core to the body (`looks.js`, `drawTethers` in `render.js`).
+- **Examiner:** the Orrery: a diagram axis with end nodes and no box or fill (the rings span the solid block), inner rings that tilt toward you, a glowing pupil, and struts and rails tethering each core to the body (`looks.js`, `drawTethers` in `render.js`). Each chapter varies it (`theme.chapter`): 2 Weight thick rings stacked flat like strata · 3 Ground roots hanging below · 4 Echo a faint lagging copy · 5 Fracture the rings cracked along a diagonal, halves apart, the eye whole · 6 Momentum fast rings with spark trails · 7 Bond two linked orreries, mirrored · 8 Mastery all of them faintly at once.
 - **Seed:** a planted seed is the card's cut lens: flat lit top (the collision line, unchanged), a faceted keel and a node (`looks.js`).
-- **Chapter menu:** the painted card fills each chapter's tile (`skin.js`).
+- **Chapter menu:** the painted card fills each chapter's tile (`skin.js`). Chapters 5–8 are stand-ins built from cards 1–4 (re-tinted to the chapter accent, with a glowing motif of the chapter's projectile) until painted cards exist; `ART-PROMPTS.md` is the brief for those.
 
 `src/present/looks.js` replaces a type's own `render()` for the game view. It exists because `src/objects/` and `src/projectiles/` key the solver cache; a drawing change there would make CI re-solve every room.
 
 ## Stages
 
-Rooms take the title cards' look (`scenery.js`, `theme.stage`). Chapter 3 (`ground`) is on. Chapters 1 (`answer`: a great target ring), 2 (`weight`: diagonal beams, a hanging cube) and 4 (`echo`: a central orb ring, thin pillars, a mirror floor that reflects the room and the hero) are previews, off in play until approved; `?stages=all` shows them.
+Rooms take the title cards' look (`scenery.js`, `theme.stage`). Chapter 3 (`ground`) is on. Chapters 1 (`answer`: a great target ring), 2 (`weight`: diagonal beams, a hanging cube) and 4 (`echo`: a central orb ring, thin pillars, a mirror floor that reflects the room and the hero) are previews, off in play until approved; `?stages=all` shows them. Chapters 5–8 are on (approved), each taken from its card: 5 `fracture` (the great target cracked along a diagonal, halves pushed apart, faint shards), 6 `momentum` (a dashed ricochet across the sky, a gauge ring with three speed ticks), 7 `bond` (two linked rings, mirrored paths, a mirrored skyline), 8 `mastery` (an orrery: every earlier shape, twice object size and faint, around a bright core). Their bright centres keep clear of objects and emitters.
 
 - **Far layer** (parallax 0.35): a diagram (one ring cluster with crosshair and nodes, dashed axes from the top) and a skyline of tall blocks with lit rims, panels and vines, sunk in fog.
 - **Mid layer** (parallax 0.7, slightly blurred): stepped blocks rising at the room's edges.

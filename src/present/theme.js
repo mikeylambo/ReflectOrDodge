@@ -68,10 +68,10 @@ export const CHAPTER_ART = {
   2: { accent: '#9aa6c8', motif: 'strata', stage: 'weight', preview: true, grade: { tint: [0.98, 0.99, 1.04], sat: 0.88 } }, //          Weight: heavy horizontal bands
   3: { accent: '#9be37a', motif: 'tendrils', stage: 'ground', grade: { tint: [1.02, 1.03, 0.96], sat: 1.04 } }, //        Ground: growth lines
   4: { accent: '#d7a6ff', motif: 'none', stage: 'echo', preview: true, grade: { tint: [1.02, 0.98, 1.04], sat: 1 } },
-  5: { accent: '#8fb3ff', motif: 'strata', grade: { tint: [0.98, 1, 1.04], sat: 1 } }, //         Fracture: split bands
-  6: { accent: '#e3c56f', motif: 'rings', grade: { tint: [1.03, 1.01, 0.96], sat: 1 } }, //          Momentum: brass
-  7: { accent: '#f0a8c8', motif: 'none', grade: { tint: [1.03, 0.99, 1.01], sat: 1 } }, //           Bond: rose
-  8: { accent: '#e6e3f2', motif: 'rings', grade: { tint: [1, 1, 1.02], sat: 0.95 } }, //           Mastery: silver
+  5: { accent: '#8fb3ff', motif: 'strata', stage: 'fracture', grade: { tint: [0.98, 1, 1.04], sat: 1 } }, //         Fracture: split bands
+  6: { accent: '#e3c56f', motif: 'rings', stage: 'momentum', grade: { tint: [1.03, 1.01, 0.96], sat: 1 } }, //          Momentum: brass
+  7: { accent: '#f0a8c8', motif: 'none', stage: 'bond', grade: { tint: [1.03, 0.99, 1.01], sat: 1 } }, //           Bond: rose
+  8: { accent: '#e6e3f2', motif: 'rings', stage: 'mastery', grade: { tint: [1, 1, 1.02], sat: 0.95 } }, //           Mastery: silver
 };
 
 // Stages marked preview are off in play until approved; ?stages=all shows them.
@@ -96,9 +96,9 @@ export function chapterTheme(ci, highContrast = false, scenery = true) {
 function makeTheme(ci, highContrast, scenery) {
   const base = highContrast ? HIGH_CONTRAST : THEME;
   const art = CHAPTER_ART[ci] || CHAPTER_ART[0];
-  if (highContrast) return { ...base, motif: 'none', accent: '#ffffff' };
+  if (highContrast) return { ...base, chapter: ci, motif: 'none', accent: '#ffffff' };
   return {
-    ...base, accent: art.accent, motif: scenery && stageOf(art) ? 'none' : art.motif, stage: scenery ? stageOf(art) : null,
+    ...base, chapter: ci, accent: art.accent, motif: scenery && stageOf(art) ? 'none' : art.motif, stage: scenery ? stageOf(art) : null,
     tileEdge: hexA(art.accent, 0.38), tileTop: hexA(art.accent, 0.9), floorGlow: hexA(art.accent, 0.16),
     tileShade: 'rgba(0,0,0,0.3)', tile: '#121622', hatch: hexA(art.accent, 0.085),
     grid: hexA(art.accent, 0.03), motifInk: hexA(art.accent, 0.09), haze: hexA(art.accent, 0.10),

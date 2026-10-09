@@ -42,12 +42,18 @@ One per chapter. Same base prompt each time; swap the line in brackets.
 | 2 Weight | Slate blue-grey light; heavy slanted horizontal bands press down; a grey square block hangs in the air. |
 | 3 Ground | Moss green light; thin tendrils grow upward; small diamond-shaped green platforms float in a rising line. |
 | 4 Echo | Soft violet light; red square emitters on the walls, two of them dark and switched off. |
+| 5 Fracture | Cold periwinkle-blue light (#8fb3ff); a glowing triangle splits into two halves that fly off at 45° along dashed lines; fine crack lines and shards in the architecture. |
+| 6 Momentum | Warm gold light (#e3c56f); a glowing ring ricochets between walls along a dashed zig-zag, three small tick marks around it, faint speed arcs; the ring brightens with each bounce. |
+| 7 Bond | Soft rose-pink light (#f0a8c8); two small diamonds fly side by side joined by a thin line, their dashed paths splitting into a mirror image of each other; a symmetrical chamber. |
+| 8 Mastery | Pale silver-white light (#e6e3f2); a constellation of every earlier shape (orb, square, diamond, triangle, ring, a pair of diamonds) orbits a bright central core on thin concentric rings. |
+
+Chapters 5–8 currently use stand-ins (cards 1–4 re-tinted with a vector motif, `docs/ART.md`). Drop painted ones into `src/assets/title-cards/ch5–8.webp` (1600×900) to replace them; nothing else changes.
 
 ## 5. The Examiner (one shape with variations)
 
 > A large, silent geometric guardian made of light: a wide chamfered octagon body with concentric elliptical rings inside and a single round eye in the centre that follows the viewer, a hexagonal golden core hanging below it. Magenta-pink outlines (#ff8fd8) on a dark violet fill, on a dark navy background. Calm, watchful, not monstrous. Flat vector style, thin glowing lines. No text.
 
-Variation lines to append per chapter, keeping the same octagon and eye: *Weight: the rings are thick and stacked like strata, the body sits lower and heavier.* · *Ground: thin root-like lines grow from the bottom edge of the octagon.* · *Echo: the outline is doubled, a faint offset copy trailing behind it.*
+Variation lines to append per chapter, keeping the same octagon and eye: *Weight: the rings are thick and stacked like strata, the body sits lower and heavier.* · *Ground: thin root-like lines grow from the bottom edge of the octagon.* · *Echo: the outline is doubled, a faint offset copy trailing behind it.* · *Fracture: a clean diagonal crack runs through the octagon, the halves slightly offset.* · *Momentum: the rings spin fast, with motion arcs; small sparks where they meet the outline.* · *Bond: two smaller octagons joined by a thin line, mirrored.* · *Mastery: every earlier variation layered faintly at once; the eye is brighter.*
 
 ## Tips
 

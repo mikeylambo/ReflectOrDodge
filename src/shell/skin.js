@@ -8,9 +8,13 @@ import ch1 from '../assets/title-cards/ch1.webp';
 import ch2 from '../assets/title-cards/ch2.webp';
 import ch3 from '../assets/title-cards/ch3.webp';
 import ch4 from '../assets/title-cards/ch4.webp';
+import ch5 from '../assets/title-cards/ch5.webp';
+import ch6 from '../assets/title-cards/ch6.webp';
+import ch7 from '../assets/title-cards/ch7.webp';
+import ch8 from '../assets/title-cards/ch8.webp';
 
 // painted chapter cards (docs/art-ref/title-card-ch*.jpg); menu only, never behind play
-const CARD_ART = { 1: ch1, 2: ch2, 3: ch3, 4: ch4 };
+const CARD_ART = { 1: ch1, 2: ch2, 3: ch3, 4: ch4, 5: ch5, 6: ch6, 7: ch7, 8: ch8 };
 
 const svg = (body, cls = 'rd-ic') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
 const S = 'fill="none" stroke="currentColor" stroke-width="1.7"';

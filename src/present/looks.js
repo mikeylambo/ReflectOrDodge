@@ -7,13 +7,86 @@ import { ROOM, SEED, CHARGE, TWIN, TIMESTEP } from '../../config/tunables.js';
 const T = ROOM.TILE;
 const LIFE_F = Math.round(SEED.LIFE * TIMESTEP.HZ);
 
-// Examiner body — the Orrery (option B, docs/ART.md: Examiner). A faint
-// dashed outline marks the solid block; inside, three gimbal rings precess around
-// the eye, back halves dim and front halves bright so they read in depth. One
-// node per core rides the outer ring, gold while that core holds and dark
-// once it breaks; the rings turn faster as the Examiner loses. The eye
-// follows you. view: { look, collapse, time, cores: { n, broken } }
+// Examiner body — the Orrery (option B, docs/ART.md: Examiner). No box: the
+// rings span the solid block; three gimbal rings precess around the eye, back
+// halves dim and front halves bright so they read in depth. One node per core
+// rides the outer ring, gold while that core holds and dark once it breaks;
+// the rings turn faster as the Examiner loses. The eye follows you.
+// Each chapter varies it (theme.chapter, docs/ART-PROMPTS.md § Examiner):
+//   2 Weight: thick rings stacked flat like strata · 3 Ground: roots hang from it
+//   4 Echo: a faint copy trails behind · 5 Fracture: cracked, the halves apart
+//   6 Momentum: fast rings with spark trails · 7 Bond: two linked orreries, mirrored
+//   8 Mastery: every variation, faintly at once
+// view: { look, collapse, time, cores: { n, broken } }
 const TAU = Math.PI * 2;
+const PINK_DIM = 'rgba(255,143,216,0.3)';
+
+// One orrery (rings + eye) in a w×h box centred on cx, cy. Returns its outer ring.
+function orrery(ctx, cx, cy, w, h, o) {
+  const { spin, lx, ly, hurt, E, fade, flat = false, thick = 1, trail = false, mirror = 1, eye = true } = o;
+  const L = h / 2 + 10; // a tilted ring reaches at most 10 px above and below the housing
+  const spec = flat
+    ? [[w * 0.48, h * 0.12, 0, 4.5, 0.6, -h * 0.22], [w * 0.4, h * 0.1, 0, 4, -0.8, 0], [w * 0.32, h * 0.09, 0, 3.5, 1.1, h * 0.22]]
+    : [[w * 0.48, h * 0.22, 0, 3, 0.6, 0], [w * 0.36, h * 0.3, 0.5, 2.5, -0.8, 0], [w * 0.26, h * 0.36, -0.9, 2, 1.1, 0]];
+  const rings = spec.map(([rx0, ry0, rot0, lw, sp, dy], i) => {
+    const ry = ry0 * (0.75 + 0.25 * Math.sin(spin * sp + i)), rot = mirror * (rot0 + Math.sin(spin * sp * 0.5 + i * 2) * (flat ? 0.03 : 0.12));
+    const sn = Math.abs(Math.sin(rot)), cs = Math.cos(rot);
+    const rx = sn > 0.01 ? Math.min(rx0, Math.sqrt(Math.max(0, L * L - ry * ry * cs * cs)) / sn) : rx0;
+    return { rx, ry, rot, lw: lw * thick, dy, sp };
+  });
+  const half = (r, front) => {
+    ctx.lineWidth = r.lw;
+    ctx.strokeStyle = front ? E : PINK_DIM;
+    ctx.shadowColor = E; ctx.shadowBlur = front ? 8 + hurt * 6 : 0;
+    ctx.beginPath(); ctx.ellipse(cx, cy + r.dy, r.rx, r.ry, r.rot, front ? 0 : Math.PI, front ? Math.PI : TAU); ctx.stroke();
+    ctx.shadowBlur = 0;
+    if (front && trail) { // Momentum: a fading arc behind each ring's leading edge, and a spark at its tip
+      const a0 = (spin * r.sp * 3) % TAU;
+      for (let k = 0; k < 4; k++) {
+        ctx.globalAlpha = fade * (0.5 - k * 0.11); ctx.lineWidth = r.lw * (1 - k * 0.18);
+        ctx.beginPath(); ctx.ellipse(cx, cy + r.dy, r.rx + 5 + k * 3, r.ry + 3 + k * 2, r.rot, a0 - 0.5 - k * 0.12, a0 - k * 0.12); ctx.stroke();
+      }
+      ctx.globalAlpha = fade;
+      const px = cx + Math.cos(a0) * (r.rx + 5) * Math.cos(r.rot) - Math.sin(a0) * (r.ry + 3) * Math.sin(r.rot);
+      const py = cy + r.dy + Math.cos(a0) * (r.rx + 5) * Math.sin(r.rot) + Math.sin(a0) * (r.ry + 3) * Math.cos(r.rot);
+      ctx.fillStyle = '#fff3c4'; ctx.shadowColor = '#ffd36b'; ctx.shadowBlur = 8;
+      ctx.beginPath(); ctx.arc(px, py, 1.8, 0, TAU); ctx.fill(); ctx.shadowBlur = 0;
+    }
+  };
+  for (const r of rings) half(r, false);
+  if (eye) drawEye(ctx, cx, cy, w, h, o);
+  for (const r of rings) half(r, true);
+  return rings[0];
+}
+
+function drawEye(ctx, cx, cy, w, h, { lx, ly, hurt, E }) {
+  const er = Math.min(w, h) * 0.13;
+  const ex = cx + lx * er * 0.5, ey = cy + ly * er * 0.5;
+  const halo = ctx.createRadialGradient(ex, ey, 0, ex, ey, er * 2.6);
+  halo.addColorStop(0, E); halo.addColorStop(0.4, 'rgba(255,143,216,0.35)'); halo.addColorStop(1, 'rgba(255,143,216,0)');
+  ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(ex, ey, er * 2.6, 0, TAU); ctx.fill();
+  ctx.shadowColor = E; ctx.shadowBlur = 16 + hurt * 10;
+  ctx.fillStyle = '#ffd9f1'; ctx.beginPath(); ctx.arc(ex, ey, er, 0, TAU); ctx.fill();
+  ctx.shadowBlur = 0;
+  const ga = ctx.globalAlpha;
+  ctx.fillStyle = '#ffffff'; ctx.globalAlpha = ga * 0.85;
+  ctx.beginPath(); ctx.arc(ex - er * 0.3, ey - er * 0.35, er * 0.22, 0, TAU); ctx.fill();
+  ctx.globalAlpha = ga;
+}
+
+// Ground: thin roots hanging from the underside, swaying a little
+function roots(ctx, x, y, w, E, t, a) {
+  ctx.save();
+  ctx.strokeStyle = E; ctx.lineWidth = 1; ctx.globalAlpha *= a;
+  for (let i = 0; i < 7; i++) {
+    const rx = x + w * (0.14 + i * 0.12), len = 16 + ((i * 37) % 5) * 5, sw = Math.sin(t * 0.8 + i) * 4;
+    ctx.beginPath(); ctx.moveTo(rx, y);
+    ctx.bezierCurveTo(rx + sw, y + len * 0.4, rx - sw, y + len * 0.7, rx + sw * 0.5, y + len); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rx + sw * 0.2, y + len * 0.5); ctx.lineTo(rx + sw * 0.2 + (i % 2 ? 6 : -6), y + len * 0.75); ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function body(ctx, s, theme, view = {}) {
   const x = s.tx * T, y = s.ty * T, w = s.w * T, h = s.h * T;
   const cx = x + w / 2, cy = y + h / 2;
@@ -22,7 +95,8 @@ function body(ctx, s, theme, view = {}) {
   const hurt = cores.n ? cores.broken / cores.n : 0;
   const fade = view.collapse ? Math.max(0, 1 - view.collapse) : 1;
   const E = theme.examiner;
-  const spin = t * (0.5 + hurt * 1.4);
+  const ch = theme.chapter || 1;
+  const spin = t * (0.5 + hurt * 1.4) * (ch === 6 ? 2.2 : 1);
   let lx = 0, ly = 0;
   if (view.look) {
     const dx = view.look[0] - cx, dy = view.look[1] - cy, d = Math.hypot(dx, dy) || 1;
@@ -36,48 +110,52 @@ function body(ctx, s, theme, view = {}) {
   ctx.beginPath(); ctx.moveTo(cx, y - 34); ctx.lineTo(cx, y - 6); ctx.moveTo(cx, y + h + 6); ctx.lineTo(cx, y + h + 34); ctx.stroke();
   ctx.setLineDash([]); ctx.globalAlpha = fade * 0.6;
   for (const ny of [y - 34, y + h + 34]) { ctx.beginPath(); ctx.arc(cx, ny, 2, 0, TAU); ctx.fill(); }
-  // the solid block: no fill (the room shows through), only a faint dashed outline
   ctx.globalAlpha = fade;
-  ctx.beginPath(); ctx.roundRect(x, y, w, h, 18);
-  ctx.strokeStyle = E; ctx.globalAlpha = fade * 0.5; ctx.lineWidth = 1.2; ctx.setLineDash([4, 5]); ctx.stroke(); ctx.setLineDash([]);
-  ctx.globalAlpha = fade;
-  // rings: [rx, ry, base tilt, width, precession speed]
-  // A tilted ring is narrowed so it reaches at most 10 px above and below the
-  // housing: the rings never cross the cores or suggest a bigger solid.
-  const L = h / 2 + 10;
-  const rings = [[w * 0.48, h * 0.22, 0, 3, 0.6], [w * 0.36, h * 0.3, 0.5, 2.5, -0.8], [w * 0.26, h * 0.36, -0.9, 2, 1.1]].map(([rx0, ry0, rot0, lw, sp], i) => {
-    const ry = ry0 * (0.75 + 0.25 * Math.sin(spin * sp + i)), rot = rot0 + Math.sin(spin * sp * 0.5 + i * 2) * 0.12;
-    const sn = Math.abs(Math.sin(rot)), cs = Math.cos(rot);
-    const rx = sn > 0.01 ? Math.min(rx0, Math.sqrt(Math.max(0, L * L - ry * ry * cs * cs)) / sn) : rx0;
-    return { rx, ry, rot, lw };
-  });
-  const half = (r, front) => {
-    ctx.lineWidth = r.lw;
-    ctx.strokeStyle = front ? E : 'rgba(255,143,216,0.3)';
-    ctx.shadowColor = E; ctx.shadowBlur = front ? 8 + hurt * 6 : 0;
-    ctx.beginPath(); ctx.ellipse(cx, cy, r.rx, r.ry, r.rot, front ? 0 : Math.PI, front ? Math.PI : TAU); ctx.stroke();
-    ctx.shadowBlur = 0;
-  };
-  for (const r of rings) half(r, false);
-  // the eye
-  const er = Math.min(w, h) * 0.13;
-  const ex = cx + lx * er * 0.5, ey = cy + ly * er * 0.5;
-  const halo = ctx.createRadialGradient(ex, ey, 0, ex, ey, er * 2.6);
-  halo.addColorStop(0, E); halo.addColorStop(0.4, 'rgba(255,143,216,0.35)'); halo.addColorStop(1, 'rgba(255,143,216,0)');
-  ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(ex, ey, er * 2.6, 0, TAU); ctx.fill();
-  ctx.shadowColor = E; ctx.shadowBlur = 16 + hurt * 10;
-  ctx.fillStyle = '#ffd9f1'; ctx.beginPath(); ctx.arc(ex, ey, er, 0, TAU); ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = '#ffffff'; ctx.globalAlpha = fade * 0.85;
-  ctx.beginPath(); ctx.arc(ex - er * 0.3, ey - er * 0.35, er * 0.22, 0, TAU); ctx.fill();
-  ctx.globalAlpha = fade;
-  for (const r of rings) half(r, true);
+  const base = { spin, lx, ly, hurt, E, fade };
+  if (ch === 3 || ch === 8) roots(ctx, x, y + h - 4, w, E, t, ch === 8 ? 0.35 : 0.6);
+  if (ch === 4 || ch === 8) { // the echo: a faint copy, lagging and offset
+    ctx.globalAlpha = fade * (ch === 8 ? 0.16 : 0.26);
+    orrery(ctx, cx + 10, cy + 6, w, h, { ...base, spin: spin - 0.6, lx: 0, ly: 0 });
+    ctx.globalAlpha = fade;
+  }
+  let outer;
+  if (ch === 7) { // two orreries, mirrored, joined at the centre
+    const sw = w * 0.5;
+    ctx.save(); ctx.strokeStyle = E; ctx.lineWidth = 1.4; ctx.shadowColor = E; ctx.shadowBlur = 6; ctx.globalAlpha = fade * 0.7;
+    ctx.beginPath(); ctx.moveTo(cx - sw * 0.5 + 10, cy); ctx.lineTo(cx + sw * 0.5 - 10, cy); ctx.stroke(); ctx.restore();
+    orrery(ctx, cx - sw * 0.5, cy, sw * 0.98, h * 0.9, base);
+    outer = orrery(ctx, cx + sw * 0.5, cy, sw * 0.98, h * 0.9, { ...base, mirror: -1 });
+    outer = { ...outer, cx: cx + sw * 0.5, rx: outer.rx, both: [cx - sw * 0.5, cx + sw * 0.5] };
+  } else if (ch === 5) { // cracked along a diagonal, the halves pushed apart
+    const a = -0.5, nx = -Math.sin(a), ny = Math.cos(a), off = 7;
+    for (const side of [-1, 1]) {
+      ctx.save();
+      const Lc = w, dx = Math.cos(a) * Lc, dy = Math.sin(a) * Lc;
+      ctx.beginPath(); ctx.moveTo(cx - dx, cy - dy); ctx.lineTo(cx + dx, cy + dy); ctx.lineTo(cx + dx + side * nx * Lc, cy + dy + side * ny * Lc); ctx.lineTo(cx - dx + side * nx * Lc, cy - dy + side * ny * Lc); ctx.closePath(); ctx.clip();
+      ctx.translate(side * nx * off, side * ny * off);
+      outer = orrery(ctx, cx, cy, w, h, { ...base, eye: false });
+      ctx.restore();
+    }
+    drawEye(ctx, cx, cy, w, h, base); // the eye stays whole
+    ctx.save(); ctx.strokeStyle = '#ffd9f1'; ctx.lineWidth = 1.2; ctx.shadowColor = E; ctx.shadowBlur = 10; ctx.globalAlpha = fade * 0.8;
+    ctx.beginPath(); ctx.moveTo(cx - Math.cos(a) * w * 0.28, cy - Math.sin(a) * w * 0.28);
+    for (let k = 1; k <= 6; k++) { const f = -0.28 + (k / 6) * 0.56, j = (k % 2 ? 4 : -4) * (k === 6 ? 0 : 1); ctx.lineTo(cx + Math.cos(a) * w * f + nx * j, cy + Math.sin(a) * w * f + ny * j); }
+    ctx.stroke(); ctx.restore();
+  } else {
+    outer = orrery(ctx, cx, cy, w, h, { ...base, flat: ch === 2, thick: ch === 2 ? 1.5 : 1, trail: ch === 6 });
+  }
+  if (ch === 8) { // mastery also carries the crack, faintly
+    ctx.save(); ctx.strokeStyle = '#ffd9f1'; ctx.lineWidth = 1; ctx.globalAlpha = fade * 0.25;
+    ctx.beginPath(); ctx.moveTo(cx - w * 0.3, cy + h * 0.16); ctx.lineTo(cx + w * 0.3, cy - h * 0.16); ctx.stroke(); ctx.restore();
+  }
   // nodes on the outer ring: one per core, gold while it holds
-  const o = rings[0];
+  const o = outer;
+  const centres = o.both || [cx];
   for (let k = 0; k < cores.n; k++) {
+    const ocx = centres[k % centres.length];
     const a = spin * 0.7 + (k * TAU) / cores.n;
-    const px = cx + Math.cos(a) * o.rx * Math.cos(o.rot) - Math.sin(a) * o.ry * Math.sin(o.rot);
-    const py = cy + Math.cos(a) * o.rx * Math.sin(o.rot) + Math.sin(a) * o.ry * Math.cos(o.rot);
+    const px = ocx + Math.cos(a) * o.rx * Math.cos(o.rot) - Math.sin(a) * o.ry * Math.sin(o.rot);
+    const py = cy + (o.dy || 0) + Math.cos(a) * o.rx * Math.sin(o.rot) + Math.sin(a) * o.ry * Math.cos(o.rot);
     const lit = k >= cores.broken;
     ctx.globalAlpha = fade * (lit ? (Math.sin(a) > 0 ? 1 : 0.55) : 0.4);
     ctx.fillStyle = lit ? theme.examinerCore : theme.examinerDim;
