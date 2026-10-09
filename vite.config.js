@@ -40,10 +40,28 @@ function levelsApi() {
   };
 }
 
+// The demo build (`--mode demo`) bundles only its own rooms: Prologue and
+// Chapter 1 with its mirrors and Examiner, so the full game's rooms never ship
+// in it. Done here, not in src/sim/levels.js, because src/sim/ keys the solver
+// cache (test/solve-cache.mjs) and any edit there makes CI re-solve every room.
+const ALL_ROOMS = "['../content/rooms/*.json', '!../content/rooms/index.json']";
+const DEMO_ROOMS = "['../content/rooms/p0-*.json', '../content/rooms/c1-*.json']";
+function demoRooms(mode) {
+  return {
+    name: 'demo-rooms',
+    enforce: 'pre', // before Vite expands import.meta.glob
+    transform(code, id) {
+      if (mode !== 'demo' || !id.endsWith('/src/sim/levels.js')) return null;
+      if (!code.includes(ALL_ROOMS)) throw new Error('demo-rooms: the rooms glob in src/sim/levels.js changed; update vite.config.js');
+      return code.replace(ALL_ROOMS, DEMO_ROOMS);
+    },
+  };
+}
+
 // base './' so the bundle works from file:// wrappers and itch subpaths.
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: './',
   resolve: { alias: { '@slu/web-shell': fileURLToPath(new URL('./vendor/web-shell', import.meta.url)) } },
   server: { host: true },
-  plugins: [levelsApi()],
-});
+  plugins: [levelsApi(), demoRooms(mode)],
+}));
