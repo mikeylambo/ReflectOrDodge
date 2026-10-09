@@ -116,7 +116,7 @@ export async function runBrowser(nodeHashes, hash) {
     await page.keyboard.press('Escape');
     await page.waitForTimeout(250);
     await page.click('[data-choice-id="assists"]');
-    await page.waitForTimeout(150);
+    await page.waitForTimeout(250); // past the 180 ms guard on a freshly opened screen
     check(await screen() === 'assists', 'pause → assists screen');
     await page.click('[data-choice-id="preview"]');
     await page.click('[data-choice-id="speed"]');
