@@ -27,7 +27,7 @@ import { createPostFX } from '../present/postfx.js';
 import { chapterTheme } from '../present/theme.js';
 import { FONT, f, wordmarkSVG } from '../present/brand.js';
 import { decorate, SKIN_CSS, ICON, MEDAL_ICON } from './skin.js';
-import { ROOMS, ROOM_BY_ID, CHAPTERS } from '../sim/levels.js';
+import { ROOMS, ROOM_BY_ID, CHAPTERS, DEMO } from '../sim/levels.js';
 import { compileRoom } from '../sim/room.js';
 import { runLog } from '../sim/world.js';
 import { decodeLog, BTN } from '../sim/input.js';
@@ -417,7 +417,7 @@ export async function startApp(canvas, ctx) {
       save.save();
       syncAchievements();
       // the final Examiner: the one line, then the credits (GDD: Narrative, Credits)
-      if (encounter.ci === CHAPTERS.length - 1) { showEnding(encounter.ci); return; }
+      if (!DEMO && encounter.ci === CHAPTERS.length - 1) { showEnding(encounter.ci); return; } // the demo stops at Chapter 1
       showExaminerResults(encounter.ci);
       return;
     }
